@@ -1,0 +1,25 @@
+project:
+  type: book
+
+book:
+  title: "Introduction to Time Series Analysis"
+  author:
+    - "Tan Yan Shuo"
+    - "Vik Gopal"
+  date: "12/30/2023"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - decomposition.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
+
+
+

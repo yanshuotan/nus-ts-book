@@ -1,0 +1,3 @@
+# Preface {.unnumbered}
+
+This book draft is meant to be used as a textbook for time series analysis courses provided by the Department of Statistics and Data Science at the National University of Singapore. Please direct any questions to [Yan Shuo Tan](mailto:yanshuo@nus.edu.sg).

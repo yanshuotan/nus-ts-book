@@ -1,0 +1,4 @@
+- source: project
+  quarto-pub:
+    - id: dab0aaa5-36ac-4bf5-8f3d-20a818ee1f72
+      url: 'https://yanshuo.quarto.pub/nus-ts-book'

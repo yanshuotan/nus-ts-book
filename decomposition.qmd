@@ -1,0 +1,3 @@
+# Time Series Decomposition
+
+Time series can be decomposed into trend, seasonality and residual components.

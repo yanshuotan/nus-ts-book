@@ -1,3 +1,33 @@
-# Introduction
+# What is Time Series Analysis?
 
-Time series is fun!
+## What is time series data?
+
+In supervised learning or supervised learning, we work with datasets in which each row is a measurement of a *different* unit.
+These could be images of handwritten digits, physical measurements of different plants belonging to the same species, or information about people collected via census.
+Here, it is reasonable to assume that the rows are independent and identically distributed (i.i.d.) draws from a population.
+Indeed, the success of the familiar machine learning pipeline, including sample splitting, model fitting, hyperparameter optimization, and model evaluation, hinges on the validity of this assumption.
+
+
+Unfortunately, as we will see in the [examples](intro.qmd#sec-examples-tsdata) below, many datasets of interest do not follow this format.
+Instead, their rows may comprise measurements of the *same* unit (person, company, country, etc.), made at different points in time.
+This measurement structure introduces dependencies between the rows, thereby violating the critical i.i.d. assumption (see Figure @fig-tsdata.)
+Over the last century, statisticians, mathematicians, economists, engineers, computer scientists, and researchers in other fields, have studied how to overcome the difficulties of working with dependent data points and to exploit the opportunities offered by such structure.
+
+*Time series analysis* is the name of the subfield studying such data under the further assumption that *the measurements are made at regularly-spaced intervals*.
+With time as the row index, each column in such a dataset is called a *time series*.
+A dataset comprising possibly multiple time series is called *time series data*.
+
+![Time series data contain dependencies across rows.](images/time-series-data.svg){#fig-tsdata}
+
+
+## Examples of time series {#sec-examples-tsdata}
+
+
+
+
+
+## The goals of time series analysis
+
+## Related problems*
+
+

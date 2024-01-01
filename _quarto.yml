@@ -4,14 +4,17 @@ project:
 book:
   title: "Introduction to Time Series Analysis"
   author:
-    - "Tan Yan Shuo"
+    - "Yanshuo Tan"
     - "Vik Gopal"
   date: "12/30/2023"
   chapters:
     - index.qmd
     - intro.qmd
+    - eda.qmd
     - decomposition.qmd
     - references.qmd
+  appendices:
+    - rbackground.qmd
 
 bibliography: references.bib
 

@@ -10,7 +10,7 @@ Indeed, the success of the familiar machine learning pipeline, including sample 
 
 Unfortunately, as we will see in the [examples](intro.qmd#sec-examples-tsdata) below, many datasets of interest do not follow this format.
 Instead, their rows may comprise measurements of the *same* unit (person, company, country, etc.), made at different points in time.
-This measurement structure introduces dependencies between the rows, thereby violating the critical i.i.d. assumption (see Figure @fig-tsdata.)
+This measurement structure introduces dependencies between the rows, thereby violating the critical i.i.d. assumption (see @fig-tsdata.)
 Over the last century, statisticians, mathematicians, economists, engineers, computer scientists, and researchers in other fields, have studied how to overcome the difficulties of working with dependent data points and to exploit the opportunities offered by such structure.
 
 *Time series analysis* is the name of the subfield studying such data under the further assumption that *the measurements are made at regularly-spaced intervals*.
@@ -22,12 +22,249 @@ A dataset comprising possibly multiple time series is called *time series data*.
 
 ## Examples of time series {#sec-examples-tsdata}
 
+Time series data is truly ubiquitous and appears across disparate domains.
+To give the reader a sense of this ubiquity, we will list a few examples in this section.
 
+```{r}
+#| echo: FALSE
+#| output: FALSE
 
+library(tidyverse)
+library(fpp3)
+library(astsa)
+library(gridExtra)
 
+DATA_DIR <- "datasets/"
+```
+
+### Finance
+
+In finance, various types of time series data are commonly analyzed to gain insights into market behavior, assess risk, and make informed investment decisions. 
+Examples include the prices of stocks and derivatives, trading volumes, and exchange rates.
+The two plots in this section show the price and trading volume of Google's stock, measured daily, over a five year period from 2 Jan 2019 to 1 Jan 2024. [^1]
+
+[^1]: Data was obtained from https://finance.yahoo.com/quote/GOOG/.
+
+```{r}
+#| label: fig-intro-goog-price
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Daily closing value for Google stock.
+
+goog <- read_csv(str_c(DATA_DIR, "GOOG.csv"))
+goog |> 
+  as_tsibble() |>
+  autoplot(Close) + 
+  ylab("USD")
+```
+
+```{r}
+#| label: fig-intro-goog-vol
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Daily trading volume for Google stock.
+
+goog |> 
+  as_tsibble() |>
+  autoplot(Volume)
+```
+
+### Economics and other social sciences
+
+To diagnose the health of the economy and to guide policymakers in making appropriate economic policies, economists keep track of economic indicators such as the Gross Domestic Product (GDP), Consumer Price Index (CPI), unemployment rates, foreign direct investment, and interest rates. The following figure plots the consumer price index for several categories of goods in Singapore, measured quarterly, between 1960 and 2020. 2019 is used as the base year. [^2]
+
+[^2]: Data was obtained from https://tablebuilder.singstat.gov.sg/table/TS/M212881.
+
+```{r}
+#| label: fig-intro-cpi
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| cache: TRUE
+#| fig-cap: Consumer price index (CPI) in Singapore for several categories of goods, measured quarterly, between 1960 and 2020.
+
+sgcpi <- read_csv(str_c(DATA_DIR, "sg-cpi.csv"), skip = 10, n_max = 152)
+col_names <- sgcpi$`Data Series`
+time_index <- colnames(sgcpi)[-1]
+sgcpi <- sgcpi |> 
+  select(-`Data Series`) |>
+  t() |>
+  as_tibble(cols())
+colnames(sgcpi) <- col_names
+selected_cols <- c("All Items", "Food", "Clothing & Footwear", "Health Care", "Transport", "Education")
+sgcpi <- sgcpi |> 
+  select(all_of(selected_cols)) |>
+  mutate_all(as.double) |>
+  mutate(Month = yearmonth(time_index))
+sgcpi <- sgcpi |> 
+  as_tsibble() |>
+  pivot_longer(cols = all_of(selected_cols), names_to = c("Type"))
+
+sgcpi |> autoplot() + ylab("CPI")
+
+```
+
+Time series data is also important and prevalent in other social sciences, for instance population dynamics, education outcomes, political opinion polls, crime rates, and cultural trends.
+
+### Business
+
+Businesses increasingly collect various streams of data either deliberately or as a by-product of their daily operations. These can then be used to make informed business decisions and to improve busines efficiency, such as through better inventory management. 
+Examples of data streams include sales data, website traffic, user engagement, and quality control metrics.
+
+Two such time series are plotted in the next two figures.
+In @fig-intro-diabetes, we plot the sales numbers for antidabetic drugs in Australia, per month, between 1991 and 2008.
+In @fig-intro-ansett, we plot the weekly number of economy class passengers on Ansett airlines between Melbourne and Sydney between 1987 and 1992. [^3]
+
+[^3]: Data was obtained from the `fpp3` package associated with the textbook Hyndman, Rob J., and George Athanasopoulos. Forecasting: principles and practice. OTexts, 2018.
+
+```{r}
+#| label: fig-intro-diabetes
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Sales numbers for antidabetic drugs in Australia.
+
+a10 <- PBS |>
+  filter(ATC2 == "A10") |>
+  select(Month, Concession, Type, Cost) |>
+  summarise(TotalC = sum(Cost)) |>
+  mutate(Cost = TotalC / 1e6)
+
+autoplot(a10, Cost) +
+  labs(y = "$ (millions)")
+```
+
+```{r}
+#| label: fig-intro-ansett
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Weekly number of economy class passengers on Ansett airlines between Melbourne and Sydney.
+
+melsyd_economy <- ansett |>
+  filter(Airports == "MEL-SYD", Class == "Economy") |>
+  mutate(Passengers = Passengers/1000)
+autoplot(melsyd_economy, Passengers) +
+  labs(y = "Passengers ('000)")
+```
+
+### Environmental sciences
+
+Climate change means that understanding the environment has never been more important.
+In environmental sciences, time series data are crucial to monitoring and understanding changes in environmental conditions, assessing the impact of human activities, and making informed decisions about environmental management.
+Such data include climactic measurements (temperature, precipitation, etc.), air quality, water quality, and biodiversity monitoring.
+In @fig-intro-globtemp, we plot the global yearly mean land–ocean temperature from 1880 to 2015, measured as deviations, in degrees Celsius, from the 1951-1980 average. [^4]
+In @fig-intro-pm25, we plot PM2.5 concentration levels in Beijing, measured hourly, in 2011. [^5]
+
+[^4]: Data was obtained from the `astsa` package associated with the textbook Shumway, Robert H., David S. Stoffer, and David S. Stoffer. Time series analysis and its applications. Vol. 3. New York: Springer, 2000.
+
+[^5]: Data was obtained from https://www.kaggle.com/datasets/djhavera/beijing-pm25-data-data-set.
+
+```{r}
+#| label: fig-intro-globtemp
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Global mean land–ocean temperature from 1880 to 2015, measured as deviations from the 1951-1980 average.
+
+globtemp |> 
+  as_tsibble() |> 
+  autoplot() +
+  labs(x = "Year", y = "Global Temperature Deviation (in Celsius)") 
+```
+
+```{r}
+#| label: fig-intro-pm25
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Hourly PM2.5 concentration levels in Beijing in 2011.
+
+beijing_pm25 <- read_csv(str_c(DATA_DIR, "beijing-pm25.csv"))
+beijing_pm25$Datetime <- as.POSIXct(paste(beijing_pm25$year, beijing_pm25$month, beijing_pm25$day, 
+                                          beijing_pm25$hour, sep = " "), format = "%Y %m %d %H")
+beijing_pm25 |> 
+  as_tsibble() |>
+  filter(year == 2011) |>
+  autoplot(`pm2.5`) +
+  ylab("PM2.5 (µg/m^-3)")
+```
+
+### Healthcare
+
+In 1901, [Willem Einthoven](https://en.wikipedia.org/wiki/Willem_Einthoven) invented the first practical electrocardiogram (ECG), which records the heart's electrical activity (measured in terms of voltage) over time.
+ECGs can be used to diagnose cardiac abnormalities.
+In @fig-intro-ecg, we show a portion of an ECG comprising a normal heartbeat (top), and a portion comprising an abnormal heartbeats. [^6]
+
+[^6]: Data was obtained from https://www.timeseriesclassification.com/description.php?Dataset=ECG5000.
+
+```{r}
+#| label: fig-intro-ecg
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: The ECG recordings of two heartbeats from the same patient. The top panel records a normal heartbeat, while the bottom panel records an abnormal heartbeat.
+
+ecg <- read_csv(str_c(DATA_DIR, "ecg.csv"))
+
+plt1 <- ecg[1,-1] |> t() |> drop() |> as_tibble() |> 
+  mutate(x = 1:140) |> ggplot() + geom_line(aes(x = x, y = value)) + labs(y = "", x = "")
+
+plt2 <- ecg[292,-1] |> t() |> drop() |> as_tibble() |> 
+  mutate(x = 1:140) |> ggplot() + geom_line(aes(x = x, y = value)) + labs(y = "", x = "")
+
+grid.arrange(plt1, plt2, nrow = 2)
+```
+
+More recently, the proliferation of sensors has led to the emergence of other time series data streams in healthcare data science.
+These include vital signs monitoring and data from wearable devices, and offer rich possibilities for innovations in patient diagnosis and treatment.
+
+### Physical sciences and engineering
+
+Time series data is also prevalent in the physical sciences and engineering, in particular, when analyzing dynamical systems.
+For instance, the Apollo Project in the 1960s required estimation of the trajectories of spacecraft from noisy measurements as they traveled to the moon and back.
+
+### Comparison with "white noise"
+
+Even without any knowledge of time series analysis, several observations immediately stand out from the examples above.
+First is the sheer heterogeneity of time series data---the plots look very different from each other!
+Secondly, despite these differences, it seems apparent that most plots are not *totally random*, and some time-based structure can be extracted from then.
+To illustrate this, contrast the shape of their plots with that of "white noise" in @fig-intro-whitenoise.
+White noise refers to a series of i.i.d. Gaussian measurements arranged in a sequence and thus has no structure at all.
+
+```{r}
+#| label: fig-intro-whitenoise
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: White noise.
+
+tibble(y = rnorm(200), x = 1:200) |> ggplot() + 
+    geom_line(aes(x = x, y = y)) +
+    labs(x = "", y = "")
+```
+
+The overriding problem of time series analysis, and statistics in general, is how to extract signal from noise.
+We elaborate on this in the next subsection.
 
 ## The goals of time series analysis
 
+In this section, we discuss several categories of goals researchers have when performing analysis of time series data.
+
+### Forecasting
+
+
+
+### Smoothing and filtering
+
+### Time series regression and adjustment
+
+### Classification
+
+
+
 ## Related problems*
 
-
+Not all datasets with a time element are considered time series data.

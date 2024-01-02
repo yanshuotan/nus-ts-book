@@ -1,2 +1,5 @@
 /.quarto/
 /_book/
+/intro_cache/
+/intro_files/
+.DS_Store

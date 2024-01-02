@@ -11,7 +11,7 @@ Indeed, the success of the familiar machine learning pipeline, including sample 
 Unfortunately, as we will see in the [examples](intro.qmd#sec-examples-tsdata) below, many datasets of interest do not follow this format.
 Instead, their rows may comprise measurements of the *same* unit (person, company, country, etc.), made at different points in time.
 This measurement structure introduces dependencies between the rows, thereby violating the critical i.i.d. assumption (see @fig-tsdata.)
-Over the last century, statisticians, mathematicians, economists, engineers, computer scientists, and researchers in other fields, have studied how to overcome the difficulties of working with dependent data points and to exploit the opportunities offered by such structure.
+Over the last century, statisticians, mathematicians, economists, engineers, computer scientists, and researchers in other fields have studied how to overcome the difficulties of working with dependent data points and to exploit the opportunities offered by such structure.
 
 *Time series analysis* is the name of the subfield studying such data under the further assumption that *the measurements are made at regularly-spaced intervals*.
 With time as the row index, each column in such a dataset is called a *time series*.
@@ -251,20 +251,36 @@ We elaborate on this in the next subsection.
 
 ## The goals of time series analysis
 
-In this section, we discuss several categories of goals researchers have when performing analysis of time series data.
+In this section, we will explore different categories of goals that researchers have when analyzing time series data.
 
 ### Forecasting
 
-
+One of the primary goals of time series analysis is forecasting. By analyzing historical data patterns, we can make predictions about future values. 
+For instance, investment companies make profits based on their ability to forecast stock prices and volatility.
+Being able to forecast global mean temperature accurately allows scientists to more powerfully advocate for policies to mitigate climate change.
+On a shorter time scale, forecasting weather patterns allows us to plan our daily activities more effectively.
+Forecasting techniques range from simple methods like moving averages to more advanced models like ARIMA (AutoRegressive Integrated Moving Average) or machine learning algorithms.
 
 ### Smoothing and filtering
 
+Smoothing and filtering techniques are used to remove noise and extract underlying trends or patterns from time series data. These techniques help to reduce the impact of random fluctuations and highlight the long-term behavior of the data. 
+For instance, during the Apollo Project in the 1960s, measurements obtained from spacecraft sensors were often noisy and subject to various disturbances. To extract the true position information from the noisy measurements, filtering techniques were employed.
+Methods used for smoothing and filtering have a large overlap with those used for forecasting.
+
 ### Time series regression and adjustment
+
+Time series regression involves modeling the relationship between a dependent variable and one or more independent variables, taking into account the time component. This allows us to analyze how the dependent variable changes over time and understand the impact of the independent variables on the time series. 
+For instance, we might want to understand the effect of climactic factors on air pollution.
+Performing such a regression also allows to understand the impact of human intervention on air pollution by adjusting for different climactic conditions across different years.
 
 ### Classification
 
-
+Being able to tell the difference between the ECG of a normal heartbeat and an abnormal hearbeat allows us to diagnose cardiac abnormalities.
+More generally, in time series classification, we are given a collection of time series, where each time series is given a class label.
+The goal is to train a model to predict the label of unseen time series drawn from the same distribution.
+This is the same set-up as a regular classification problem, but the fact that each data point is a time series allows us to engineer time series features that may be much more predictive that the raw measurements.
 
 ## Related problems*
 
 Not all datasets with a time element are considered time series data.
+When measurements are taken continuously, or at irregularly spaced time intervals, then such data is more properly the domain of *functional data analysis*.

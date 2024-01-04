@@ -13,8 +13,8 @@ book:
     - eda.qmd
     - decomposition.qmd
     - references.qmd
-  appendices:
-    - rbackground.qmd
+  # appendices:
+  #   - rbackground.qmd
 
 bibliography: references.bib
 

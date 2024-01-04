@@ -17,7 +17,7 @@ Over the last century, statisticians, mathematicians, economists, engineers, com
 With time as the row index, each column in such a dataset is called a *time series*.
 A dataset comprising possibly multiple time series is called *time series data*.
 
-![Time series data contain dependencies across rows.](images/time-series-data.svg){#fig-tsdata}
+![Time series data contain dependencies across rows.](images/time-series-data.png){#fig-tsdata}
 
 
 ## Examples of time series {#sec-examples-tsdata}

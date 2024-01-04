@@ -1,3 +1,218 @@
 # Wrangling and EDA With Time Series Data
 
+## Introduction
+
+One of the first few steps of any data analysis project is wrangling with data and performing exploratory analysis (EDA).
+The former involves cleaning and restructuring raw data into a more organized and usable form, while the latter comprises creating plots, graphs, summary statistics, and using them to guide further analysis.
+
+In this chapter, we cover the special characteristics of data wrangling and EDA for time series data.
+It will also double as an introduction to time series modeling packages in R and Python.
+As we will see in @sec-eda-packages, the software ecosystem for time series analysis in both R and Python is quite extensive.
+In this course, we will primarily make use of the `fpp3` package associated with the textbook @hyndman2018forecasting.
+
+```{r}
+#| message: TRUE
+#| warning: FALSE
+library(fpp3)
+# help(package="fpp3")
+```
+
+Running the above script, we see that loading `fpp3` automatically loads `tsibble`, `tsibbledata`, `feasts` and `fable`, along with several `tidyverse` packages.
+It also comes preloaded with a number of datasets that are useful for pedagogical purposes.
+
+## Tsibbles
+
+A time series comprises a series of measurements along with information about when those measurements were taken (the time index).
+The `tsibble` package implements a convenient data structure, the tsibble, for storing time series data.
+To illustrate how they work, we create a simple example as follows.
+
+```{r}
+#| message: TRUE
+#| warning: FALSE
+#| output: FALSE
+example1 <- tsibble(
+  year = 2015:2019,               # <1>
+  y = c(123, 39, 78, 52, 110),    # <2>
+  index = year                    # <3>
+)
+
+str(example1)
+# output:
+# tbl_ts [5 × 2] (S3: tbl_ts/tbl_df/tbl/data.frame)
+# ...
+```
+
+1.  Creates a vector of years.
+2.  `y` is the vector of values in the time series.
+3.  The index column refers back to the `year` column that was just created.
+
+Applying `str()` to the created object shows that it has class `tbl_ts` (tsibble). 
+It also shows that it also inherits from `tbl_df` (tibble) and base R `data.frame`.
+This means that all `dplyr` verbs (such as `filter`, `select`, and `mutate`) work as per normal.
+However, there are now 3 types of columns in a tsibble:
+
+1.  *Measurement* variables. Note that there could be more than one type of measurement at each time point.
+2.  The *index* variable: a **single** column denoting the time point of each measurement.
+3.  *Key* variables: a set of columns whose unique combinations define a single time series.
+
+We discuss the second and third types in more detail.
+
+### The index variable
+
+The index column is what introduces the temporal component of the data. 
+It is what associates the measurements in each row with a specific time point. 
+The time point should be from a time class in R. 
+The time points could correspond to yearly, monthly, weekly, daily and sub-daily intervals.
+Consider the examples below, noting that the annotation "[1Y]", "[1M]", etc. tells us the interval between observations of each time series.
+
+::: panel-tabset
+## Annual data
+
+```{r}
+aus_airpassengers
+```
+
+Total annual air passengers (in millions) including domestic and international
+aircraft passengers of air carriers registered in Australia.
+
+## Monthly data
+
+```{r}
+us_employment
+```
+
+US employment data from January 1939 to June 2019. Each 'Series_ID' represents different sectors of the economy.
+
+## Quarterly data
+
+```{r}
+aus_arrivals
+```
+
+Quarterly international arrivals to Australia from Japan, New Zealand, UK and
+the US. 1981Q1 - 2012Q3.
+
+## Weekly data
+
+```{r}
+us_gasoline
+```
+
+Million barrels per day, beginning Week 6, 1991, ending Week 3, 2017.
+:::
+
+The easiest way to create such a column is to use one of the convenience
+functions from the `lubridate` package in R.
+
+| Frequency | Function                   |
+|-----------|----------------------------|
+| Annual    | Use integers in R          |
+| Quarterly | `yearquarter()`            |
+| Monthly   | `yearmonth()`              |
+| Weekly    | `yearweek()`               |
+| Daily     | `as_date(),ymd()`          |
+| Sub-daily | `as_datetime(), ymd_hms()` |
+
+: lubridate functions for index column
+
+### Key variables
+
+A tsibble can store multiple time series in a single tsibble. 
+It makes sense to do this when the timepoints overlap, and we wish to compare and contrast different time series.
+Consider the dataset `us_employment`, containing US employment data from January 1939 to June 2019.
+
+```{r}
+#| message: TRUE
+#| warning: FALSE
+#| output: FALSE
+us_employment
+# Output:
+# A tsibble: 143,412 x 4 [1M]
+# # Key:       Series_ID [148]
+#       Month Series_ID     Title         Employed
+#       <mth> <chr>         <chr>            <dbl>
+```
+
+The printed output states that the tsibble's key is determined by a single column: `Series_ID`
+Inspecting the metadata by running `help(us_employment)` tells us that each 'Series_ID' represents different sectors of the economy.
+There can of course be multiple key columns, such as in `olympic_running`, which records the fastest running time for each Olympic event.
+
+```{r}
+#| message: TRUE
+#| warning: FALSE
+#| output: FALSE
+olympic_running
+# Output:
+# # A tsibble: 312 x 4 [4Y]
+# # Key:       Length, Sex [14]
+#     Year Length Sex    Time
+#    <int>  <int> <chr> <dbl>
+```
+
+The unique combinations of key columns is the number of time series in the
+tsibble.
+
+
+::: callout-note
+-   There could be multiple measurement columns and multiple key columns in a
+    tsibble.
+-   There could be columns that are neither measurement nor key columns in a
+    tsibble.
+-   There must be exactly one index column in a tsibble.
+:::
+
+### Creating tsibbles
+
+Time series data in the wild does not automatically occur as tsibbles.
+They are instead stored as csv files or in other formats, and hence have to be converted to tsibble format.
+The function `as_tsibble()` converts a tibble object into a tsibble.
+It takes two arguments, `index` and `key`, which are used to specify the index and key columns respectively.
+This often has to be preceded by several `dplyr` function calls on the tibble to make sure it has the appropriate format.
+For an example on how to do this, refer to [Chapter 2.1](https://otexts.com/fpp3/tsibbles.html) in @hyndman2018forecasting.
+
+## Time plots
+
+The time plot is the most natural first thing to do with a time series. 
+It plots the measurements on the y-axis, time on the x-axis and joins the points together with a line.
+We have already seen a number of time plots in the previous section.
+
+Generating a time plot from a tsibble is incredibly easy via `autoplot()`.
+
+```{r}
+#| fig-align: center
+#| fig-cap: Air transport passengers on Australian air carriers.
+#| label: fig-eda-timeplot
+aus_airpassengers |> 
+    autoplot(.vars = Passengers) + 
+    geom_point() + 
+    labs(y = "Passengers (millions)", 
+         x = "Year")
+```
+
+There is a general upward trend of passengers.
+There were two noticeable dips---one in 1989 and one in 2009 (what happened?).
+It is arguable that the trend appears piecewise linear, with a more positive gradient after 1990.
+
+When the tsibble contains multiple time series, `autoplot()` makes a line plot for each of them, i.e. the number of lines is the number of unique keys.
+This can easily lead to overplotting, so one is advised to first `filter` for only the most relevant keys before plotting. 
+
+## Common time series patterns
+
+In @sec-examples-tsdata, we saw a diverse range of time series behaviors, as illustrated by their time plots.
+There are nevertheless several patterns recur
+
+## Seasonal plots
+
+
+## Scatter plots
+
+## Lag plots
+
+## Summary statistics
+
 ## Where to find time series data
+
+
+## Package ecosystem {#sec-eda-packages}
+
+Both R and Python have 

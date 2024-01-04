@@ -3,3 +3,8 @@
 /intro_cache/
 /intro_files/
 .DS_Store
+*.pdf
+*.aux
+*.tex
+*.log
+*.toc

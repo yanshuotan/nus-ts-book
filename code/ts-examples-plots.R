@@ -38,4 +38,43 @@ sgcpi <- sgcpi |>
 
 sgcpi |> autoplot()
 
+beijing_pm25 <- read_csv(str_c(DATA_DIR, "beijing-pm25.csv"))
+beijing_pm25$Date <- as.POSIXct(paste(beijing_pm25$year, beijing_pm25$month, 
+                                      beijing_pm25$day, beijing_pm25$hour, sep = " "), 
+                                format = "%Y %m %d %H")
+beijing_pm25 |> 
+  as_tsibble() |>
+  filter(year == 2011) |>
+  autoplot(`pm2.5`) + labs(y = expression("Scatter Plot with " * LaTeX("Labels: \\alpha, \\beta, \\gamma")))
+
+globtemp |> 
+  as_tsibble() |> 
+  autoplot() +
+  labs(x = "Year", y = "Global Temperature Deviation (in Celsius)") 
+
+heartbeat <- read_table(str_c(DATA_DIR, "ECG5000/", "ECG5000_TRAIN.txt"))
+
+write_csv(heartbeat, "ecg.csv")
+
+heartbeat2 <- read_csv(str_c(DATA_DIR, "ECG5000/", "ecg.csv"))
+
+ecg <- read_csv(str_c(DATA_DIR, "ecg.csv"))
+
+plt1 <- ecg[1,-1] |> t() |> drop() |> as_tibble() |> 
+  mutate(x = 1:140) |> ggplot() + geom_line(aes(x = x, y = value)) + labs(y = "", x = "")
+
+plt2 <- ecg[292,-1] |> t() |> drop() |> as_tibble() |> 
+  mutate(x = 1:140) |> ggplot() + geom_line(aes(x = x, y = value)) + labs(y = "", x = "")
+
+grid.arrange(plt1, plt2, nrow = 2)
+
+tibble(y = rnorm(200), x = 1:200) |> ggplot() + geom_line(aes(x = x, y = y))
+
+
+example1 <- tsibble(
+  year = 2015:2019,               # <1>
+  y = c(123, 39, 78, 52, 110),    # <2>
+  index = year                    # <3>
+)
+str(example1)
 

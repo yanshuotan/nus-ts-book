@@ -8,3 +8,5 @@
 *.tex
 *.log
 *.toc
+/01-intro_cache/
+/01-intro_files/

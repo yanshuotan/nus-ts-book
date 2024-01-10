@@ -78,3 +78,27 @@ example1 <- tsibble(
 )
 str(example1)
 
+
+beijing_pm25 <- read_csv(str_c(DATA_DIR, "beijing-pm25.csv"))
+beijing_pm25$Datetime <- as.POSIXct(paste(beijing_pm25$year, beijing_pm25$month, beijing_pm25$day, 
+                                          beijing_pm25$hour, sep = " "), format = "%Y %m %d %H")
+beijing_pm25 <- beijing_pm25 |> 
+  as_tsibble()
+
+beijing_pm25 |> 
+  as_tsibble() |>
+  filter(year == 2011) |>
+  autoplot(`pm2.5`) +
+  ylab("PM2.5 (µg/m^-3)")
+
+beijing_pm25 |> 
+  filter(year == 2011) |>
+  summarise(any_index_na = any(is.na(Datetime)))
+
+
+PBS |>
+  filter(ATC2 == "A10") |>
+  select(Month, Concession, Type, Cost) |>
+  summarise(TotalC = sum(Cost)) |>
+  mutate(Cost = TotalC / 1e6) -> a10
+

@@ -1,0 +1,40 @@
+# Getting Started With Time Series Data
+
+## Part summary
+
+One of the goals of this textbook is to equip the reader with the most important practical skills for working with time series data as quickly as possible.
+As such, unlike most other textbooks, we defer discussion of the theoretical foundations of time series analysis to later.
+
+In the first part of this textbook, we instead cover the special characteristics of wrangling (@sec-wrangling) and visualizing (@sec-visualization) time series data.
+We then introduce data transformations, time series decomposition, summary statistics, and finally an introduction to forecasting.
+
+This part of the book will also double as an introduction to time series modeling packages in R and Python.
+In this course, we will primarily make use of the `fpp3` package associated with the textbook @hyndman2018forecasting.
+
+```{r}
+#| message: TRUE
+#| warning: FALSE
+library(fpp3)
+# help(package="fpp3")
+```
+
+Running the above script, we see that loading `fpp3` automatically loads `tsibble`, `tsibbledata`, `feasts` and `fable`, along with several `tidyverse` packages.
+It also comes preloaded with a number of datasets that are useful for pedagogical purposes.
+
+## Time series software ecosystem
+
+The software ecosystem for time series analysis in both R and Python is quite extensive.
+Base R already contains many relevant functions for time series analysis.
+A curated [list](https://cran.r-project.org/web/views/TimeSeries.html) of useful time series packages in R can be found via the relevant CRAN task view. [^1]
+
+In Python, the `statsmodels.tsa` package provides most of the basic time series analysis tools.
+`darts` is a more recent package that contains machine learning models and provides an `scikit-learn` compatible interface.
+
+[^1]: More generally, CRAN task views are a good first place to look whenever you would like to find a piece of R code to perform a common task.
+
+## Where to find time series data
+
+The packages `fpp3`, `tsibbledata`, `astsa` come preloaded with several time series datasets, which are discussed in @hyndman2018forecasting and in @shumway2000time.
+More datasets can be found on popular platforms such as Kaggle, https://paperswithcode.com/datasets, and https://forecastingdata.org/.
+Macroeconomic data for countries is often freely available.
+For instance, data on Singapore can be obtained from https://www.singstat.gov.sg/.

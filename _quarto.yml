@@ -9,12 +9,20 @@ book:
   date: "12/30/2023"
   chapters:
     - index.qmd
-    - intro.qmd
-    - eda.qmd
-    - decomposition.qmd
+    - 01-intro.qmd
+    - part: part1-eda.qmd
+      chapters:
+      - 02-tsibble.qmd
+      - 03-visualization.qmd
+      - 04-transformations.qmd
+      - 05-decomposition.qmd
+      - 06-summary_stats.qmd
+      - 07-intro_forecasting.qmd
+    - part: "Statistical Modeling of Time Series"
+    - part: "Advanced Topics"
     - references.qmd
-  # appendices:
-  #   - rbackground.qmd
+  appendices:
+    - rbackground.qmd
 
 bibliography: references.bib
 
@@ -23,6 +31,7 @@ format:
     theme: cosmo
   pdf:
     documentclass: scrreprt
+    code-annotations: false
 
-
-
+publish:
+  to: website

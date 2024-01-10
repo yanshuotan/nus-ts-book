@@ -1,0 +1,16 @@
+# Transformations
+
+## Log transformations
+
+
+## Box-Cox transformations
+
+## Lags
+
+## Differencing
+
+## Averaging / summing over time units
+
+## Moving average
+
+## Adjustments

@@ -1,0 +1,168 @@
+# Visualizations {#sec-visualization}
+
+Before performing modeling with data, one ought to first perform exploratory data analysis.
+A big part of this is creating helpful visualizations and using them to guide further analysis.
+In this section, we will learn how to create several types of plots.
+ 
+These plots can be used to identify patterns or characteristics of the time series data.
+For instance, we can identify whether the time series possesses one (or more) of the following patterns:
+
+1. Trend: A long term increase or decrease.
+2. Seasonality: A pattern that recurs at regularly spaced intervals.
+3. Cycles: Repeated rise and falls that do not occur at regular intervals. These are associated with certain types of autoregressive behavior, which we will discuss more rigorously in the part of the book.
+
+::: callout-note
+Understanding what patterns are present in the time series data can help to guide us in deciding what model to fit to the data, or to inspect models that have already been fit.
+:::
+
+Of course, identifying a given pattern as a trend, seasonality, or cycle is sometimes more heuristic than rigorous.
+It may also depend on the observed time scale.
+For instance, some of the initial debate about climate change was whether the observed increase in temperatures was part of a trend or a very long-term naturally-occuring cycle.
+
+As you follow along in this chapter, make sure the following packages are loaded:
+
+```{r}
+#| message: FALSE
+#| warning: FALSE
+#| echo: TRUE
+library(fpp3)
+library(tidyverse)
+library(gridExtra)
+```
+
+## Time plots
+
+The time plot is the most natural first thing to do with a time series. 
+It plots the measurements on the y-axis, time on the x-axis and joins the points together with a line.
+We have already seen a number of time plots in a [previous section](01-intro.qmd#sec-examples-tsdata).
+
+Generating a time plot from a tsibble is incredibly easy via `autoplot()`.
+
+```{r}
+#| fig-align: center
+#| fig-cap: Air transport passengers on Australian air carriers. 
+#| label: fig-visualization-aus-passengers
+aus_airpassengers |> 
+    autoplot(.vars = Passengers) + 
+    geom_point() + 
+    labs(y = "Passengers (millions)", 
+         x = "Year")
+```
+
+There is a general upward trend of passengers.
+There were two noticeable dips---one in 1989 and one in 2009 (what happened?).
+It is arguable that the trend appears piecewise linear, with a more positive gradient after 1990.
+
+When the tsibble contains multiple time series, `autoplot()` makes a line plot for each of them, i.e. the number of lines is the number of unique keys.
+This can easily lead to overplotting (see @fig-intro-cpi), so one is advised to first `filter` for only the most relevant keys before plotting.
+
+Let's look at another time plot, which shows the quarterly arrivals of tourists to Australia from Japan.
+
+```{r}
+#| label: fig-visualization-japarrivals
+#| fig-cap: "Quarterly Arrivals to Australia from Japan"
+#| fig-align: center
+
+aus_arrivals |> filter(Origin=="Japan") %>% 
+  autoplot(.vars=Arrivals)
+```
+
+There was a strong upward trend until around 1995. Since then the arrivals has been decreasing (Why?).
+There is a sharp dip in arrivals (compared to neigbouring quarters) in 2003 Q2.
+The seasonal effect is strong throughout, but it became more regular after 1995.
+
+Note how we have discussed the time plots in @fig-visualization-aus-passengers and @fig-visualization-japarrivals.
+Time plots are arguably most useful for detecting trends.
+While they can also be used to detect seasonality and cycles, these patterns can be made more apparent by other types of plots.
+
+## Seasonal plots
+
+We first introduce some terminology for talking about seasonality.
+The *period* of a seasonality is the number of time units before the pattern repeats itself. [^1]
+A *season* is a particular 
+
+[^1]: This is in analogy to the period of a sinusoidal function.
+
+A seasonal plot is similar to a time plot, except that we chop up the time series into periods, align these pieces, and plot them on the same axes.
+We now make such a plot for the the data on arrivals to Australia from Japan, first dividing the time series into the portion before the start of 1995 and the portion after it.
+
+```{r}
+#| label: fig-visualization-japarrivals-season
+#| fig-cap: "Quarterly Arrivals to Australia from Japan. The top panel shows arrivals up to 1994. The bottom panel shows arrivals thereafter."
+#| fig-align: center
+
+plt1 <- aus_arrivals |>
+    filter(Origin == "Japan", Quarter <= yearquarter("1995 Q4")) |>
+    gg_season(y = Arrivals, labels = "right") + 
+    lims(y=c(9000, 230000))
+
+plt2 <- aus_arrivals |>
+    filter(Origin == "Japan", Quarter > yearquarter("1995 Q4")) |>
+    gg_season(y = Arrivals, labels = "right") + 
+    lims(y=c(9000, 230000))
+
+grid.arrange(plt1, plt2, nrow = 2)
+```
+
+Notice that we did not have to tell `gg_season()` what the period of the seasonality was---it was automatically estimated from the data.
+This plot reveals the yearly seasonality more clearly, and shows that the pattern becomes more regular after 1995.
+Furthermore, the precise pattern becomes obvious.
+For instance, we can easily tell that the arrivals in Q2 is generally lower
+than the other quarters.
+Furthermore, we can pick out the trend more easily.
+Note that the year that each line corresponds to is indicated on the right of the line.
+In the top panel, lines correspond to earlier years as we go down the y-axis.
+In the bottom panel, going down corresponds to
+more recent years. This reflects the change in trend.
+
+Many time series have seasonalities of multiple periods.
+We can choose what period to use for `gg_season()` by setting the `period` argument, e.g. to "day", "week", or "year".
+For instance, consider the dataset `vic_elec`, which measures the half-hourly electricity demand for the state of Victoria in Australia.
+The seasonal plots corresponding to these periods are shown in [Chapter 2.4](https://otexts.com/fpp3/seasonal-plots.html) of @hyndman2018forecasting.
+
+## Seasonal subseries plots
+
+A seasonal subseries plot stratifies the data according to the season and then makes a separate time plot for each season. [^2]
+We again make a plot using the data on arrivals to Australia from Japan.
+
+[^2]: This is similar to using `facet_wrap()` in `ggplot()`.
+
+```{r}
+#| label: fig-visualization-japarrivals-subseries
+#| fig-cap: "Quarterly Arrivals to Australia from Japan"
+#| fig-align: center
+
+aus_arrivals |> filter(Origin == "Japan") %>% 
+  gg_subseries(y = Arrivals)
+```
+
+This plot shows the trend very clearly, as well as that it is relatively independent of the season.
+Note that the blue horizon line in each subplot shows the mean of the data for that quarter.
+
+## Scatter plots
+
+As described in the previous section, tsibbles can contain multiple time series.
+These can be because a key variable is present, or because the time series data is multivariate (i.e. measures multiple types of quantities across the same duration of time).
+When we want to study the relationships between multiple time series, we may use scatterplots, just like we would in studying the relationships between different features in non time series data.
+
+Let us make a pairs plot for the tourist arrivals to Australia from four different regions, contained in `aus_arrivals`.
+
+```{r}
+#| fig-align: center
+#| message: false
+#| out-width: 100%
+
+library(GGally)
+pivot_wider(aus_arrivals, names_from = "Origin", values_from="Arrivals") |> 
+  ggpairs(columns=2:5)
+```
+
+Each point in a plot on the lower diagonal is composed of readings from two time series at the same time point. 
+Note that the plots on the diagonal are density plots, not time plots.
+A scatterplot with a diagonal pattern suggests that the two time series are very similar. 
+We see something close to this in the UK-US pair, but much less in the JPN-NZ pair.
+
+The upper diagonal entries display Pearson correlations. Unsurprisingly, we can see that the strongest correlation is for the US-UK pair. 
+
+## Lag plots
+

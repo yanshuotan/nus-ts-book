@@ -60,7 +60,7 @@ Let's look at another time plot, which shows the quarterly arrivals of tourists 
 
 ```{r}
 #| label: fig-visualization-japarrivals
-#| fig-cap: "Quarterly Arrivals to Australia from Japan"
+#| fig-cap: "Quarterly arrivals to Australia from Japan"
 #| fig-align: center
 
 aus_arrivals |> filter(Origin=="Japan") %>% 
@@ -129,7 +129,7 @@ We again make a plot using the data on arrivals to Australia from Japan.
 
 ```{r}
 #| label: fig-visualization-japarrivals-subseries
-#| fig-cap: "Quarterly Arrivals to Australia from Japan"
+#| fig-cap: "Quarterly arrivals to Australia from Japan."
 #| fig-align: center
 
 aus_arrivals |> filter(Origin == "Japan") %>% 
@@ -150,7 +150,8 @@ Let us make a pairs plot for the tourist arrivals to Australia from four differe
 ```{r}
 #| fig-align: center
 #| message: false
-#| out-width: 100%
+#| fig-cap: "Relationships between quarterly arrivals to Japan from different countries."
+#| label: fig-visualization-japarrivals-scatter
 
 library(GGally)
 pivot_wider(aus_arrivals, names_from = "Origin", values_from="Arrivals") |> 
@@ -166,3 +167,31 @@ The upper diagonal entries display Pearson correlations. Unsurprisingly, we can 
 
 ## Lag plots
 
+Lag plots are scatter plots in which we plot the values of a time series against those of a time lagged version of itself, i.e. if we denote the time series values by $x_t$, we plot it against $x_{t-k}$ for some positive integer $k$.[^3]
+For instance, in @fig-visualization-japarrivals-lag we display the lag plot for the arrivals to Australia from Japan time series that we've been studied so far in this chapter.
+
+```{r}
+#| fig-align: center
+#| message: false
+#| fig-cap: "Relationships between quarterly arrivals to Japan from different countries."
+#| label: fig-visualization-japarrivals-lag
+
+aus_arrivals |> filter(Origin == "Japan") %>% 
+  gg_lag(y = Arrivals, geom = "point") + 
+  scale_x_continuous(labels = function(x) paste0(x / 1000, "k")) +
+  scale_y_continuous(labels = function(x) paste0(x / 1000, "k"))
+```
+
+The fact that the scatter plots are close to the diagonal indicates that there is very strong autocorrelation behavior (correlation between the time series and that of its lags).
+This correlation decays as we take longer and longer lags, but is stronger for lags 4 and 8, indicating yearly seasonality (recall that the time intervals are quarters).
+
+Lag plots are useful for teasing out cyclic patterns.
+Cyclic patterns occur when the time series values depend on the past values at previous time points (i.e. is autoregressive).
+This is distinct from trend and seasonality, which are patterns that depend on the time index.
+Linear autoregressive relationships are efficiently summarized by autocorrelation plots, which will be covered in a latter chapter.
+Lag plots are less concise than autocorrelation plots, but can demonstrate nonlinear relationships.
+
+`gg_lag()` has automatically colored coded the different quarters.
+Can you explain the differences between the patterns observed in different quarters? E.g. for lag 1, why do the Q3 points lie above the diagonal, and why do the Q2 points lie underneath it?
+
+[^3]: Lags are explained in further detailed in @sec-transformations.

@@ -1,16 +1,154 @@
-# Transformations
+# Transformations {#sec-transformations}
 
-## Log transformations
+```{r}
+#| message: FALSE
+#| warning: FALSE
+#| echo: FALSE
+library(fpp3)
+library(tidyverse)
+library(gridExtra)
+```
 
+Just like with data in supervised learning, we can perform transformations on time series data to make certain patterns more explicit or to facilitate modeling.
+In this chapter, we describe some of the most common transformations.
+We first introduce some notation, denoting a time series via
 
-## Box-Cox transformations
+$$
+x_1,x_2,x_3,\ldots
+$$
+
+More generally, we use $x_t$ to denote the value of the time series at time $t$.
+We let $y_t$ denote the value of the transformed time series.
+To denote entire the entire sequence of time series values, we put parentheses around the values, i.e. $(x_t)$ and $(y_t)$.
+More formally, we can regard transformations as mappings from a space of sequences to another space of sequences.
 
 ## Lags
 
+For any positive integer $k$, the $k$-th lag of a time series $(x_t)$ is defined by $y_t = x_{t-k}$.
+In other words, we shift the values of the time series $k$ units into the future.
+The lag for a time series (or any vector) is computed via `lag()`.
+When working with tsibble data, one may need to combine this with a mutate to generate new columns.
+
+```{r}
+#| message: FALSE
+#| output: FALSE
+aus_arrivals |> 
+    group_by(Origin) |> 
+    mutate(LaggedArrivals = lag(Arrivals)) |> 
+    ungroup()
+```
+
+Lag transformations are important for discussing autoregressive behavior of time series.
+Furthermore, when studying the relationships between multiple time series, the behavior of a given time series (e.g. the number of foxes at month $t$) may depend more strongly on the behavior of a lagged verison of the time series (e.g. the number of rabbits at month $t-1$) rather than on present values.
+
+Indeed, the lag transformation is so important that there is standard notation for how to denote it:
+We define the backshift operator $B$ as the mapping:
+$$
+B((x_t)) = (x_{t-1}).
+$$
+
+
 ## Differencing
 
-## Averaging / summing over time units
+The (first) difference of a time series is defined as $y_t = x_t - x_{t-1}$.
+Taking the first difference can be thought of as a *discrete version of differentiation*. [^1]
+This leads to natural interpretations of differenced series.
+If the original time series measures the distance of a person from a fixed position, then the differenced series measures their (discretized) velocity.
+More generally, the first difference has the units of a rate.
+Higher order differences can be computed by taking repeated first differences, and have an analogous interpretation as higher order derivatives.
+Differences of order greater than 2 are rarely appropriate for real datasets.
+One may also wish to compute seasonal differences, i.e. of the form $y_t = x_t - x_{t-s}$ where $s$ is the period of the seasonality.
+Differences can be computed using the `difference()` function from `tsibble`.
+
+[^1]: We don't have to divide by anything because the time difference is 1.
+
+## Log transformations
+
+A log transform sets $y_t = \log(x_t)$.
+In the context of time series data, it can produce several benefits.
+First taking logs can dampen heavy tails, reduce sensitivity to outliers, and stabilize variance.
+This is particularly important because time series are often non-stationary[^2] and can exhibit changing variances over time.
+Constant variance is an assumption for many modeling approaches.
+
+Secondly, log transformations are often used to focus on percentage changes.
+For instance, if $x_t$ is a stock price, then the time series $y_t = \log(x_t) - \log(x_{t-1})$ is called the `log returns` of the stock, and approximately measures the percentage change of the stock price during the time interval between $t-1$ and $t$.
+As the time interval becomes smaller, the approximation becomes more and more exact.
+Financial models usually work with log returns.
+
+Furthermore, log transformations convert multiplicative relationships between different time series into additive relationships, which are easier to model.
+
+[^2]: We will define stationarity more formally in part 2 of the book.
+
+## Box-Cox transformations
+
+A Box-Cox transformation is a one-parameter family of transformations that are used to stabilize variance.
+The formula depends on a scalar parameter $\lambda$ and is as follows:
+$$
+y_t = \begin{cases}
+\log(x_t) & \text{if}~\lambda = 0, \\
+(\text{sign}(x_t)|x_t|^\lambda - 1)/\lambda & \text{otherwise}.
+\end{cases}
+$$
+
+When $\lambda=1$, this is just a downward translation by 1 unit.
+As $\lambda \to 0$, one can use L'Hopital's rule to show that the function converges to $\log$.
+In other words, Box-Cox transformations interpolate between the two extremes.
+
+One chooses the parameter $\lambda$ so that the fluctuations throughout the time series have similar variance.
+This can be done automatically by using the `guerrero()` function from `feasts`.
+See [Chapter 3.1](https://otexts.com/fpp3/transformations.html) in @hyndman2018forecasting for an example of how such a transformation is applied.
+
+## Aggregation and downsampling
+
+One may want to aggregate a time series over larger time units in order to get lower frequency data.
+For instance, instead of considering hourly energy useage, one may want to sum up the usage in a given day to get a time series of daily energy usage.
+Consider the following two plots of the energy demand in Victoria, Australia in January 2013.
+The original dataset contains hourly data, which is plotted in the top panel, while we have also aggregated the data by day.
+The aggregated time series makes it easier to observe daily fluctuations of the eletricity demand.
+
+```{r}
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Energy demand in Victoria, Australia in January 2013, measured hourly (top) and daily (bottom).
+#| label: fig-transformations-aggregation
+
+elec_filtered <- vic_elec |>
+    filter(year(Time) == 2013, month(Time) == 1)
+
+plt1 <- elec_filtered |>
+    autoplot(.vars = Demand)
+
+plt2 <- elec_filtered |>
+    index_by(Date = date(Time)) |>
+    summarise(Demand = sum(Demand)) |>
+    autoplot(.vars = Demand)
+
+grid.arrange(plt1, plt2, nrow = 2)
+```
+
+Downsampling involves sampling a time series at fixed intervals.
+This is done for data compression reasons, especially when the time series does not vary too much between the sampled points.
 
 ## Moving average
 
+Aggregating time series can smooth out otherwise distracting fluctuations.
+However, rather than aggregating over non-overlapping windows such as days, it may often be more useful and accurate to do so over rolling windows.
+
+A (two-sided) moving average with window size $m = 2k+1$ is defined as
+$$
+y_t = \frac{1}{m}\sum_{j=-k}^k x_{t+j}.
+$$
+When 
+
+
+## Rolling window operations
+
+
+
+
+
+## Composing transformations
+
 ## Adjustments
+
+## Transformations and feature engineering

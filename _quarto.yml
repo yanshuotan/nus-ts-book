@@ -18,6 +18,7 @@ book:
       - 05-decomposition.qmd
       - 06-summary_stats.qmd
       - 07-intro_forecasting.qmd
+      - 08-exponential_smoothing.qmd
     - part: "Statistical Modeling of Time Series"
     - part: "Advanced Topics"
     - references.qmd

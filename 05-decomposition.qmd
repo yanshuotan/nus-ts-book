@@ -1,3 +1,7 @@
 # Time Series Decomposition
 
 Time series can be decomposed into trend, seasonality and residual components.
+
+Furthermore, log transformations convert multiplicative relationships between different time series into additive relationships, which are easier to model.
+
+@fig-intro-diabetes

@@ -17,7 +17,7 @@ Over the last century, statisticians, mathematicians, economists, engineers, com
 With time as the row index, each column in such a dataset is called a *time series*.
 A dataset comprising possibly multiple time series is called *time series data*.
 
-![Time series data contain dependencies across rows.](images/time-series-data.png){#fig-tsdata}
+![Time series data contain dependencies across rows.](_images/time-series-data.png){#fig-tsdata}
 
 
 ## Examples of time series {#sec-examples-tsdata}
@@ -34,7 +34,8 @@ library(fpp3)
 library(astsa)
 library(gridExtra)
 
-DATA_DIR <- "datasets/"
+CLEANED_DIR <- "_data/cleaned/"
+RAW_DIR <- "_data/raw/"
 ```
 
 ### Finance
@@ -52,7 +53,7 @@ The two plots in this section show the price and trading volume of Google's stoc
 #| warning: FALSE
 #| fig-cap: Daily closing value for Google stock.
 
-goog <- read_csv(str_c(DATA_DIR, "GOOG.csv"))
+goog <- read_csv(str_c(CLEANED_DIR, "GOOG.csv"))
 goog |> 
   as_tsibble() |>
   autoplot(Close) + 
@@ -85,24 +86,7 @@ To diagnose the health of the economy and to guide policymakers in making approp
 #| cache: TRUE
 #| fig-cap: Consumer price index (CPI) in Singapore for several categories of goods, measured quarterly, between 1960 and 2020.
 
-# sgcpi <- read_csv(str_c(DATA_DIR, "sg-cpi.csv"), skip = 10, n_max = 152)
-# col_names <- sgcpi$`Data Series`
-# time_index <- colnames(sgcpi)[-1]
-# sgcpi <- sgcpi |> 
-#   select(-`Data Series`) |>
-#   t() |>
-#   as_tibble(cols())
-# colnames(sgcpi) <- col_names
-# selected_cols <- c("All Items", "Food", "Clothing & Footwear", "Health Care", "Transport", "Education")
-# sgcpi <- sgcpi |> 
-#   select(all_of(selected_cols)) |>
-#   mutate_all(as.double) |>
-#   mutate(Month = yearmonth(time_index))
-# sgcpi <- sgcpi |> 
-#   as_tsibble() |>
-#   pivot_longer(cols = all_of(selected_cols), names_to = c("Type"))
-source("code/load_data.R")
-sgcpi <- process_sgcpi()
+sgcpi <- read_rds(str_c(CLEANED_DIR, "sgcpi.rds"))
 sgcpi |> autoplot() + ylab("CPI")
 
 ```
@@ -127,13 +111,8 @@ In @fig-intro-ansett, we plot the weekly number of economy class passengers on A
 #| warning: FALSE
 #| fig-cap: Sales numbers for antidabetic drugs in Australia.
 
-a10 <- PBS |>
-  filter(ATC2 == "A10") |>
-  select(Month, Concession, Type, Cost) |>
-  summarise(TotalC = sum(Cost)) |>
-  mutate(Cost = TotalC / 1e6)
-
-autoplot(a10, Cost) +
+diabetes <- read_rds(str_c(CLEANED_DIR, "diabetes.rds"))
+autoplot(diabetes, Cost) +
   labs(y = "$ (millions)")
 ```
 
@@ -183,9 +162,7 @@ globtemp |>
 #| warning: FALSE
 #| fig-cap: Hourly PM2.5 concentration levels in Beijing in December 2011.
 
-beijing_pm25 <- read_csv(str_c(DATA_DIR, "beijing-pm25.csv"))
-beijing_pm25$Datetime <- as.POSIXct(paste(beijing_pm25$year, beijing_pm25$month, beijing_pm25$day, 
-                                          beijing_pm25$hour, sep = " "), format = "%Y %m %d %H")
+beijing_pm25 <- read_rds(str_c(CLEANED_DIR, "beijing_pm25.rds"))
 beijing_pm25 |>
   filter(year == 2011, month == 12) |>
   ggplot() + geom_line(aes(x = Datetime, y = `pm2.5`)) +
@@ -207,7 +184,7 @@ In @fig-intro-ecg, we show a portion of an ECG comprising a normal heartbeat (to
 #| warning: FALSE
 #| fig-cap: The ECG recordings of two heartbeats from the same patient. The top panel records a normal heartbeat, while the bottom panel records an abnormal heartbeat.
 
-ecg <- read_csv(str_c(DATA_DIR, "ecg.csv"))
+ecg <- read_csv(str_c(RAW_DIR, "ecg.csv"))
 
 plt1 <- ecg[1,-1] |> t() |> drop() |> as_tibble() |> 
   mutate(x = 1:140) |> ggplot() + geom_line(aes(x = x, y = value)) + labs(y = "", x = "")
@@ -223,14 +200,31 @@ These include vital signs monitoring and data from wearable devices, and offer r
 
 ### Physical sciences and engineering
 
-Time series data is also prevalent in the physical sciences and engineering, in particular, when analyzing dynamical systems.
+Time series data is also prevalent in the physical sciences and engineering.
+First, they arise when analyzing dynamical systems.
 For instance, the Apollo Project in the 1960s required estimation of the trajectories of spacecraft from noisy measurements as they traveled to the moon and back.
+They also occur when recording audio or taking measurements of other quantities using sensors.
+In @fig-intro-speech, we plot a 0.1 second segment of recorded speech for the phrase "aaahhhh", sampled at 10,000 points per second.
+
+```{r}
+#| label: fig-intro-speech
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: A 0.1 second segment of recorded speech for the phrase "aaahhhh", sampled at 10,000 points per second.
+
+speech |>
+  as_tsibble() |>
+  autoplot() +
+  ylab("")
+```
+
 
 ### Comparison with "white noise"
 
 Even without any knowledge of time series analysis, several observations immediately stand out from the examples above.
 First is the sheer heterogeneity of time series data---the plots look very different from each other!
-Secondly, despite these differences, it seems apparent that most plots are not *totally random*, and some time-based structure can be extracted from then.
+Secondly, despite these differences, it seems apparent that most plots are not *totally random*, and some time-based structure can be extracted from them.
 To illustrate this, contrast the shape of their plots with that of "white noise" in @fig-intro-whitenoise.
 White noise refers to a series of i.i.d. Gaussian measurements arranged in a sequence and thus has no structure at all.
 

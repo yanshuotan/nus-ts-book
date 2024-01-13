@@ -10,3 +10,5 @@
 *.toc
 /01-intro_cache/
 /01-intro_files/
+.Rproj.user
+*.Rproj

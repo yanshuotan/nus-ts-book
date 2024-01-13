@@ -25,7 +25,7 @@ so that you have at least R >= 4.2 and Rstudio >= 2023.xx
 Although it can be reconfigured, the Rstudio interface typically consists of 4
 sections:
 
-![Rstudio panels](images/rstudio_gui.PNG){fig-alt="Rstudio panels" fig-align="center"}
+![Rstudio panels](_images/rstudio_gui.PNG){fig-alt="Rstudio panels" fig-align="center"}
 
 1. Panel 1 is the console, where you type R commands. The output from commands
    also appears here.
@@ -209,7 +209,7 @@ Tidy data requires that
 :::
 
 ::: {#second-column}
-![Tidy data](images/tidy-1.png)   
+![Tidy data](_images/tidy-1.png)   
 :::
 
 ::::
@@ -294,7 +294,7 @@ The verbs work with data frames too, but as we know, tibbles print nicer!
 
 Another practice that the tidyverse popularised was the use of the pipe operator.
 
-![This is not a pipe](images/not_a_pipe.jpeg)
+![This is not a pipe](_images/not_a_pipe.jpeg)
 
 Manipulating data typically involves many steps, and using a pipe operator allows
 us to daisy chain operations while retaining readable code. In R, the pipe 

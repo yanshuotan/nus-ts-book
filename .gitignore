@@ -12,3 +12,4 @@
 /01-intro_files/
 .Rproj.user
 *.Rproj
+*.Rhistory

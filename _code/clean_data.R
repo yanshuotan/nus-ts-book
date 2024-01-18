@@ -52,3 +52,16 @@ process_bejing <- function(save = FALSE) {
   }
   beijing_pm25
 }
+
+process_rice <- function(save = FALSE) {
+  rice_price <- read_csv(str_c(RAW_DIR, "retail_prices.csv"), skip=9, n_max = 162, na="na") |> 
+    select(1, 2) |>
+    rename("Month" = `Data Series`, 
+           "thai_rice" = `Premium Thai Rice (Per 5 Kilogram) (Dollar)`) |> 
+    mutate(Month = yearmonth(Month)) |>
+    as_tsibble(index = Month)
+  if (save) {
+    saveRDS(rice_price, file = str_c(CLEANED_DIR, "rice_price.rds"))
+  }
+  rice_price
+}

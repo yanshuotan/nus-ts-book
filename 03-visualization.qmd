@@ -9,7 +9,7 @@ For instance, we can identify whether the time series possesses one (or more) of
 
 1. Trend: A long term increase or decrease.
 2. Seasonality: A pattern that recurs at regularly spaced intervals.
-3. Cycles: Repeated rise and falls that do not occur at regular intervals. These are associated with certain types of autoregressive behavior, which we will discuss more rigorously in the part of the book.
+3. Cycles: Repeated rise and falls that do not occur at regular intervals. These are associated with certain types of autoregressive behavior, which we will discuss more rigorously in the next part of the book.
 
 ::: callout-note
 Understanding what patterns are present in the time series data can help to guide us in deciding what model to fit to the data, or to inspect models that have already been fit.
@@ -79,11 +79,11 @@ While they can also be used to detect seasonality and cycles, these patterns can
 
 We first introduce some terminology for talking about seasonality.
 The *period* of a seasonality is the number of time units before the pattern repeats itself. [^1]
-A *season* is a particular 
+A *season* is a particular phase of the repeated unit. When the time series is quarterly and the period is a year, this corresponds to Spring, Summer, Fall, and Winter. More generally, there is one season for every time unit until the pattern repeats itself.
 
 [^1]: This is in analogy to the period of a sinusoidal function.
 
-A seasonal plot is similar to a time plot, except that we chop up the time series into periods, align these pieces, and plot them on the same axes.
+A seasonal plot is similar to a time plot, except that we chop up the time series into period lengths, align these pieces, and plot them on the same axes.
 We now make such a plot for the the data on arrivals to Australia from Japan, first dividing the time series into the portion before the start of 1995 and the portion after it.
 
 ```{r}
@@ -142,7 +142,7 @@ Note that the blue horizon line in each subplot shows the mean of the data for t
 ## Scatter plots
 
 As described in the previous section, tsibbles can contain multiple time series.
-These can be because a key variable is present, or because the time series data is multivariate (i.e. measures multiple types of quantities across the same duration of time).
+This can be because a key variable is present, or because the time series data is multivariate (i.e. measures multiple types of quantities across the same duration of time).
 When we want to study the relationships between multiple time series, we may use scatterplots, just like we would in studying the relationships between different features in non time series data.
 
 Let us make a pairs plot for the tourist arrivals to Australia from four different regions, contained in `aus_arrivals`.

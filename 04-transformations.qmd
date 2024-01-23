@@ -102,7 +102,7 @@ One may want to aggregate a time series over larger time units in order to get l
 For instance, instead of considering hourly energy useage, one may want to sum up the usage in a given day to get a time series of daily energy usage.
 Consider the following two plots of the energy demand in Victoria, Australia in January 2013.
 The original dataset contains half-hourly data, which is plotted in the top panel, while we have also aggregated the data by day.
-The aggregated time series makes it easier to observe daily fluctuations of the eletricity demand.
+The aggregated time series makes it easier to observe flucutations of the eletricity demand on time scales larger than a day.
 
 ```{r}
 #| message: FALSE
@@ -130,7 +130,7 @@ grid.arrange(plt1, plt2, nrow = 2)
 Downsampling involves sampling a time series at fixed intervals.
 This is done for data compression reasons, especially when the time series does not vary too much between the sampled points.
 
-## Moving average
+## Moving averages
 
 Aggregating time series can smooth out otherwise distracting fluctuations.
 However, rather than aggregating over non-overlapping windows such as days, it may often be more useful and accurate to do so over rolling windows.
@@ -211,9 +211,9 @@ In general, one may apply any summary function (a function that takes a vector a
 
 ## Calendar adjustment
 
-Some of the variation seen in seasonal data may be due to calendar effects, such as the number of days in a month, weekend effects, etc.
+Some of the variation seen in monthly time series may be due to the fact that there are different numbers of days in different months.
 Removing these can make the data simpler, and simpler patterns usually lead to more accurate forecasts.
-Consider this adjustment whenever you are dealing with monthly totals.
+The process of removing this variation is called calendar adjustment.
 
 The following is a time plot of monthly milk production on a farm between 1962 and 1975[^3].
 
@@ -224,7 +224,7 @@ The following is a time plot of monthly milk production on a farm between 1962 a
 #| fig-cap: Unadjusted monthly milk production from a farm.
 #| label: fig-transformations-calendar-1
 milk <- read_rds(str_c(CLEANED_DIR, "milk.rds"))
-autoplot(milk, .vars=value)
+autoplot(milk, .vars = value)
 ```
 
 The seasonal and trend effects are strong. However, the pattern is a little jagged at the troughs. What could be causing this?
@@ -235,7 +235,7 @@ It is easy to see from the season plot that most of the kinks in the curves aris
 #| fig-align: center
 #| fig-cap: Season plot, monthly milk production
 #| label: fig-transformations-calendar-2
-gg_season(milk, y=value, labels="left")
+gg_season(milk, y = value, labels = "left")
 ```
 
 If we were to create a new time series consisting of daily milk production
@@ -246,8 +246,8 @@ kinks.
 #| fig-align: center
 #| fig-cap: Season plot, adjusted monthly milk production
 #| label: fig-transformations-calendar-3
-mutate(milk, adj_prod = value/days_in_month(index)) %>%  
-  gg_season(y=adj_prod, labels="left")
+mutate(milk, adj_prod = value / days_in_month(index)) |>  
+  gg_season(y = adj_prod, labels = "left")
 ```
 
 ## Transforming multiple time series
@@ -264,19 +264,18 @@ It is better to track the number of beds per 1000 residents instead of the total
 If the population is increasing faster than the number of hospital beds, it is in fact possible for the number of beds per 1000 people to be decreasing.
 
 Similarly, when tracking disease counts in a country, it is important to compute the number of cases per 1000 people living there, not just the total number of cases there. 
-Let's consider the number of Covid-19-related hospitalisations[^1] in 2021 in USA and South Africa.
+Let's consider the number of Covid-19-related hospitalisations[^1] in 2021 in USA and South Africa, which is plotted in @fig-transformations-population.
 
 [^4]: Data extracted from 
 [Our World in Data](https://github.com/owid/covid-19-data/tree/master/public/data)
 
 Note that the population of USA is approximately 340 million, while that of South Africa is approximately 60 million. Without adjusting for this, the two series look very different in magnitude. 
-After the adjustment, we observe
-similar peaks/troughs and magnitudes, although the peak in USA comes a little after the one in South Africa. 
+After the adjustment, we observe similar peaks/troughs and magnitudes, although the peak in USA comes a little after the one in South Africa. 
 
 ```{r}
 #| message: FALSE
 #| warning: FALSE
-#| fig-cap: Covid
+#| fig-cap: Covid hospitalization numbers in USA and South Africa. The top panel shows the raw numbers, while the bottom panel show numbers per 1000 people.
 #| label: fig-transformations-population
 
 covid_data_2021 <- read_rds(str_c(CLEANED_DIR, "covid_usa_zaf_fra.rds")) |> 
@@ -337,12 +336,11 @@ sgcpi |>
 Note that CPI is calculated relative to prices in 2019.
 The CPI for November 2023 is 114.91.
 This roughly means that if a household spent $100 on its expenses in 2019,
-they would have to pay $1.156 to buy the the same type of items in November 2023.
+they would have to pay $114.91 to buy the the same type of items in November 2023.
 
 The Department of Statistics also lists monthly retail prices of selected items purchased by households in Singapore. You can download the entire table from [this link](https://tablebuilder.singstat.gov.sg/table/TS/M212891).
 One of the items that is tracked is the price of 5kg of Premium Thai Rice.
-Suppose that $x_t$ is the unadjusted price at time $t$ and $p_t$ is the CPI at time $t$, relative to 2019. $t$ would be a particular month, e.g. Jan 2022,
-in this scenario.
+Suppose that $x_t$ is the unadjusted price at time $t$ and $p_t$ is the CPI at time $t$, relative to 2019. $t$ would be a particular month, e.g. Jan 2022.
 
 The adjusted price at time $t$ in "2019 dollars", $y_t$, would be:
 $$
@@ -353,7 +351,7 @@ $$
 #| echo: false
 #| warning: false
 #| fig-align: center
-#| fig-cap: Adjusted and unadjusted prices for Thai rice
+#| fig-cap: Adjusted and unadjusted prices for 5kg of Thai rice
 #| label: fig-transformations-inflation
 
 rice_price <- read_rds("_data/cleaned/rice_price.rds")
@@ -366,17 +364,16 @@ cpi_rice <- left_join(rice_price, sgcpi, by = "Month") |>
 
 cpi_rice %>% filter(as.Date(Month) >= ymd("20190101")) |> 
   autoplot(.vars=value) +
-  labs(x="Month", y="Dollars", 
-       title="Price of 5kg of Thai Premium Rice")
+  labs(x="Month", y="Dollars")
 ```
 
-The unadjusted price (in green) seems to be relatively stable since Jan 2019. 
-However, inflation has been causing the value of the Singapore dollar to drop, which means that rice is actually "cheaper" today than it was 4 years ago.
+The unadjusted price (in blue) seems to be relatively stable since Jan 2019. 
+However, inflation has been causing the value of the Singapore dollar to drop, which means that rice is actually "cheaper" today than it was 4 years ago in real terms (red).
 
 ## Composing transformations
 
 One may compose multiple transformations together to obtain a new transformation of the original time series.
-We have already seen an example of this in @sec-transformations-log where we composed differing and the log transform to obtain log returns.
+We have already seen an example of this in @sec-transformations-log where we composed differencing and the log transform to obtain log returns.
 
 ## Transformations and feature engineering
 

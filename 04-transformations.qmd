@@ -170,8 +170,12 @@ The moving average time series is plotted in red.
 Observe that the daily fluctuations have been averaged out.
 Comparing it to the bottom panel of @fig-transformations-aggregation, we see that this series remains more smooth than the daily aggregated time series.
 
+Note that the window size refers to the number of terms averaged over when taking the moving average.
+It is a hyperparameter that can be tuned---the larger the window size, the smoother the moving average, but the more different it will be from the original time series.[^3]
 One can also use weighted moving averages.
 For more information, check out Chapter 3.3 in @hyndman2018forecasting.
+
+[^3]: This is analogous to bandwidth selection in kernel smoothing for [density estimation](https://en.wikipedia.org/wiki/Kernel_density_estimation) or regression.
 
 ## Rolling window operations
 
@@ -215,9 +219,9 @@ Some of the variation seen in monthly time series may be due to the fact that th
 Removing these can make the data simpler, and simpler patterns usually lead to more accurate forecasts.
 The process of removing this variation is called calendar adjustment.
 
-The following is a time plot of monthly milk production on a farm between 1962 and 1975[^3].
+The following is a time plot of monthly milk production on a farm between 1962 and 1975[^4].
 
-[^3]: Data is from the `fma` R package.
+[^4]: Data is from the `fma` R package.
 
 ```{r}
 #| fig-align: center
@@ -258,15 +262,16 @@ Two such transformations are population adjustment and inflation adjustment, whi
 
 ## Population adjustment
 
-Any data that is affected by population changes can be adjusted to give data per person.
-For instance, suppose we are tracking the number of hospital beds in a country.
-It is better to track the number of beds per 1000 residents instead of the total number of beds.
+Any data that is affected by population changes can be adjusted to give per capita values.
+For instance, the GDP of a country is often divided by its population to yield GDP per capita. This is a more accurate reflection of a country's economic development.
+As a second example, suppose we are studying the capacity of the healthcare system and have a time series tracking the number of hospital beds in a country. 
+It may be more useful to compute the number of beds per 1000 residents instead of only considering the total number of beds.
 If the population is increasing faster than the number of hospital beds, it is in fact possible for the number of beds per 1000 people to be decreasing.
 
-Similarly, when tracking disease counts in a country, it is important to compute the number of cases per 1000 people living there, not just the total number of cases there. 
-Let's consider the number of Covid-19-related hospitalisations[^1] in 2021 in USA and South Africa, which is plotted in @fig-transformations-population.
+Similarly, when tracking disease counts in a country, it is more important to compute the number of cases per 1000 people living there, not just the total number of cases there. 
+Let's consider the number of Covid-19-related hospitalisations[^5] in 2021 in USA and South Africa, which is plotted in @fig-transformations-population.
 
-[^4]: Data extracted from 
+[^5]: Data extracted from 
 [Our World in Data](https://github.com/owid/covid-19-data/tree/master/public/data)
 
 Note that the population of USA is approximately 340 million, while that of South Africa is approximately 60 million. Without adjusting for this, the two series look very different in magnitude. 
@@ -313,9 +318,9 @@ $$
 The aggregation is performed by weighted averaging, based on an estimate of the spending habits of an average household.
 In Singapore, the CPI is calculated by the Department of Statistics, and can be downloaded 
 [from this link](https://tablebuilder.singstat.gov.sg/table/TS/M212881).
-We have already seen it plotted in @fig-intro-cpi, and display it again in the following table. [^5]
+We have already seen it plotted in @fig-intro-cpi, and display it again in the following table. [^6]
 
-[^5]: Separate CPIs can also be calculated for different sectors of the economy. These will calculate aggregate prices for goods and services belonging only to that sector.
+[^6]: Separate CPIs can also be calculated for different sectors of the economy. These will calculate aggregate prices for goods and services belonging only to that sector.
 
 ```{r}
 #| echo: false

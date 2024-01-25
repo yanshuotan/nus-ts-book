@@ -1,1 +1,24 @@
 # Summary Statistics {#sec-summarystats}
+
+```{r}
+#| message: FALSE
+#| warning: FALSE
+#| echo: FALSE
+source("_code/set_up.R")
+```
+
+A 
+
+## Mean and variance
+
+## Autocovariance
+
+## Autocorrelation
+
+Plots
+
+## Cross-correlation
+
+## Decomposition
+
+## Other statistics

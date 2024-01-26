@@ -7,18 +7,375 @@
 source("_code/set_up.R")
 ```
 
-A 
+Summary statistics are scalar values that are calculated for a dataset, which help to summarize the dataset.
+Simple examples include the mean and variance of a collection of independent measurements from a population.
+Likewise, summary statistics give useful and important summaries of time series data, and can be used for EDA or for confirmatory analysis.
+In fact, since each time series is treated as a individual "data point" in time series classification, one role for summary statistics is to act as engineered features for this problem.
 
-## Mean and variance
+The `feasts` package provides many functions for computing useful statistics for time series.
+Indeed, the name of the package stands for FEatures And Statistics from Time Series.
 
-## Autocovariance
+In this chapter, we work with a fixed length time series $x_1, x_2, \ldots, x_n$.
 
-## Autocorrelation
+::: callout-note
+Many of the statistics discussed here are ostensibly sample versions of population quantities.
+However, any reference to a population requires a statistical model for the time series, which we will only discuss in part 2 of the textbook.
+Whether or not such a model exists, summary statistics for the data can still be computed and can still be useful.
+For conciseness, we sometimes drop the adjective "sample" when discussing these statistics.
+:::
 
-Plots
+## Mean, variance, quantiles
+
+The `features()` function from `fabletools` provides a convenient interface for computing and organizing information about summary statistics.
+We illustrate this by computing the mean, variance, and quantiles of the time series values in the `aus_arrivals` dataset.
+
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+aus_arrivals |>
+    features(Arrivals, 
+    list(mean = mean, variance = var, quantile = quantile)) # <1>
+```
+
+1. We create a list comprising the desired summary functions and supply it as the second argument to `features()`.
+
+Recall that `aus_arrivals` contains four time series, comprising tourist arrivals from Japan, New Zealand, UK, and USA respectively.
+`features()` returns a tibble where each row corresponds to a different time series, and each column corresponds to a different summary function.
+Note that `quantile()` automatically calculates all quartiles.
+
+## Autocovariance and autocorrelation
+
+In @sec-visualization, we've learnt about lag plots, which are scatterplots of a time series against a lagged versions of itself.
+Just as the correlation coefficient is used to summarize the scatterplot for i.i.d. data, we may summarize lag plots using the concept of autocorrelation.
+
+We first define the (sample) *autocovariance function* (ACVF).
+For $k=0,1\ldots,n-1$, it is defined as
+$$
+\hat \gamma_x(k) := \frac{1}{n}\sum_{t=k+1}^n(x_t - \bar x)(x_{t-k} - \bar x),
+$$ {#eq-summary-acvf}
+while for $k = -1,-2,\ldots,-n+1$, we define $\hat\gamma_x(k) := \gamma_x(-k)$.
+Here, $\bar x := \frac{1}{n}\sum_{t=1}^n x_t$ is the sample mean of the time series.
+
+Note that even though there only $n-k$ terms in the sum in @eq-summary-acvf, we still divide the sum by $n$.
+This ensures that the function $\gamma_x(-)$ is positive semidefinite, which is a useful property for some downstream analysis.
+
+The (sample) *autocorrelation function* (ACF) is defined as
+$$
+\hat \rho_x(k) := \frac{\hat \gamma_x(k)}{\hat \gamma_x(0)}
+$$
+for $|k| = 0, 1, \ldots,n-1$.
+For each $k$, $\hat \rho_x(k)$ is also known as the $k$-th auotocorrelation coefficient, and measures the correlation of the time series with the $k$-th lagged version of itself.
+It is clear that the ACF takes values between $-1$ and $1$, with larger magnitudes corresponding to stronger relationships.
+
+To compute ACVF and ACF values, we may use the function `ACF()` from `feasts`.
+Let us apply this to the `globtemp` dataset measuring global temperature deviations (see also @fig-intro-globtemp.)
+
+::: panel-tabset
+
+## ACF
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+globtemp |> 
+    as_tsibble() |>
+    ACF()
+```
+
+## ACVF
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+globtemp |> 
+    as_tsibble() |>
+    ACF(type = "covariance")
+```
+
+:::
+
+It is more visually impactful to present this information in the form of a barplot, which we call an `autocorrelation plot`.
+To generate this, we simply apply `autoplot()` to the return value of `ACF()`. 
+
+::: panel-tabset
+
+## ACF plot
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Autocorrelation plot for global temperature measurements from 1880 to 2015.
+#| label: fig-summary-globtemp-acf
+globtemp |> 
+    as_tsibble() |>
+    ACF() |>
+    autoplot()
+```
+
+## Time plot
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Global temperature measurements from 1880 to 2015 (deviations from 1950-1980 mean).
+#| label: fig-summary-globtemp
+globtemp |> 
+    as_tsibble() |>
+    autoplot()
+```
+
+:::
+
+Note the slow decay of autocorrelation coefficients.
+This is usually indicative of the time series being dominated by a strong trend (why?).
+
+We now take a first difference and present an ACF plot again.
+
+::: panel-tabset
+
+## ACF plot
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Autocorrelation plot for global temperature increases from 1880 to 2015.
+#| label: fig-summary-globtemp-diff-acf
+globtemp |> 
+    as_tsibble() |>
+    mutate(TempIncr = difference(value)) |>
+    ACF(TempIncr) |>
+    autoplot()
+```
+
+## Time plot
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Global temperature increases from 1880 to 2015.
+#| label: fig-summary-globtemp-diff
+globtemp |> 
+    as_tsibble() |>
+    mutate(TempIncr = difference(value)) |>
+    autoplot(TempIncr)
+```
+
+:::
+
+Recall that the differenced time series now measures the (year-on-year) global temperature increases.
+Inspecting @fig-summary-globtemp-diff, we see that it no longer has a trend and indeed seems mostly random.
+The ACF plot @fig-summary-globtemp-diff-acf reflects this:
+The autocorrelation coefficients are much smaller in magnitude, and seem like random fluctuations.
+Note also the blue horizontal guide lines.
+These indicate how large the coefficients should be when the time series is purely random.
+We will discuss this more rigorously in Part 2 of the book.
+
+Next, let us consider ACF plots for time series that are dominated by seasonality and by cycles.
+For the former, we make use of the STL decomposition of `vic_elec` obtained in @sec-decomposition.
+
+::: panel-tabset
+
+## ACF plot
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Autocorrelation plot for seasonal component of vic_elec.
+#| label: fig-summary-elec-acf
+vic_elec |>
+    filter(year(Time) == 2013, month(Time) %in% c(1,2)) |> 
+    model(
+        STL(Demand ~ trend() + season(period = 48))) |> 
+        components() |> 
+        ACF(season_48, lag_max = 72) |> 
+        autoplot()
+```
+
+## Time plot
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Beer production in Australia between 1976 and 2010.
+#| label: fig-summary-elec
+vic_elec |>
+    filter(year(Time) == 2013, month(Time) %in% c(1,2)) |> 
+    model(
+        STL(Demand ~ trend() + season(period = 48))) |> 
+        components() |>
+        autoplot(season_48)
+```
+
+:::
+
+In @fig-summary-elec, we have plotted the seasonal component of the decomposition, while @fig-summary-elec-acf displays its ACF plot.
+Notice that ACF plot looks like the graph of a cosine function with period 48.
+This is no coincidence: Seasonality is reflected in ACF plots as a regular pattern.
+
+We now show the ACF plot for the Hudson Bay Company trading records for lynx furs, contained in the `pelt` dataset.
+
+::: panel-tabset
+
+## ACF plot
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Autocorrelation plot for lynx furs.
+#| label: fig-summary-lynx-acf
+pelt |> 
+    ACF(Lynx, lag_max = 40) |>
+    autoplot()
+```
+
+## Time plot
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Hudson Bay Company trading records for lynx furs.
+#| label: fig-summary-lynx
+pelt |> 
+    autoplot(Lynx)
+```
+
+## Seasonal plot
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Hudson Bay Company trading records for lynx furs.
+#| label: fig-summary-lynx-seasonal
+pelt |> 
+    gg_custom_season(Lynx, period = 10)
+```
+
+:::
+
+While the time plot suggests a repeating pattern of period 10, a seasonal plot of `pelt` reveals that it is unstable, which is more reflective of cycles rather than seasonality.
+This is reflected in the ACF plot, @fig-summary-lynx-acf, appearing as a damped sinusoidal function.
+
+ACF values can be easily incorporated into the output of `features()` via the function `feat_acf()`.
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+aus_arrivals |>
+    features(Arrivals, feat_acf)
+```
+
+Six columns have been generated.
+What they are is explained in the following excerpt from the documentation of `feat_acf` describing its output.
+
+> A vector of 6 values: first autocorrelation coefficient and sum of squared of first ten autocorrelation coefficients of original series, first-differenced series, and twice-differenced series. For seasonal data, the autocorrelation coefficient at the first seasonal lag is also returned.
 
 ## Cross-correlation
 
-## Decomposition
+We often want to understand the relationships between multiple time series and have learnt about how to do this to some extent using scatterplots.
+Because of the time element, we should also consider the effects of lags.
+This information is efficiently summarized using the concepts of cross-covariance and cross-correlation.
+
+Let us denote a second time series by $y_1,y_2,\ldots,y_n$.
+The (sample) *cross-covariance function* of $(x_t)$ and $(y_t)$ is defined as
+$$
+\hat\gamma_{xy}(k) := \frac{1}{n}\sum_{t=k+1}^n(x_t - \bar x)(y_{t-k} - \bar y)
+$$
+for $k=0,1,\ldots,n-1$.
+Note that this is no longer an even function, nor do we necessarily have $\hat\gamma_{xy}(k) = \hat\gamma_{yx}(k)$.
+
+The (sample) *cross-correlation function* (CCF) of $(x_t)$ and $(y_t)$ is defined as
+$$
+\hat\rho_{xy}(k) := \frac{\hat\gamma_{xy}(k)}{\sqrt{\hat\gamma_x(0)\hat\gamma_y(0)}}.
+$$
+Like autocorrelation, it is easy to check that $-1 \leq \hat\rho_{xy}(k) \leq 1$.
+
+To compute cross-correlation, we can use the `CCF()` function.
+Let us apply this to `pelt`, which contains the Hudson Bay Company trading records for lynx and hare furs between 1845 and 1935.
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Autocorrelation plot for lynx and hare furs.
+#| label: fig-summary-pelt-ccf
+pelt |> CCF(x = Lynx, y = Hare) |> autoplot()
+```
+
+The CCF plot has a sinusoidal shape, with the first peak occuring at lag 1.
+The number of furs being traded can be treated as a proxy for the population size of each animal.
+Hence, we can interpret this as saying that the lynx population size is most strongly correlated with the hare population size from the previous year, which agrees with existing theories of [predator-prey dynamics](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations).
+
+## Decomposition statistics
+
+In @sec-decomposition, we learnt about how to decompose time series into trend, seasonal, and remainder components, denoted $T_t$, $S_t$, and $R_t$ respectively.
+We also learnt about how to visually inspect which component has a larger influence on time series by inspecting the $y$-axis of the time plots of the components.
+We can make this comparison more rigorous by computing variances.
+
+The *strenth of trend* is defined as
+$$
+F_T := \max\left\lbrace 0, 1 - \frac{\text{Var}(R_t)}{\text{Var}(T_t + R_t)}\right\rbrace.
+$$
+This statistic compares the trend with the remainder component.
+If the scale of the trend is much larger than the scale of the remainder component, then $\text{Var}(R_t) \ll \text{Var}(T_t + R_t)$, which implies that $F_T$ is close to 1.
+Conversely, if the scale of the remainder component is much larger than that of the trend, $F_T$ is close to 0.
+
+Analogously, the *strength of seasonality* is defined as
+$$
+F_S := \max\left\lbrace 0, 1 - \frac{\text{Var}(R_t)}{\text{Var}(S_t + R_t)}\right\rbrace.
+$$
+It has a similar interpretation.
+
+Both of these statistics can be computed using the `feat_stl()` function.
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+aus_arrivals |> 
+    features(Arrivals, feat_stl)
+```
+
+The second and third columns indicate the strength of trend and strength of seasonality respectively.
+We see that, for all time series in the `aus_arrivals` dataset, there is a strong trend.
+On the other hand, the yearly seasonality strength is higher in NZ and UK compared to Japan and US.
+This agrees with what we observe in the seasonal plot shown below.
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Seasonal plots for tourist arrivals to Australia.
+#| label: fig-summary-aus-arrivals-season
+aus_arrivals |> gg_season()
+```
 
 ## Other statistics
+
+There are may other useful statistics that can be computed.
+One source of useful statistics is combining those that we have seen so far with time series transformations.
+For instance, first computing standard deviations over a rolling window and then taking the mean gives a summary of how volatile the time series is.
+
+Indeed, the following code snippet generates 47(!) different summary statistics.
+We refer the reader to Chapters 4.4 and 4.5. in @hyndman2018forecasting for more details on these statistics as well as how they may be used.[^1]
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+aus_arrivals |> 
+    features(Arrivals, feature_set(pkgs = "feasts"))
+```
+
+[^1]: Some of these summary statistics, such as tests for stationarity, will be discussed in part 2 of this book.

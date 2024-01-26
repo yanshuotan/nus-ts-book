@@ -20,6 +20,8 @@ book:
       - 07-intro_forecasting.qmd
       - 08-exponential_smoothing.qmd
     - part: "Statistical Modeling of Time Series"
+      chapters:
+      - 09-stationary.qmd
     - part: "Advanced Topics"
     - references.qmd
   appendices:

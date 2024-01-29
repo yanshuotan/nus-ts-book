@@ -2,4 +2,4 @@
 
 This book draft is meant to be used as a textbook for time series analysis courses provided by the Department of Statistics and Data Science at the National University of Singapore. The book is still in development. Please direct any questions to [Yanshuo Tan](mailto:yanshuo@nus.edu.sg).
 
-![](images/nus_logo_full-horizontal.jpg){fig-alt="NUS logo"}
+![](_images/nus_logo_full-horizontal.jpg){fig-alt="NUS logo"}

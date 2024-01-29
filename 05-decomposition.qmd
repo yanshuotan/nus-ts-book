@@ -30,6 +30,8 @@ There are multiple versions of such transformations, and we will discuss some of
 Decomposing the time series allows us to understand it better, as the individual components may have meaning for analysts.
 We can visualize them and use them to compute useful summary statistics.
 It can also help with forecasting.
+Analysts also sometimes wish to remove one component to focus on the other components.
+If the trend component is removed, we say that the resulting time series *detrended*, if the seasonal component is removed, we call the resulting time series *seasonally adjusted*.
 
 ## Classical decomposition
 
@@ -61,8 +63,8 @@ Here, the first term is approximately $T_t$ because of the slowly-changing natur
 Meanwhile, for any $1 \leq k \leq p$, the detrended time series $x_t - T_t$ satisfies:
 $$
 \frac{1}{m}\sum_{j=0}^m \left(x_{k + jp} - T_{k + jp} \right) = \underbrace{\frac{1}{m}\sum_{j=0}^m S_{k + jp}}_{= S_k} + \underbrace{\frac{1}{m}\sum_{j=0}^m R_{k + jp}}_{\to 0}
-$$
-as $m \to \infty$. {#eq-decomposition-seasonality-estimation}
+$$ {#eq-decomposition-seasonality-estimation}
+as $m \to \infty$. 
 The first term is equal to $S_k$ because of @eq-decomposition-fixed-seasonality, while the second term tends to 0 by @eq-decomposition-remainder.
 This allows us to estimate the seasonal component, and we obtain the remainder by subtracting both our estimates of $T_t$ and $S_t$ from $x_t$.
 
@@ -128,7 +130,7 @@ The results are shown in @fig-decomposition-arrivals-jap-classical.
 #| echo: FALSE
 #| message: FALSE
 #| warning: FALSE
-#| fig-cap: Energy demand in Victoria, Australia in January 2013, measured half-hourly, and with a 24-hour moving average (red).
+#| fig-cap: Tourist arrivals to Australia from Japan.
 #| label: fig-decomposition-arrivals-jap-classical
 aus_arrivals |>
     filter(Origin == "Japan") |>
@@ -188,7 +190,7 @@ The STL decomposition is able to extract multiple seasonal components as follows
 ```{r}
 #| message: FALSE
 #| warning: FALSE
-#| fig-cap: Energy demand in Victoria, Australia in January and February 2013, measured half-hourly, and with a 24-hour moving average (red).
+#| fig-cap: Energy demand in Victoria, Australia in January and February 2013, measured half-hourly.
 #| label: fig-decomposition-elec
 
 vic_elec |>

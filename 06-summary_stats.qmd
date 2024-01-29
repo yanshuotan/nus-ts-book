@@ -55,7 +55,7 @@ For $k=0,1\ldots,n-1$, it is defined as
 $$
 \hat \gamma_x(k) := \frac{1}{n}\sum_{t=k+1}^n(x_t - \bar x)(x_{t-k} - \bar x),
 $$ {#eq-summary-acvf}
-while for $k = -1,-2,\ldots,-n+1$, we define $\hat\gamma_x(k) := \gamma_x(-k)$.
+while for $k = -1,-2,\ldots,-n+1$, we define $\hat\gamma_x(k) := \hat\gamma_x(-k)$.
 Here, $\bar x := \frac{1}{n}\sum_{t=1}^n x_t$ is the sample mean of the time series.
 
 Note that even though there only $n-k$ terms in the sum in @eq-summary-acvf, we still divide the sum by $n$.
@@ -97,7 +97,7 @@ globtemp |>
 
 :::
 
-It is more visually impactful to present this information in the form of a barplot, which we call an `autocorrelation plot`.
+It is more visually impactful to present this information in the form of a barplot, which we call an autocorrelation plot.
 To generate this, we simply apply `autoplot()` to the return value of `ACF()`. 
 
 ::: panel-tabset
@@ -294,7 +294,8 @@ $$
 \hat\gamma_{xy}(k) := \frac{1}{n}\sum_{t=k+1}^n(x_t - \bar x)(y_{t-k} - \bar y)
 $$
 for $k=0,1,\ldots,n-1$.
-Note that this is no longer an even function, nor do we necessarily have $\hat\gamma_{xy}(k) = \hat\gamma_{yx}(k)$.
+For negative $k$, we set $\hat\gamma_{xy}(k) := \hat\gamma_{yx}(-k)$.
+Note that we do not necessarily have $\hat\gamma_{xy}(k) = \hat\gamma_{yx}(k)$, so this is no longer an even function.
 
 The (sample) *cross-correlation function* (CCF) of $(x_t)$ and $(y_t)$ is defined as
 $$
@@ -331,6 +332,7 @@ $$
 This statistic compares the trend with the remainder component.
 If the scale of the trend is much larger than the scale of the remainder component, then $\text{Var}(R_t) \ll \text{Var}(T_t + R_t)$, which implies that $F_T$ is close to 1.
 Conversely, if the scale of the remainder component is much larger than that of the trend, $F_T$ is close to 0.
+Note the similarity between this definition and that of $R^2$, the [coefficient of determination](https://en.wikipedia.org/wiki/Coefficient_of_determination) in regression and analysis of variance.
 
 Analogously, the *strength of seasonality* is defined as
 $$

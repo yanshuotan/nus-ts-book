@@ -22,6 +22,10 @@ book:
     - part: "Statistical Modeling of Time Series"
       chapters:
       - 09-stationary.qmd
+      - 10-arma.qmd
+      - 11-arima.qmd
+      - 12-model_selection.qmd
+      - 13-state_space.qmd
     - part: "Advanced Topics"
     - references.qmd
   appendices:

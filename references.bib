@@ -22,3 +22,48 @@
   pages={3--73},
   year={1990}
 }
+
+@article{makridakis2022m5,
+  title={M5 accuracy competition: Results, findings, and conclusions},
+  author={Makridakis, Spyros and Spiliotis, Evangelos and Assimakopoulos, Vassilios},
+  journal={International Journal of Forecasting},
+  volume={38},
+  number={4},
+  pages={1346--1364},
+  year={2022},
+  publisher={Elsevier}
+}
+
+@inproceedings{ke_lightgbm_2017,
+	title = {{LightGBM}: {A} {Highly} {Efficient} {Gradient} {Boosting} {Decision} {Tree}},
+	volume = {30},
+	shorttitle = {{LightGBM}},
+	url = {https://proceedings.neurips.cc/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html},
+	abstract = {Gradient Boosting Decision Tree (GBDT) is a popular machine learning algorithm, and has quite a few effective implementations such as XGBoost and pGBRT. Although many engineering optimizations have been adopted in these implementations, the efficiency and scalability are still unsatisfactory when the feature dimension is high and data size is large. A major reason is that for each feature, they need to scan all the data instances to estimate the information gain of all possible split points, which is very time consuming. To tackle this problem, we propose two novel techniques: {\textbackslash}emph\{Gradient-based One-Side Sampling\} (GOSS) and {\textbackslash}emph\{Exclusive Feature Bundling\} (EFB). With GOSS, we exclude a significant proportion of data instances with small gradients, and only use the rest to estimate the information gain. We prove that, since the data instances with larger gradients play a more important role in the computation of information gain, GOSS can obtain quite accurate estimation of the information gain with a much smaller data size. With EFB, we bundle mutually exclusive features (i.e., they rarely take nonzero values simultaneously), to reduce the number of features. We prove that finding the optimal bundling of exclusive features is NP-hard, but a greedy algorithm can achieve quite good approximation ratio (and thus can effectively reduce the number of features without hurting the accuracy of split point determination by much). We call our new GBDT implementation with GOSS and EFB {\textbackslash}emph\{LightGBM\}. Our experiments on multiple public datasets show that, LightGBM speeds up the training process of conventional GBDT by up to over 20 times while achieving almost the same accuracy.},
+	urldate = {2023-10-05},
+	booktitle = {Advances in {Neural} {Information} {Processing} {Systems}},
+	publisher = {Curran Associates, Inc.},
+	author = {Ke, Guolin and Meng, Qi and Finley, Thomas and Wang, Taifeng and Chen, Wei and Ma, Weidong and Ye, Qiwei and Liu, Tie-Yan},
+	year = {2017}
+}
+
+@article{yu2020veridical,
+  doi = {10.1073/pnas.1901326117},
+	url = {https://doi.org/10.1073%2Fpnas.1901326117},
+	year = 2020,
+	month = {Feb},
+	publisher = {Proceedings of the National Academy of Sciences},
+	volume = {117},
+	number = {8},
+	pages = {3920--3929},
+	author = {Bin Yu and Karl Kumbier},
+	title = {Veridical data science},
+	journal = {Proceedings of the National Academy of Sciences}
+}
+
+@article{altieri2020curating,
+  title={Curating a COVID-19 data repository and forecasting county-level death counts in the United States},
+  author={Altieri, Nick and Barter, Rebecca L and Duncan, James and Dwivedi, Raaz and Kumbier, Karl and Li, Xiao and Netzorg, Robert and Park, Briton and Singh, Chandan and Tan, Yan Shuo and others},
+  journal={arXiv preprint arXiv:2005.07882},
+  year={2020}
+}

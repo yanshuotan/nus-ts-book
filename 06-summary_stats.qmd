@@ -317,7 +317,9 @@ pelt |> CCF(x = Lynx, y = Hare) |> autoplot()
 
 The CCF plot has a sinusoidal shape, with the first peak occuring at lag 1.
 The number of furs being traded can be treated as a proxy for the population size of each animal.
-Hence, we can interpret this as saying that the lynx population size is most strongly correlated with the hare population size from the previous year, which agrees with existing theories of [predator-prey dynamics](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations).
+Hence, we can interpret this as saying that the lynx population size is most strongly correlated with the hare population size from the previous year, which agrees with existing theories of [predator-prey dynamics](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations).[^1]
+
+[^1]: This can be modeled using ODEs. See also https://jckantor.github.io/CBE30338/02.05-Hare-and-Lynx-Population-Dynamics.html. A more sophisticated approach would make use of state space models.
 
 ## Decomposition statistics
 
@@ -370,7 +372,7 @@ One source of useful statistics is combining those that we have seen so far with
 For instance, first computing standard deviations over a rolling window and then taking the mean gives a summary of how volatile the time series is.
 
 Indeed, the following code snippet generates 47(!) different summary statistics.
-We refer the reader to Chapters 4.4 and 4.5. in @hyndman2018forecasting for more details on these statistics as well as how they may be used.[^1]
+We refer the reader to Chapters 4.4 and 4.5. in @hyndman2018forecasting for more details on these statistics as well as how they may be used.[^2]
 
 ```{r}
 #| echo: TRUE
@@ -380,4 +382,4 @@ aus_arrivals |>
     features(Arrivals, feature_set(pkgs = "feasts"))
 ```
 
-[^1]: Some of these summary statistics, such as tests for stationarity, will be discussed in part 2 of this book.
+[^2]: Some of these summary statistics, such as tests for stationarity, will be discussed in part 2 of this book.

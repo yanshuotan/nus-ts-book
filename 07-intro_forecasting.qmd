@@ -173,7 +173,7 @@ arrivals_fit <- aus_arrivals |>
 arrivals_fit
 ```
 
-Note that the objected returned by `model()` is a *mable* (model table).
+Note that the object returned by `model()` is a *mable* (model table).
 It contains a column for every method specified and a row for every time series in the tsibble supplied to `model()`.
 Each entry comprises a fitted model using the corresponding method and for the corresponding time series.
 
@@ -401,7 +401,7 @@ We will discuss this more in a future chapter and for now refer the interested r
 Forecasts are only useful if they are reasonably accurate.
 Accuracy can be formalized via the error between the forecast and the true value of the time series for a future time point, i.e.
 $$
-e_{n+h|n} = x_{n+h} - \hat x_{n+h|n}
+\hat e_{n+h|n} = x_{n+h} - \hat x_{n+h|n}
 $$
 for $h=1,2,\ldots$.
 
@@ -448,27 +448,27 @@ We have to use deterministic data splits instead.
 
 ### Train-test split for time series
 
-The simplest method for splitting time series data is to do a single chronological split, i.e. we select $x_1,x_2,\ldots,x_m$ to be the training set, and set $x_{m+1},x_{m+1},\ldots,x_n$ to be the test set.
+The simplest method for splitting time series data is to do a single chronological split, i.e. we select $x_1,x_2,\ldots,x_m$ to be the training set, and set $x_{m+1},x_{m+2},\ldots,x_n$ to be the test set.
 Let us illustrate this process using the antidiabetic drug sales time series data.
 We first create a training set comprising the first 80\% time points.
 
 ```{r}
 #| echo: TRUE
 diabetes_train <- diabetes |> 
-    slice_head(n = nrow(diabetes) * 0.8)
+    slice_head(n = round(nrow(diabetes) * 0.8))
 ```
 
 Here, we used the function `slice_head()`, but there are several other functions that can be used to filter for subsets of the time points, such as `filter()`, `filter_index()`, or variants of `slice()`.
 
 Next, we need to pick an error metric to evaluate the forecast errors.
-The two most common metrics in regression are mean squared error (MSE) or mean absolute error (MAE), which are defined for time series forecasts as follows:
+The two most common metrics in regression are mean squared error (MSE) and mean absolute error (MAE), which are defined for time series forecasts as follows:
 $$
 \text{MSE} = \frac{1}{n-m}\sum_{t=m+1}^n \hat e_{t|m}^2,
 $$
 $$
 \text{MAE} = \frac{1}{n-m}\sum_{t=m+1}^n \left|\hat e_{t|m}\right|.
 $$
-We also sometimes take the square of MSE to get root mean squared error (RMSE).
+We also sometimes take the square root of MSE to get root mean squared error (RMSE).
 
 On the other hand, both MSE and MAE depend on the units of the original time series.
 We cannot tell based on the raw value of MSE or MAE whether the forecast model is accurate unless we also knew the values taken by the original time series.
@@ -478,10 +478,10 @@ In this way, MSE can be rescaled to obtain the $R^2$ statistic, which compares t
 These compare the model's errors on the test set with those of the naive method on the training set.
 More precisely, we define the *mean squared scaled error* and the *mean absolute scaled error* as follows:
 $$
-\text{MSSE} = \frac{\text{MSE}}{\frac{1}{m}\sum_{t=2}^m (x_{t}-x_{t-1})^2},
+\text{MSSE} = \frac{\text{MSE}}{\frac{1}{m-1}\sum_{t=2}^m (x_{t}-x_{t-1})^2},
 $$
 $$
-\text{MASE} = \frac{\text{MAE}}{\frac{1}{m}\sum_{t=2}^m \left| x_{t}-x_{t-1}\right|}.
+\text{MASE} = \frac{\text{MAE}}{\frac{1}{m-1}\sum_{t=2}^m \left| x_{t}-x_{t-1}\right|}.
 $$
 
 Let us now compare the accuracy of all the methods we have seen so far for forecasting antidiabetic drug sales.
@@ -520,7 +520,7 @@ diabetes_fc |>
     arrange(MASE)
 ```
 
-The MASE and RMSSE calculations verify our conclusion that the decomposition method gives the most accurate forecasts.
+The MASE and RMSSE values verify our conclusion that the decomposition method gives the most accurate forecasts.
 
 ### Time series cross-validation
 
@@ -541,14 +541,15 @@ This is best illustrated by the following diagram, taken from @hyndman2018foreca
 
 ![Time series cross-validation for 4-step-ahead forecasts](_images/cv4-1.png){#fig-tscv}
 
-Here, each row corresponds to a training set, test set pair, with the former denoted in colored while the latter is colored in red.
+Here, each row corresponds to a training set, test set pair, with the former colored in blue, while the latter is colored in red.
+Time belonging to neither train nor test sets are grayed out.
 Note that in this example, we assume that we are interested in evaluating the accuracy of 4-step ahead forecasts, which is why each test set comprises a single time point 4 units after the last measurement in the training set.
 
 We now describe how to implement time series cross-validation using `tsibble`, again using the antidiabetic drug sales data as a working example.
 Suppose we are interested in 6 month ahead forecasts.
 First, we use `stretch_tsibble()` to create a tsibble containing all of the training sets.
 Here, `.init` indicates the minimum size of a training set, and `.step` refers to the difference in size of consecutive training sets. 
-In particular, `.init = 3, .step = 1` implies that we will have training sets of size $3, 4, 5, \ldots$.[^3]
+In particular, `.init = 120, .step = 1` implies that we will have training sets of size $120, 121, 122, \ldots$.[^3]
 
 [^3]: For statistical purposes, it is always better to calculate the error over more training sets. However, this can be very computationally expensive to run. If your computer takes a long time to execute time series cross-validation, try increasing `.step` to a larger value.
 
@@ -578,16 +579,31 @@ diabetes_fit <- diabetes_cv |>
 
 diabetes_fc <- diabetes_fit |>
     forecast(h = 6)
+```
 
+As before, `forecast(h = 6)` produces forecasts for each model for the next 6 time steps.
+Since we only want to evaluate the accuracy of the forecast at horizon $h = 6$, we need to perform some additional steps.
+```{r}
+#| warning: FALSE
+#| message: FALSE
 diabetes_fc |>
+    group_by(.id) |>                                            # <1>
+    mutate(h = ((row_number() - 1) %% 6) + 1) |>                # <1>
+    ungroup() |>                                                # <1>
+    filter(h == 6) |>                                           # <2>
+    as_fable(response = "TotalC", distribution = TotalC) |>     # <3>
     accuracy(diabetes) |>
     select(.model, RMSSE, MASE, RMSE, MAE) |>
     arrange(MASE)
 ```
 
+1. These three lines add an addition column to the fable, denoting the horizon of the forecast corresponding to that row.
+2. We filter for only the forecasts that are at horizon $h = 6$.
+3. The operations on the previous lines have produced a table that is no longer of the fable class. We hence have to convert it back to a fable again.
+
 Again, we see that the decomposition forecasting method has the best performance.
 Notice also that all methods have better RMSSE compared to the single train-test split.
-This is unsurprising as the test error for the single split involved evaluting forecasts up to 41 steps ahead, as opposed to just 4 steps ahead for time series cross-validation.
+This is unsurprising as the test error for the single split involved evaluting forecasts up to 41 steps ahead, as opposed to just 6 steps ahead for time series cross-validation.
 
 ### Evaluating distributional forecasts
 

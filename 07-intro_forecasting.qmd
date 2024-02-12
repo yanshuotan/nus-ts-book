@@ -12,8 +12,6 @@ $$
 \newcommand{\E}{\mathbb{E}}
 $$
 
-## Introduction
-
 One of the primary goals of time series analysis is forecasting. 
 By analyzing historical data patterns, we can make predictions about future values. 
 For instance, investment companies make profits based on their ability to forecast stock prices and volatility.
@@ -283,7 +281,7 @@ diabetes |>
 
 Compared to @fig-forecasting-decomp, we see that the modeled trend is now exponentially increasing, and so are the fluctuations.
 
-## Statistical models
+## Statistical models {#sec-forecasting-statmodels}
 
 A statistical model for time series is a probabilistic model for how the observations are generated.
 In other words, we have a family of distributions $\lbrace p_\theta \colon \theta \in \Theta \rbrace$, and we pick the one that best fits the observed data $x_1,x_2,\ldots,x_n$.
@@ -293,7 +291,7 @@ Many of the forecasting methods that we have seen so far in this chapter are imp
 For instance, the mean method is associated with the model
 $$
 x_t = \theta + \epsilon_t,
-$$
+$$ {#eq-forecasting-mean-method}
 where $\theta$ is a constant and $\epsilon_t \sim_{i.i.d} \mathcal{N}(0,\sigma^2)$, while the naive method is associated with the model
 $$
 x_t = x_{t-1} + \epsilon_t.

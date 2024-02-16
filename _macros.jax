@@ -1,0 +1,12 @@
+<script>
+window.MathJax = {
+  tex: {
+    macros: {
+      E: "{\\mathbb{E}}", 
+      P: "{\\mathbb{P}}",
+      Var: "{\\textnormal{Var}}",
+      Cov: "{\\textnormal{Cov}}"
+    }
+  }
+};
+</script>

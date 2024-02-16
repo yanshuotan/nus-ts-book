@@ -36,8 +36,8 @@ bibliography: references.bib
 format:
   html:
     theme: cosmo
-    # include-in-header: 
-    # - file: macros.html
+    include-in-header: 
+      - file: _macros.jax
   # pdf:
   #   documentclass: scrreprt
   #   code-annotations: false

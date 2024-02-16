@@ -90,7 +90,7 @@ $$
 $$
 after which we can estimate each component via classical decomposition as before.
 
-## Some examples
+## Some examples {#sec-decomposition-examples}
 
 To illustrate the use of classical decomposition, let us apply it to the `aus_arrivals` dataset comprising tourist arrivals to Australia.
 

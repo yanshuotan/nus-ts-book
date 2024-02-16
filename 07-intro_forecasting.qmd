@@ -53,7 +53,7 @@ The blue region around the blue line represents a "confidence region" for the fo
 Of course, producing a forecast requires a choice of model or method.
 We present a few simple methods in the next section.
 
-## Simple forecasting methods
+## Simple forecasting methods {#sec-forecasting-simple}
 
 ### Mean method
 

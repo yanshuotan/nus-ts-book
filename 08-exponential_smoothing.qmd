@@ -213,7 +213,7 @@ $$ {#eq-exponential-holt-forecast}
 
 [^2]: We follow the convention of @hyndman2018forecasting in denoting the smooothing parameter of the trend using $\beta^*$ instead of $\beta$.
 
-We now compare the accuracy of Holt's linear trend method with that of SES, as well as the drift and linear trend methods, when used to forecast for the global temperature time series.
+We now compare the accuracy of Holt's linear trend method with that of SES, as well as the drift and linear trend methods, when used to forecast for the Singapore population time series.
 The time plot and the CV accuracy is shown below.
 As expected, Holt's linear trend method has the best accuracy.
 
@@ -302,7 +302,9 @@ sg_pop |>
     autoplot(sg_pop, level = NULL)
 ```
 
-From @fig-exponential-sgpop-damped-trend, we see that 
+From @fig-exponential-sgpop-damped-trend, we see that the undamped Holt linear trend method is overly optimistic. 
+It projects a population of greater than 8 million by 2024, which is clearly unrealistic.
+As $\phi$ becomes smaller, the forecasts asymptote more and more quickly to a flat line, with the choice $\phi = 0.9$ seemingly the best in this scenario
 
 We now compare the cross-validation performance of these methods, together with SES, using two different forecasting horizons.
 
@@ -345,13 +347,14 @@ sg_fc5 |>
 :::
 
 In both cases, damping seems to improve over both SES and Holt's linear trend method, although the optimal level of damping varies.
+This also shows that damping can also help with short-term forecasts.
 
 ## Holt-Winters' seasonal method
 
 As we have seen, many real world datasets contain seasonality.
 While the methods introduced in the previous sections do not account for seasonality, it is relatively straightforward to extend them to do so using ideas from time series decomposition.
 Just as there are additive and multiplicative decompositions, there are additive and multiplicative approaches to incoporating seasonality into exponential smoothing.
-Both are known as versions of *Holt-Winters's method*.
+Both are known as versions of *Holt-Winters' method*.
 
 ### Additive method
 
@@ -500,16 +503,17 @@ We now explain the code syntax used for specifying exponential smoothing methods
 The general recipe is to write
 ```{r}
 #| eval: FALSE
-ETS(X ~ error(S1) + trend(S2) + season(S3))
+ETS(X ~ error(O1) + trend(O2) + season(O3))
 ```
 
 Here, `X` is the column name of the time series being modeled
-`S2` is set to be one of `"A"`, `"Ad"`, or `"N"`, depending
+`O2` is set to be one of `"A"`, `"Ad"`, or `"N"`, depending
 on whether a linear trend, a damped linear trend, or no trend component is to be included in the model.
-`S3` is set to be one of `"A"`, `"M"`, or `"N"`, depending on whether additive, multiplicative, or no seasonal component is to be included.
-Finally, `S1` is set to be either `"A"` or `"M"` depending on whether the "noise" is to be additive or multiplicative.
+`O3` is set to be one of `"A"`, `"M"`, or `"N"`, depending on whether additive, multiplicative, or no seasonal component is to be included.
+Finally, `O1` is set to be either `"A"` or `"M"` depending on whether the "noise" is to be additive or multiplicative.
+This also explains the term `ETS`, which stands for Error, Trend, Seasonal.
 
-To understand the choices for `S1` further, recall that in @sec-forecasting-statmodels, we saw that the simple forecasting methods we have learnt are associated with statistical models.
+To understand the choices for `O1` further, recall that in @sec-forecasting-statmodels, we saw that the simple forecasting methods we have learnt are associated with statistical models.
 The exponential smoothing methods are no different.
 Indeed, each of them arises from a *state space model*, which are models that include *latent variables* which evolve over time.
 The components $(l_t)$, $(b_t)$, and $(s_t)$ are precisely our best estimates of these latent variables.
@@ -518,11 +522,11 @@ We will discuss the evolution equations for these models, as well as state space
 For now, note that these models include a noise term for the observations that can be either additive or multiplicative in nature.
 For the same choice of other parameters values ($\alpha$, $\beta^*$, etc.), this choice does not affect the point forecasts.
 On the other hand, it affects the distributional forecast.[^3]
-Furthermore, if multiplicative noise is chosen, the parameters are estimated using an objective function that is different from the sum of squared errors (@eq-exponential-sse), and arises from maximum likelihood.
+Furthermore, if multiplicative noise is chosen, the parameters are estimated using an objective function that is different from the sum of squared errors (@eq-exponential-sse), arising from maximum likelihood.
 
 [^3]: As before, having a statistical model allows us to produce distributional forecasts and prediction intervals.
 
-While each term `S1`, `S2`, and `S3` can be freely set, some combinations can lead to numerical instabilities and should be avoided.
+While each term `O1`, `O2`, and `O3` can be freely set, some combinations can lead to numerical instabilities and should be avoided.
 These are `ETS(A, N, M)`, `ETS(A, A, M)`, and `ETS(A, Ad, M)`.
 Lastly, note that when the time series contains zeros or negative values, multiplicative errors are not feasible.
 

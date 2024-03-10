@@ -112,7 +112,7 @@ $$
 X_t = \delta + X_{t-1} + W_t,
 $$ {#eq-stationary-rw}
 where $(W_t) \sim WN(0,\sigma^2)$.
-$\delta$ i called the drift of the walk, and if $\delta = 0$, $(X_t)$ is called a *simple random walk*.
+$\delta$ is called the drift of the walk, and if $\delta = 0$, $(X_t)$ is called a *simple random walk*.
 Note that a random walk is not stationary, even when there is no drift.
 Indeed, assuming the initial condition $X_0 = 0$ and rewriting @eq-stationary-rw as
 $$
@@ -153,7 +153,7 @@ rw_ts |>
 Recall that the random walk model gives rise to the naive and drift forecasting methods (@sec-forecasting-simple).
 As such, the implicit assumption we make when using these methods is that the time series looks like one of these trajectories.
 
-### Signal plus noise
+### Signal plus noise {#sec-stationary-examples-signal-plus-noise}
 
 A *signal in noise* model is of the form
 $$
@@ -162,7 +162,7 @@ $$
 where $(f_t)$ is a deterministic sequence of values and $(W_t) \sim WN(0,\sigma^2)$.
 Usually, $f_t$ has a simple functional form, such as a sinusoidal function.
 Here, the first term is usually regarded as a signal, while the second term is regarded as measurement noise to be removed.
-This can be done using smoothing techniques, or, if the functional form is known in advanced, via simple linear regression onto a convenient function basis.
+This can be done using smoothing techniques, or, if the functional form is known in advance, via simple linear regression onto a convenient function basis.
 Note that this process is not stationary unless $f_t$ is constant.
 
 - When $f_t = \beta_0 + \beta_1 t$, this time series model gives rise to the linear trend method.
@@ -189,7 +189,7 @@ $$
 & = \sum_{i=-\infty}^\infty\sum_{j=-\infty}^\infty \psi_i \psi_j \gamma_W(j-i+h) \\
 & = \sigma^2\sum_{i=-\infty}^\infty \psi_i \psi_{i-h}.
 \end{split} 
-$$
+$$ {#eq-stationary-linear-acvf}
 Here, the second equality comes from the bilinear nature of covariance, while the last equality uses @eq-stationary-wn-acvf.
 Finally, this value is finite because of @eq-stationary-linear-l1.
 We thus see that $(X_t)$ is stationary.
@@ -220,7 +220,7 @@ In @sec-summarystats, we learnt about sample versions of the mean, autocovarianc
 It turns out that when the time series is drawn from a stationary linear process, all three are consistent and asymptotically normal estimators of their population counterparts, as the length $n$ of the time series converges to infinity.
 As we will soon see, this allows us to perform hypothesis testing in various scenarios.
 
-**Theorem** (Mean).
+**Theorem 9.1** (Mean).
 If $(X_t)$ is a stationary linear process, then
 $$
 \sqrt{n}\left(\bar X_n - \mu \right) \to_d N(0, V),
@@ -231,7 +231,7 @@ V = \sum_{h = - \infty}^\infty \gamma_X(h) = \sigma^2 \left(\sum_{j=-\infty}^\in
 $$
 Furthermore, if $(X_t)$ is a linear process on Gaussian white noise, then we have
 $$
-\bar X_n \sim N\left(\mu, \sum_{|h| < n} \left(1 - \frac{|h|}{n}\right)\gamma_X(h)\right).
+\bar X_n \sim N\left(\mu, \frac{1}{n}\sum_{|h| < n} \left(1 - \frac{|h|}{n}\right)\gamma_X(h)\right).
 $$
 
 *Proof:* See Theorem A.5 of a proof of the first statement.
@@ -245,7 +245,7 @@ $$
 \end{split}
 $$
 
-**Theorem** (ACF).
+**Theorem 9.2** (ACF).
 If $(X_t)$ is a stationary linear process based on white noise with finite 4th moments[^4], then for any fixed $k$,
 $$
 \sqrt{n}\left(\hat\rho_{1:k} - \rho_{1:k}\right) \to_d N(0, V),
@@ -337,7 +337,7 @@ and the first difference of a stationary sequence remains stationary (check this
 More generally, when $f_t$ in @eq-stationary-trend-stationary is a degree $k$ polynomial, it can be made stationary by taking differences $k$ times.
 However, it is not recommended to use differencing on trend stationary time series.
 This is because taking differences leads to instability when inverting the differencing to forecast for the original time series (Step 5 of Box-Jenkins).
-Recall our interpretaion of differencing as discrete differentiation, this phenomenon is analogous to how small changes in derivatives $g'$, $g''$, etc. can lead to large changes in the behavior of the original function $g$.
+Recall our interpretation of differencing as discrete differentiation, this phenomenon is analogous to how small changes in derivatives $g'$, $g''$, etc. can lead to large changes in the behavior of the original function $g$.
 
 There are various tests for stationarity and for the presence of unit roots, such as the Durbin-Watson test and the KPSS test.
 We will discuss them in further detail in @sec-arima.
@@ -347,7 +347,7 @@ These are not the only types of non-stationarity.
 Consider for instance the case where we have a multiplicative time series decomposition.
 :::
 
-## Testing for white noise
+## Testing for white noise {#sec-stationary-testing-white-noise}
 
 If the residuals in Step 3 are not white noise, then we could in principle use the remaining autocorrelations to improve our forecast model.
 Hence, it is important to know how to test whether the residuals are indeed white noise.
@@ -373,7 +373,7 @@ $$
 By the [continuous mapping theorem](https://en.wikipedia.org/wiki/Continuous_mapping_theorem), we have $Q_{BP} \to_d \chi^2_{h}$ under the null hypothesis.
 In other words, in converges in distribution to a chi-squared distribution with $h$ degrees of freedom.
 The Box-Pierce test thus rejects $H_0$ when $Q_{BP}$ is larger than the $1-\alpha$ quantile of $\chi^2_h$.
-Alternatively, if we let $q_h$ denote the quantile function of $\chi^2_h$, we obtain a p-value via $q^{-1}_h(Q_{BP})$.
+Alternatively, if we let $F$ denote the quantile function of $\chi^2_h$, we obtain a p-value via computing $1 - F(Q_{BP})$.
 
 **Ljung-Box test**
 Define the Ljung-Box test statistic:
@@ -390,7 +390,7 @@ There does not seem to be an established best practice on how to pick $h$.
 @hyndman2018forecasting recommend setting $h = \min\lbrace 10, n/5\rbrace$ for non-seasonal data, and $h = \min\lbrace 2p, n/5\rbrace$ for seasonal data, where $p$ is the period of the seasonality.
 Here, the logic is that $h$ should be large enough so that it can include any troublesome ACF values, but not too large as in that case, the test statistic may be quite different from the reference $\chi^2_h$ distribution.[^7]
 
-Note also that if the time series to be tested, $(X_t)$, comprises the residuals of a fitted model with $r$ parameters, then $Q_{LB}$ and $Q_{BP}$ actually converge to $\chi^2_{h-p}$, which tends to have smaller values.
+Note also that if the time series to be tested, $(X_t)$, comprises the residuals of a fitted model with $r$ parameters, then $Q_{LB}$ and $Q_{BP}$ actually converge to $\chi^2_{h-r}$, which tends to have smaller values.
 Hence, we can obtain a more powerful test by comparing their values with the quantiles of this reference distribution.
 
 There are also a number of other tests that can be used, such as the [Breusch-Godfrey test](https://en.wikipedia.org/wiki/Breusch%E2%80%93Godfrey_test) or the difference-sign test.
@@ -473,7 +473,7 @@ In other words, the random walk model / naive method seems to have a good fit to
 
 ### Example 2: Tourist arrivals to Australia
 
-Recall our use of classical decomposition to model tourist arrivals to Australia from Japan (@sec-decomposition-examples).
+Recall our use of classical decomposition to model tourist arrivals to Australia from the UK (@sec-decomposition-examples).
 Let us now check whether the remainder component of the decomposition are white noise.
 We first generate this time series as follows.
 
@@ -496,7 +496,7 @@ Next, we make time and ACF plots.
 ```{r}
 #| warning: FALSE
 #| message: FALSE
-#| fig-cap: Remainder component of a classical decomposition of tourist arrivals to Australia from Japan.
+#| fig-cap: Remainder component of a classical decomposition of tourist arrivals to Australia from the UK.
 #| label: fig-stationary-arrivals-time
 arrivals_ausjap_remainder |>
     autoplot(random)
@@ -507,7 +507,7 @@ arrivals_ausjap_remainder |>
 ```{r}
 #| warning: FALSE
 #| message: FALSE
-#| fig-cap: ACF of remainder component of a classical decomposition of tourist arrivals to Australia from Japan.
+#| fig-cap: ACF of remainder component of a classical decomposition of tourist arrivals to Australia from the UK.
 #| label: fig-stationary-arrivals-acf
 arrivals_ausjap_remainder |>
     ACF(random) |>

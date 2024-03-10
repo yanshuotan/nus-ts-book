@@ -5,3 +5,6 @@ source: https://finance.yahoo.com/quote/GOOG/,
 
 #
 
+Yearly mean total sunspot number [1700 - now]
+filename: SN_y_tot_V2.0.csv
+source: https://www.sidc.be/SILSO/datafiles

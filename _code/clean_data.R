@@ -92,3 +92,18 @@ process_control_charts <- function(save = FALSE) {
   }
   ccharts
 }
+
+process_sunspots <- function(save = FALSE) {
+  sunspots <- read_csv2(str_c(RAW_DIR, "/SN_y_tot_V2.0.csv"), 
+                        col_names = FALSE)
+  sunspots <- sunspots |>
+    select(c(1, 2))
+  colnames(sunspots) <- c("Year", "Sunspots")
+  sunspots$Year <- sunspots$Year %/% 10
+  sunspots$Sunspots <- as.double(sunspots$Sunspots)
+  sunspots <- sunspots |> as_tsibble(index = Year)
+  if (save) {
+    saveRDS(sunspots, file = str_c(CLEANED_DIR, "sunspots.rds"))
+  }
+  sunspots
+}

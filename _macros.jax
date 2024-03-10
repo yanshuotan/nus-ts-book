@@ -4,6 +4,8 @@ window.MathJax = {
     macros: {
       E: "{\\mathbb{E}}", 
       P: "{\\mathbb{P}}",
+      R: "{\\mathbb{R}}",
+      Z: "{\\mathbb{Z}}",
       Var: "{\\textnormal{Var}}",
       Cov: "{\\textnormal{Cov}}"
     }

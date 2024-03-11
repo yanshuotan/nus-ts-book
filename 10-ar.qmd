@@ -1,4 +1,4 @@
-# ARMA Models {#sec-arma}
+# Autoregressive Models {#sec-ar}
 
 ```{r}
 #| message: FALSE
@@ -17,7 +17,7 @@ In the following figure, we plot the mean daily total sunspot number for each ye
 
 ```{r}
 #| fig-cap: Yearly mean total sunspot number obtained by taking a simple arithmetic mean of the daily total sunspot number over all days of each year.
-#| label: fig-arma-sunspots
+#| label: fig-ar-sunspots
 sunspots <- read_rds("_data/cleaned/sunspots.rds")
 sunspots |> autoplot(Sunspots)
 ```
@@ -27,7 +27,7 @@ sunspots |> autoplot(Sunspots)
 In view of the data's periodic nature, it seems to make sense to fit a [signal plus noise model](09-stationary.qmd#sec-stationary-examples-signal-plus-noise) of the form
 $$
 X_t = \mu + \alpha_1 \cos(\omega t) + \alpha_2 \sin(\omega t) + W_t,
-$$ {#eq-arma-sunspot-sinusoid}
+$$ {#eq-ar-sunspot-sinusoid}
 where $\omega = 2\pi/11$ and $(W_t) \sim WN(0,\sigma^2)$ for an unknown $\sigma^2$ parameter to be estimated.
 
 ```{r}
@@ -49,7 +49,7 @@ We also make plots of its [residual diagnostics](09-stationary.qmd#sec-stationar
 
 ```{r}
 #| fig-cap: Yearly mean daily total sunspot number (black), the mean function of a sinusoidal signal plus noise model fitted to the data (blue), and a sample trajectory from the model (orange).
-#| label: fig-arma-sunspots-sin-model-fitted
+#| label: fig-ar-sunspots-sin-model-fitted
 
 set.seed(5209)
 sunspots_fit |>
@@ -70,7 +70,7 @@ sunspots_fit |>
 
 ```{r}
 #| fig-cap: Residual diagnostics for the signal plus noise model for yearly mean daily total sunspot number.
-#| label: fig-arma-sunspots-sin-model-residuals
+#| label: fig-ar-sunspots-sin-model-residuals
 sunspots_fit |>
     gg_tsresiduals()
 ```
@@ -86,27 +86,27 @@ More precisely, inspecting the fitted values, we observe the following issues:
 
 For this reason, [Udny Yule](https://en.wikipedia.org/wiki/Udny_Yule) proposed an alternative model that is also based on a single sinusoid, but which incorporates noise in a different way.
 
-### Periodic behavior from ODEs {#sec-arma-motivation-odes}
+### Periodic behavior from ODEs {#sec-ar-motivation-odes}
 
-Yule's starting observation was the fact that the mean function of @eq-arma-sunspot-sinusoid,
+Yule's starting observation was the fact that the mean function of @eq-ar-sunspot-sinusoid,
 $$
 x(t) = \mu + \alpha_1 \cos(\omega t) + \alpha_2 \sin(\omega t),
-$$ {#eq-arma-sunspots-mean}
+$$ {#eq-ar-sunspots-mean}
 is a solution to the ordinary differential equation (ODE)
 $$
 x''(t) = - \omega^2 \left(x(t) - \mu\right).
-$$ {#eq-arma-sunspots-ode}
-Indeed, ODE theory tells us that all solutions to this ODE are of the form @eq-arma-sunspots-mean for some choice of $\alpha_1$ and $\alpha_2$ determined by initial conditions.
+$$ {#eq-ar-sunspots-ode}
+Indeed, ODE theory tells us that all solutions to this ODE are of the form @eq-ar-sunspots-mean for some choice of $\alpha_1$ and $\alpha_2$ determined by initial conditions.
 
 An ODE tells us how a physical system evolves deterministically based on its inherent properties.
-For instance, @eq-arma-sunspots-ode is also the ODE governing the small angle oscillation of a pendulum resulting from gravity, which means that the pendulum's angular position is given by @eq-arma-sunspots-mean.
+For instance, @eq-ar-sunspots-ode is also the ODE governing the small angle oscillation of a pendulum resulting from gravity, which means that the pendulum's angular position is given by @eq-ar-sunspots-mean.
 The periodic nature of the sunspot data is suggestive of a similar mechanism at work.
 On the other hand, the departures from pure periodicity suggests that this evolution is not determinstic, but is affected by external noise (which may comprise transient astrophysical phenomena).[^1]
-In order to accommodate this, we can add a noise term into @eq-arma-sunspots-ode to get a *stochastic differential equation*:
+In order to accommodate this, we can add a noise term into @eq-ar-sunspots-ode to get a *stochastic differential equation*:
 $$
 d^2X_t = - \omega^2 \left(X_t - \mu\right) + dW_t.
 $$
-Since time series deals with discrete time points, however, we will first re-interpret @eq-arma-sunspots-ode in a discrete setting.
+Since time series deals with discrete time points, however, we will first re-interpret @eq-ar-sunspots-ode in a discrete setting.
 
 ::: callout-note
 As seen above, stochastic differential equations are natural generalizations of ODEs, and are used to model complex dynamical systems arising in finance, astrophysics, biology, and other fields.
@@ -120,25 +120,25 @@ They are beyond the scope of this textbook.
 The discrete time analogue of an ODE is a difference equation, which relates the value of a sequence at time $t$ to its values at previous time points.
 
 **Proposition 10.1.**
-The time series @eq-arma-sunspots-mean is the unique general solution to the difference equation:
+The time series @eq-ar-sunspots-mean is the unique general solution to the difference equation:
 $$
 (I-B)^2 x_t = 2(\cos \omega - 1)(x_{t+1} - \mu).
-$$ {#eq-arma-sunspots-difference-equation}
+$$ {#eq-ar-sunspots-difference-equation}
 
 Here, $B$ is the backshift operator defined in @sec-transformations.
-Observe the similarity between @eq-arma-sunspots-ode and @eq-arma-sunspots-difference-equation, especially bearing in mind that the difference operator $I-B$ can be thought of as discrete differentiation.
+Observe the similarity between @eq-ar-sunspots-ode and @eq-ar-sunspots-difference-equation, especially bearing in mind that the difference operator $I-B$ can be thought of as discrete differentiation.
 
 ### An autoregressive model
 
-Following the argument in @sec-arma-motivation-odes, @yule1927method proposed the model:
+Following the argument in @sec-ar-motivation-odes, @yule1927method proposed the model:
 $$
 (I-B)^2 X_t = 2(\cos \omega - 1)(X_{t-1} - \mu) + W_t,
-$$ {#eq-arma-sunspots-ar-model}
+$$ {#eq-ar-sunspots-ar-model}
 where $(W_t) \sim WN(0,\sigma^2)$.
 The parameters to be estimated are $\omega$, $\mu$, and $\sigma^2$.
 In other words, at each time point, the second derivative is perturbed by an amount of exogenous (external) noise.
 
-Note that @eq-arma-sunspots-ar-model can be rewritten as
+Note that @eq-ar-sunspots-ar-model can be rewritten as
 $$
 X_t = \alpha + 2\cos \omega X_{t-1} - X_{t-2} + W_t,
 $$
@@ -164,7 +164,7 @@ sigma <- sunspots_fit |>
 
 ```{r}
 #| fig-cap: Yearly mean daily total sunspot number (black), the one-step ahead fitted values using Yule's fitted model (blue), and a sample trajectory from the model (orange).
-#| label: fig-arma-sunspots-ar-model-fitted
+#| label: fig-ar-sunspots-ar-model-fitted
 
 set.seed(5209)
 sunspots_fit |>
@@ -185,7 +185,7 @@ sunspots_fit |>
 
 ```{r}
 #| fig-cap: Residual diagnostics for Yule's model for yearly mean daily total sunspot number.
-#| label: fig-arma-sunspots-ar-model-residuals
+#| label: fig-ar-sunspots-ar-model-residuals
 #| warning: FALSE
 sunspots_fit |>
     gg_tsresiduals()
@@ -194,7 +194,7 @@ sunspots_fit |>
 :::
 
 We see that the residuals look much closer to white noise than those of the signal plus noise model, although there still seems to be some remaining outlier values as well as periodic behavior.
-Furthermore, the fitted values are much closer to the observed time series, and a sample trajectory from the model now seems qualitatively similar to the observed time series.
+Furthermore, the fitted values are much closer to the observed time series, and a sample trajectory from the model now seems qualitatively similar to the observed time series (apart from the negative values).
 
 ### Final comparison
 
@@ -227,12 +227,12 @@ We will discuss this further when we cover *state space models*.
 An *autoregressive model* of order $p$, abbreviated $\textnormal{AR}(p)$, is a stationary stochastic process $(X_t)$ that solves the equation
 $$
 X_t = \alpha + \phi_1 X_{t-1} + \phi_2 X_{t-2} + \cdots + \phi_p X_{t-p} + W_t,
-$$ {#eq-arma-arp}
+$$ {#eq-ar-arp}
 where $(W_t) \sim WN(0,\sigma^2)$, and $\phi_1, \phi_2,\ldots,\phi_p$ are constant coefficients.
 
 It is similar to a regression model, except that the regressors are copies of the same time series variable, albeit at earlier time points, hence the term *autoregressive*.
 
-Note that a simple rearrangement of @eq-arma-arp shows that it is equivalent to
+Note that a simple rearrangement of @eq-ar-arp shows that it is equivalent to
 $$
 X_t - \mu = \phi_1 (X_{t-1} - \mu) + \phi_2 (X_{t-2} - \mu) + \cdots + \phi_p (X_{t-p} - \mu) + W_t,
 $$
@@ -240,15 +240,16 @@ where $\mu = \alpha/(1- \phi_1 - \phi_2 - \cdots \phi_p)$.
 We will soon see that this implies that the mean of $(X_t)$ is $\mu$.
 It also implies that centering an autoregressive model does not change its coefficients.
 
-The *autoregressive polynomial* of the model @eq-arma-arp is
+The *autoregressive polynomial* of the model @eq-ar-arp is
 $$
 \phi(t) = 1 - \phi_1 t - \phi_2 t^2 - \cdots - \phi_p t^p.
 $$
-Using this notation, we can rewrite @eq-arma-arp as
+Using this notation, we can rewrite @eq-ar-arp as
 $$
 \phi(B)X_t = W_t,
 $$
 where $B$ is the [backshift operator](04-transformations.qmd#lags).
+We call $\phi(B)$ the *autoregressive operator*.
 Note that for any integer $k$, $B^k$ is the composition of the backshift operator $B$ with itself $k$ times.
 Since $B$ shifts the sequence forwards by one time unit, this resulting operator therefore shifts a sequence forwards by $k$ time units.
 
@@ -266,10 +267,10 @@ They can also be composed as discussed earlier.
 Introducing this formalism turns out to be quite useful.
 Apart from allowing for compact notation, the properties of the autoregressive polynomial $\phi$, in particular its roots and inverses, turn out to be intimately related to properties of the $\textnormal{AR}(p)$ model.
 
-It is important to understand that @eq-arma-arp and its variants are *equations* and that the model is defined as a *solution* to equation.
+It is important to understand that @eq-ar-arp and its variants are *equations* and that the model is defined as a *solution* to equation.
 A priori, such a solution may not exist at all, or there may be multiple solutions.
 
-<!-- As mentioned earlier, there is a close connection between @eq-arma-arp and linear ODEs (see @eq-arma-sunspots-ode).
+<!-- As mentioned earlier, there is a close connection between @eq-ar-arp and linear ODEs (see @eq-ar-sunspots-ode).
 The theory of linear ODEs tell us the solutions to initial value problems (the equation and chosen values for the function at a point) exist and are unique.
 However,  -->
 
@@ -285,17 +286,17 @@ We illustrate some of the basic properties of autoregressive models by studying 
 This is defined via the equation 
 $$
 X_t = \phi X_{t-1} + W_t,
-$$ {#eq-arma-ar1}
+$$ {#eq-ar-ar1}
 where $(W_t) \sim WN(0,\sigma^2)$.[^2]
 It is convention to slightly abuse notation, using $\phi$ to denote both the AR polynomial and its coefficient.
 The meaning will be clear from the context.
 
 [^2]: We omit the constant term in the equation due to our remarks in the previous section.
 
-### Causal solutions {#sec-arma-ar1-solutions}
+### Causal solutions {#sec-ar-ar1-solutions}
 
 **Proposition 10.1** (Existence and uniqueness of solutions). 
-Suppose $|\phi| < 1$, then there is a unique stationary solution to @eq-arma-ar1.
+Suppose $|\phi| < 1$, then there is a unique stationary solution to @eq-ar-ar1.
 This solution is a causal linear process.
 
 *Proof.*
@@ -303,14 +304,14 @@ We first show existence.
 Consider the expression
 $$
 X_t \coloneqq \sum_{j=0}^\infty \phi^j W_{t-j}.
-$$ {#eq-arma-ar1-sol}
+$$ {#eq-ar-ar1-sol}
 Since
 $$
 \sum_{j=0}^\infty |\phi^j| = \frac{1}{1-|\phi|} < \infty,
 $$ 
 the expression converges absolutely, so $X_t$ is well-defined.
 Indeed this is a causal linear process, and is in particular stationary.
-It is also easy to see that it satisfies @eq-arma-ar1:
+It is also easy to see that it satisfies @eq-ar-ar1:
 $$
 \begin{split}
 \phi X_{t-1} + W_t & = \phi\left(\sum_{j=0}^\infty \phi^j W_{t-1-j}\right) + W_t \\
@@ -321,7 +322,7 @@ $$
 $$
 
 To see that it is unique, suppose we have another stationary solution $(Y_t)$.
-We may then use @eq-arma-ar1 to write
+We may then use @eq-ar-ar1 to write
 $$
 \begin{split}
 Y_t & = \phi Y_{t-1} + W_t \\
@@ -342,13 +343,13 @@ $$
 $$
 Since the left hand side is independent of $l$, we get $Y_t =_d Z_t$ as we wanted. $\Box$
 
-This theorem allows us to speak of *the* solution to @eq-arma-ar1, and we sometimes informally refer to the equation as the model.
-As such, we also refer to @eq-arma-ar1 for $|\phi| < 1$ as a causal $\textnormal{AR}(1)$ model.
+This theorem allows us to speak of *the* solution to @eq-ar-ar1, and we sometimes informally refer to the equation as the model.
+As such, we also refer to @eq-ar-ar1 for $|\phi| < 1$ as a causal $\textnormal{AR}(1)$ model.
 
-### Moments {#sec-arma-ar1-moments}
+### Moments {#sec-ar-ar1-moments}
 
 **Proposition 10.2** (Mean, ACVF, ACF).
-Let $(X_t)$ be the solution to @eq-arma-ar1.
+Let $(X_t)$ be the solution to @eq-ar-ar1.
 Then We have $\mu_X = 0$ and
 $$
 \gamma_X(h) = \frac{\sigma^2\phi^h}{1-\phi^2},
@@ -359,7 +360,7 @@ $$
 for all $h \in \mathbb{Z}$.
 
 *Proof.*
-Using @eq-arma-ar1-sol, we get
+Using @eq-ar-ar1-sol, we get
 $$
 \mu_X = \E\left\lbrace \sum_{j=0}^\infty \phi^j W_{t-j} \right\rbrace = \sum_{j=0}^\infty \phi^j \E\left\lbrace  W_{t-j} \right\rbrace = 0.
 $$
@@ -370,21 +371,21 @@ $$
 
 We thus see that the ACF has an exponential decay.
 
-### Forecasts {#sec-arma-ar1-forecasts}
+### Forecasts {#sec-ar-ar1-forecasts}
 
-The recurrence form of @eq-arma-ar1 makes forecasting extremely straightforward.
+The recurrence form of @eq-ar-ar1 makes forecasting extremely straightforward.
 Recall that we are interested in both distributional and point forecasts (see @sec-forecasting-distributional).
 Given a statistical model and observations $x_1,x_2,\ldots,x_n$ drawn from the model, the distributional forecast for a future observation $X_{n+h}$ is just its conditional distribution given our observed values:
 $$
 \P\left\lbrace X_{n+h} \leq x_{n+h}|X_1 = x_1, X_2 = x_2,\ldots,X_n = x_n \right\rbrace.
-$$ {#eq-arma-ar1-forecast-distribution}
+$$ {#eq-ar-ar1-forecast-distribution}
 
 Given an $\textnormal{AR}(1)$ model with a further assumption of Gaussian white noise, the distributional forecast is extremely easy to derive.
-We simply recursively apply @eq-arma-ar1 to get
+We simply recursively apply @eq-ar-ar1 to get
 $$
 X_{n+h} = W_{n+h} + \phi W_{n+h-1} + \cdots + \phi^{h-1}W_{n+1} + \phi^hX_n.
 $$
-Since $W_{n+1},\ldots,W_{n+h}$ are independent of $X_1,X_2,\ldots,X_n$, this means that @eq-arma-ar1-forecast-distribution is simply $N\left(\phi^h x_n, \frac{(1-\phi^{2h})\sigma^{2}}{1-\phi^2} \right)$.
+Since $W_{n+1},\ldots,W_{n+h}$ are independent of $X_1,X_2,\ldots,X_n$, this means that @eq-ar-ar1-forecast-distribution is simply $N\left(\phi^h x_n, \frac{(1-\phi^{2h})\sigma^{2}}{1-\phi^2} \right)$.
 In particular, we get
 $$
 \hat x_{n+h|n} = \phi^h x_n
@@ -434,7 +435,7 @@ We also show the distributional forecasts up to the horizon $h=20$.
 ```{r}
 #| echo: FALSE
 #| fig-cap: Sample trajectories and forecasts for AR(1) models with different values of phi. These are (from top to bottom) 0.3, 0.9 and -0.9. The noise variance is set to be 1.
-#| label: fig-arma-ar1
+#| label: fig-ar-ar1
 set.seed(5209)
 n <- 80
 h <- 20
@@ -468,7 +469,7 @@ Finally, when $\phi$ is negative, consecutive values are negatively correlated, 
 
 ### Reversibility and backcasts
 
-If we assume that the white noise in @eq-arma-ar1 is Gaussian, then the resulting $\textnormal{AR}(1)$ process is also a Gaussian process, which means that its distribution is fully determined by its mean and ACVF functions.
+If we assume that the white noise in @eq-ar-ar1 is Gaussian, then the resulting $\textnormal{AR}(1)$ process is also a Gaussian process, which means that its distribution is fully determined by its mean and ACVF functions.
 Note that the ACVF function of any stationary process is even: $\gamma_X(h) = \gamma_X(-h)$.
 This means the covaraince matrix of $(X_1,X_2,\ldots,X_n)$, $\Gamma_{1:n} = (\gamma_X(i-j))_{ij=1}^n$, is symmetric and so the distribution of $(X_1,X_2,\ldots,X_n)$ is the same as that of its time reversal $(X_n,X_{n-1},\ldots,X_1)$.
 In summary, stationary $\textnormal{AR}(1)$ processes are *reversible*, and we cannot tell the direction of time simply by looking at a trajectory.
@@ -479,7 +480,7 @@ On the other hand, reversibility allows us to easily perform *backcasting*, whic
 ```{r}
 #| echo: FALSE
 #| fig-cap: Sample trajectory and backcasts for an AR(1) model with phi = 0.9.
-#| label: fig-arma-ar1-backcasting
+#| label: fig-ar-ar1-backcasting
 set.seed(5209)
 n <- 80
 h <- 20
@@ -514,7 +515,7 @@ Since the sample ACVF is consistent (Theorem A.6 in @shumway2000time), so is thi
 
 **Explosive solution.**
 If a choice of $|\phi| < 1$ results in a unique stationary solution, what happens when $|\phi| > 1$?
-If we start with a *fixed* initial value $X_0 = c$, we can iterate @eq-arma-ar1 to get
+If we start with a *fixed* initial value $X_0 = c$, we can iterate @eq-ar-ar1 to get
 $$
 X_t = \sum_{j=1}^t \phi^j W_j + \sum_{j=1}^t \phi^j c.
 $$
@@ -527,26 +528,26 @@ The resulting time series model is sometimes called an explosive $\textnormal{AR
 In particular, it is not stationary.
 
 The above is probably unsurprising.
-When $\phi = 1$, then @eq-arma-ar1 is the defining equation for a random walk, which we already know is non-stationary.
-It is therefore somewhat unintuitive that there exist unique stationary solutions to @eq-arma-ar1 when $|\phi| > 1$.
+When $\phi = 1$, then @eq-ar-ar1 is the defining equation for a random walk, which we already know is non-stationary.
+It is therefore somewhat unintuitive that there exist unique stationary solutions to @eq-ar-ar1 when $|\phi| > 1$.
 
 **Stationary solution.**
 Define the expression
 $$
 X_t \coloneqq -\sum_{j=1}^\infty \phi^{-j}W_{t+j}.
-$$ {#eq-arma-ar1-noncausal}
-Using the same arguments as in the proof of [Proposition 10.1](10-arma.qmd#sec-arma-ar1-solutions), one can check that this converges absolutely, and that $(X_t)$ is stationary and satisfies @eq-arma-ar1.
+$$ {#eq-ar-ar1-noncausal}
+Using the same arguments as in the proof of [Proposition 10.1](10-ar.qmd#sec-ar-ar1-solutions), one can check that this converges absolutely, and that $(X_t)$ is stationary and satisfies @eq-ar-ar1.
 Indeed, it is the unique such solution.
 On the other hand, this solution doesn't make physical sense because $X_t$ depends on the *future* innovations $W_{t+1}, W_{t+2},\ldots$.[^3]
-Formally, we say that such a solution is non-causal, unlike @eq-arma-ar1-sol.
+Formally, we say that such a solution is non-causal, unlike @eq-ar-ar1-sol.
 
-[^3]: Because of this lack of independence, we cannot use the equations in @sec-arma-ar1-forecasts to forecast or simulate sample trajectories.
+[^3]: Because of this lack of independence, we cannot use the equations in @sec-ar-ar1-forecasts to forecast or simulate sample trajectories.
 
-Because of the the problems of these two solutions, @eq-arma-ar1 with $|\phi| > 1$ is rarely used for modeling.
+Because of the the problems of these two solutions, @eq-ar-ar1 with $|\phi| > 1$ is rarely used for modeling.
 
 ::: callout-note
 
-One may calculate the ACVF of @eq-arma-ar1-noncausal to be
+One may calculate the ACVF of @eq-ar-ar1-noncausal to be
 $$
 \gamma_X(h) = \frac{\sigma^2\phi^{-2}\phi^{-h}}{1-\phi^{-2}}.
 $$
@@ -561,20 +562,79 @@ We now generalize our findings about $\textnormal{AR}(1)$ models to general $\te
 Along the way, we will see that while the flavor of the results remains consistent, the technical difficulty of the tools we need increases sharply.
 
 **Theorem 10.3** (Existence and uniqueness of solutions)
-Let $\phi(z)$ be the autoregressive polynomial of @eq-arma-arp.
-Suppose $\phi(z) \neq 0$ for all $|z| \neq 1$, then @eq-arma-arp admits a unique stationary solution.
-If futhermore $\phi(z) \neq 0$ for all $|z| \leq 1$, then the solution is causal and has the form
+Let $\phi(z)$ be the autoregressive polynomial of @eq-ar-arp.
+Suppose $\phi(z) \neq 0$ for all $|z| \leq 1$, then @eq-ar-arp admits a unique stationary solution.[^4]
+This solution is causal and has the form
 $$
-X_t = \sum_{j=0}^\infty \psi_j W_{t-j},
-$$
+X_t = \mu + \sum_{j=0}^\infty \psi_j W_{t-j},
+$$ {#eq-ar-arp-solution}
 where
 $$
 \phi(z) \cdot \left(\sum_{j=0}^\infty \psi_j z^j \right) = 1.
-$$ {#eq-arma-arp-coefficients}
+$$ {#eq-ar-arp-coefficients}
 
+[^4]: If we relax the condition to $\phi(z) \neq 0$ for all $|z| = 1$, unique stationary solutions still exist, but they may be noncausal. We do not discuss this case.
 
+Note that by expanding out the product on the left hand side of @eq-ar-arp-coefficients and comparing coefficients of each monomial term with the right hand side, we get an infinite sequence of equations, which allows us to solve for $\psi_0,\psi_1,\ldots$.
+
+*Proof.*
+The proof is slightly technical and boils down to investigating whether the autoregressive operator $\phi(B)$ has a well-defined inverse.
+First, note that $\phi(z)$ always has a formal power series inverse $\sum_{j=0}^\infty \psi_j z^j$ obtained by solving @eq-ar-arp-coefficients.
+To check its radius of convergence, write $\phi(z) = \prod_{k=1}^r (1 - z_k^{-1}z)^{m_k}$, where $z_1,z_2,\ldots,z_r$ are the unique roots of $\phi$, and $m_1, m_2,\ldots,m_r$ their multiplicities.
+For each $k$, our assumed condition implies that $|z_k| > 1$, which implies that the formal inverse for $1 - z_k^{-1}z$,
+$$
+\sum_{j=0}(z_k^{-1}z)^j,
+$$
+converges absolutely and uniformly on the unit disc.
+Since $\sum_{j=0}^\infty \psi_j z^j$ is a product of these power series, it also converges absolutely and uniformly on the unit disc, and in particular, $\sum_{j=0}^\infty |\psi_j| < \infty$.
+
+Next, notice that the backshift operator $B$ as norm 1, as an operator on the space of doubly infinite sequences $\ell^\infty(\Z)$ with the uniform norm.
+Substituting it in for the indeterminate $z$ in $\sum_{j=0}^\infty \psi_j z^j$ and considering operator norms, we get
+$$
+\left\| \sum_{j=0}^\infty \psi_j B^j \right\| \leq \sum_{j=0}^\infty |\psi_j| < \infty.
+$$
+$\sum_{j=0}^\infty \psi_j B^j$ is therefore a well-defined operator which is an inverse to the autoregressive operator.
+This allows us to apply it to both sides of @eq-ar-arp to get
+$$
+\begin{split}
+X_t - \mu & = \left(\sum_{j=0}^\infty \psi_j B^j\right) \phi(B)(X_t - \mu) \\
+& = \left(\sum_{j=0}^\infty \psi_j B^j\right)W_t \\
+& = \sum_{j=0}^\infty \psi_j W_{t-j}.
+\end{split}
+$$
+Uniqueness can be derived in a similar manner to Proposition 10.1. $\Box$
+
+For the rest of this chapter, we only consider causal autoregressive models.
 
 ## Moments
+
+Using @eq-ar-arp-solution, we easily see that the mean is $\mu_X = \mu$.
+The ACVF and ACF can be computed using @eq-stationary-linear-acvf, but this does not reveal too much about their general pattern.
+Another approach is to multiply both sides of @eq-ar-arp by $X_{t-h}$ and compute expectations.
+The first step gives the equation
+$$
+X_{t-h}X_t = \phi_1 X_{t-h}X_{t-1} + \phi_2 X_{t-h}X_{t-2} + \cdots + \phi_p X_{t-h}X_{t-p} + X_{t-h}W_t.
+$$
+When $h \geq 1$, $X_{t-h}$ and $W_t$ are independent, which yields the equations
+$$
+\gamma_X(h) = \phi_1 \gamma_X(h-1) + \phi_2 \gamma_X(h-2) + \cdots \phi_p \gamma_X(h-p).
+$$
+Since this holds for any integer $h \geq 1$, we may rewrite it in operator form as
+$$
+\phi(B)\gamma_X(t) = 0
+$$ {#eq-ar-moments-difference-eq}
+where we treat $\left(\gamma_X(t)\right)$ as an infinite sequence.
+@eq-ar-moments-difference-eq is known as a $p$-th order *difference equation*, and shares many similarities with [linear ODEs with constant coefficients](https://en.wikipedia.org/wiki/Linear_differential_equation#Homogeneous_equation_with_constant_coefficients).
+In particular, if $z_1,z_2,\ldots,z_r$ are the unique roots of $\phi$ and $m_1, m_2,\ldots,m_r$ their multiplicities, the general solution to @eq-ar-moments-difference-eq is
+$$
+\gamma_X(h) = z_1^{-h}P_1(h) + z_2^{-h}P_2(h) + \cdots + z_r^{-h}P_r(h),
+$$
+where for each $k$, $P_k$ is a polynomial of degree $m_k-1$.
+This results in two types of qualitative behavior, depending on the roots.
+
+*Case 1*: If all roots are real, then $\gamma_X(h)$ decays to zero exponentially as $h \to \infty$.
+
+*Case 2*: If some roots are complex, then they occur in conjugate pairs, and $\gamma_X(h)$ will take the form of a sinusoidal curve with exponential damping.
 
 ## Forecasts
 

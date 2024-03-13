@@ -82,7 +82,7 @@ More precisely, inspecting the fitted values, we observe the following issues:
 
 - Some of the observed oscillations (e.g. around 1960) have much higher amplitude than can be explained by a single sinusoid.
 - The period of the oscillation is not fixed but varies slightly over time.
-- The sample trajectory seems much "noisier" than the observed time series.
+- The sample trajectory seems much more noisy than the observed time series.
 
 For this reason, [Udny Yule](https://en.wikipedia.org/wiki/Udny_Yule) proposed an alternative model that is also based on a single sinusoid, but which incorporates noise in a different way.
 
@@ -122,7 +122,7 @@ The discrete time analogue of an ODE is a difference equation, which relates the
 **Proposition 10.1.**
 The time series @eq-ar-sunspots-mean is the unique general solution to the difference equation:
 $$
-(I-B)^2 x_t = 2(\cos \omega - 1)(x_{t+1} - \mu).
+(I-B)^2 x_t = 2(\cos \omega - 1)(x_{t-1} - \mu).
 $$ {#eq-ar-sunspots-difference-equation}
 
 Here, $B$ is the backshift operator defined in @sec-transformations.
@@ -216,7 +216,7 @@ X_t = Y_t.
 $$
 
 In both cases, we can think of $Y_t$ as defining the true state of nature at time $t$, whose values directly affect its future states.
-Meanwhile, $X_t$ reflects the our observation of nature at time $t$.
+Meanwhile, $X_t$ reflects our observation of the state of nature at time $t$.
 The signal plus noise model postulates a deterministic evolution of the true state, but introduces observational noise.
 On the other hand, Yule's model postulates noiseless observations, but allows for a noisy evolution of the state of nature.
 It is possible to incorporate both sources of noise in the same model.
@@ -295,13 +295,13 @@ The meaning will be clear from the context.
 
 ### Causal solutions {#sec-ar-ar1-solutions}
 
-**Proposition 10.1** (Existence and uniqueness of solutions). 
+**Proposition 10.2** (Existence and uniqueness of solutions). 
 Suppose $|\phi| < 1$, then there is a unique stationary solution to @eq-ar-ar1.
 This solution is a causal linear process.
 
 *Proof.*
 We first show existence.
-Consider the expression
+Consider the random variable defined as
 $$
 X_t \coloneqq \sum_{j=0}^\infty \phi^j W_{t-j}.
 $$ {#eq-ar-ar1-sol}
@@ -309,8 +309,8 @@ Since
 $$
 \sum_{j=0}^\infty |\phi^j| = \frac{1}{1-|\phi|} < \infty,
 $$ 
-the expression converges absolutely, so $X_t$ is well-defined.
-Indeed this is a causal linear process, and is in particular stationary.
+the expression converges in a mean squared sense, so $X_t$ is well-defined.
+Indeed, $(X_t)$ defined in this manner is a causal linear process and is in particular stationary.
 It is also easy to see that it satisfies @eq-ar-ar1:
 $$
 \begin{split}
@@ -332,23 +332,23 @@ $$
 where the second equality holds for any integer $l > 0$.
 We thus see that for the same white noise sequence, we have
 $$
-Y_t - Z_t = \sum_{l+1}^\infty \phi^j W_{t-j} + \phi^l Y_{t-l}.
+Y_t - X_t = -\sum_{l+1}^\infty \phi^j W_{t-j} + \phi^l Y_{t-l}.
 $$
 We can obtain a variance bound on the right hand side that tends to 0 as $l \to \infty$:
 $$
 \begin{split}
-\Var\left\lbrace \sum_{j=l+1}^\infty \phi^j W_{t-j} + \phi^l Y_{t-l} \right\rbrace & \leq 2\Var\left\lbrace \sum_{j=l+1}^\infty \phi^j W_{t-j}\right\rbrace + 2\Var\left\lbrace \phi^l Y_{t-l}\right\rbrace \\
+\Var\left\lbrace -\sum_{j=l+1}^\infty \phi^j W_{t-j} + \phi^l Y_{t-l} \right\rbrace & \leq 2\Var\left\lbrace \sum_{j=l+1}^\infty \phi^j W_{t-j}\right\rbrace + 2\Var\left\lbrace \phi^l Y_{t-l}\right\rbrace \\
 & = \frac{2\phi^{2l}\sigma^2}{1-\phi^2} + \phi^{2l}\gamma_Y(0).
 \end{split}
 $$
-Since the left hand side is independent of $l$, we get $Y_t =_d Z_t$ as we wanted. $\Box$
+Since the left hand side is independent of $l$, we get $Y_t =_d X_t$ as we wanted. $\Box$
 
 This theorem allows us to speak of *the* solution to @eq-ar-ar1, and we sometimes informally refer to the equation as the model.
 As such, we also refer to @eq-ar-ar1 for $|\phi| < 1$ as a causal $\textnormal{AR}(1)$ model.
 
 ### Moments {#sec-ar-ar1-moments}
 
-**Proposition 10.2** (Mean, ACVF, ACF).
+**Proposition 10.3** (Mean, ACVF, ACF).
 Let $(X_t)$ be the solution to @eq-ar-ar1.
 Then We have $\mu_X = 0$ and
 $$
@@ -499,10 +499,10 @@ ar1_data |>
 
 An $\textnormal{AR}(1)$ model only has two parameters: $\phi$ and $\sigma^2$.
 Given observed data $x_1,x_2,\ldots,x_n$, we may estimate these parameters as follows.
-First, Proposition 10.2 tells us that $\phi = \rho_X(1)$, so we may use the estimator $\hat\phi \coloneqq \hat\rho_X(1)$. 
+First, Proposition 10.3 tells us that $\phi = \rho_X(1)$, so we may use the estimator $\hat\phi \coloneqq \hat\rho_X(1)$. 
 Substituting this into [Theorem 9.2](09-stationary.qmd#sec-stationary-moments) then gives
 $$
-\sqrt n (\hat\phi - \phi) \to N(0,1-\phi^2).
+\sqrt n (\hat\phi - \phi) \to_d N(0,1-\phi^2).
 $$
 
 Since $\sigma^2 = \gamma_X(0)(1-\phi^2)$, we may estimate
@@ -513,8 +513,9 @@ Since the sample ACVF is consistent (Theorem A.6 in @shumway2000time), so is thi
 
 ### When $|\phi| > 1$
 
-**Explosive solution.**
 If a choice of $|\phi| < 1$ results in a unique stationary solution, what happens when $|\phi| > 1$?
+
+**Explosive solution.**
 If we start with a *fixed* initial value $X_0 = c$, we can iterate @eq-ar-ar1 to get
 $$
 X_t = \sum_{j=1}^t \phi^j W_j + \sum_{j=1}^t \phi^j c.
@@ -536,7 +537,7 @@ Define the expression
 $$
 X_t \coloneqq -\sum_{j=1}^\infty \phi^{-j}W_{t+j}.
 $$ {#eq-ar-ar1-noncausal}
-Using the same arguments as in the proof of [Proposition 10.1](10-ar.qmd#sec-ar-ar1-solutions), one can check that this converges absolutely, and that $(X_t)$ is stationary and satisfies @eq-ar-ar1.
+Using the same arguments as in the proof of [Proposition 10.2](10-ar.qmd#sec-ar-ar1-solutions), one can check that this converges absolutely, and that $(X_t)$ is stationary and satisfies @eq-ar-ar1.
 Indeed, it is the unique such solution.
 On the other hand, this solution doesn't make physical sense because $X_t$ depends on the *future* innovations $W_{t+1}, W_{t+2},\ldots$.[^3]
 Formally, we say that such a solution is non-causal, unlike @eq-ar-ar1-sol.
@@ -561,7 +562,7 @@ If we assume Gaussian white noise, this implies that the two time series models 
 We now generalize our findings about $\textnormal{AR}(1)$ models to general $\textnormal{AR}(p)$ models.
 Along the way, we will see that while the flavor of the results remains consistent, the technical difficulty of the tools we need increases sharply.
 
-**Theorem 10.3** (Existence and uniqueness of solutions)
+**Theorem 10.4** (Existence and uniqueness of solutions)
 Let $\phi(z)$ be the autoregressive polynomial of @eq-ar-arp.
 Suppose $\phi(z) \neq 0$ for all $|z| \leq 1$, then @eq-ar-arp admits a unique stationary solution.[^4]
 This solution is causal and has the form
@@ -602,7 +603,7 @@ X_t - \mu & = \left(\sum_{j=0}^\infty \psi_j B^j\right) \phi(B)(X_t - \mu) \\
 & = \sum_{j=0}^\infty \psi_j W_{t-j}.
 \end{split}
 $$
-Uniqueness can be derived in a similar manner to Proposition 10.1. $\Box$
+Uniqueness can be derived in a similar manner to Proposition 10.2. $\Box$
 
 For the rest of this chapter, we only consider causal autoregressive models.
 

@@ -229,6 +229,7 @@ $$
 X_t = \alpha + \phi_1 X_{t-1} + \phi_2 X_{t-2} + \cdots + \phi_p X_{t-p} + W_t,
 $$ {#eq-ar-arp}
 where $(W_t) \sim WN(0,\sigma^2)$, and $\phi_1, \phi_2,\ldots,\phi_p$ are constant coefficients.
+$p$ is called the *order* of the model.
 
 It is similar to a regression model, except that the regressors are copies of the same time series variable, albeit at earlier time points, hence the term *autoregressive*.
 
@@ -246,7 +247,7 @@ $$
 $$
 Using this notation, we can rewrite @eq-ar-arp as
 $$
-\phi(B)X_t = W_t,
+\phi(B)(X_t - \mu) = W_t,
 $$
 where $B$ is the [backshift operator](04-transformations.qmd#lags).
 We call $\phi(B)$ the *autoregressive operator*.
@@ -267,7 +268,7 @@ They can also be composed as discussed earlier.
 Introducing this formalism turns out to be quite useful.
 Apart from allowing for compact notation, the properties of the autoregressive polynomial $\phi$, in particular its roots and inverses, turn out to be intimately related to properties of the $\textnormal{AR}(p)$ model.
 
-It is important to understand that @eq-ar-arp and its variants are *equations* and that the model is defined as a *solution* to equation.
+It is important to understand that @eq-ar-arp and its variants are *equations* and that the model is defined as a *solution* to the equation.
 A priori, such a solution may not exist at all, or there may be multiple solutions.
 
 <!-- As mentioned earlier, there is a close connection between @eq-ar-arp and linear ODEs (see @eq-ar-sunspots-ode).
@@ -297,7 +298,7 @@ The meaning will be clear from the context.
 
 **Proposition 10.2** (Existence and uniqueness of solutions). 
 Suppose $|\phi| < 1$, then there is a unique stationary solution to @eq-ar-ar1.
-This solution is a causal linear process.
+This solution is a [causal linear process](09-stationary.qmd#sec-stationary-linear).
 
 *Proof.*
 We first show existence.
@@ -310,7 +311,7 @@ $$
 \sum_{j=0}^\infty |\phi^j| = \frac{1}{1-|\phi|} < \infty,
 $$ 
 the expression converges in a mean squared sense, so $X_t$ is well-defined.
-Indeed, $(X_t)$ defined in this manner is a causal linear process and is in particular stationary.
+Indeed, $(X_t)$ defined in this manner is a [causal linear process](09-stationary.qmd#sec-stationary-linear) and is in particular stationary.
 It is also easy to see that it satisfies @eq-ar-ar1:
 $$
 \begin{split}
@@ -350,7 +351,7 @@ As such, we also refer to @eq-ar-ar1 for $|\phi| < 1$ as a causal $\textnormal{A
 
 **Proposition 10.3** (Mean, ACVF, ACF).
 Let $(X_t)$ be the solution to @eq-ar-ar1.
-Then We have $\mu_X = 0$ and
+Then we have $\mu_X = 0$ and
 $$
 \gamma_X(h) = \frac{\sigma^2\phi^h}{1-\phi^2},
 $$
@@ -364,12 +365,28 @@ Using @eq-ar-ar1-sol, we get
 $$
 \mu_X = \E\left\lbrace \sum_{j=0}^\infty \phi^j W_{t-j} \right\rbrace = \sum_{j=0}^\infty \phi^j \E\left\lbrace  W_{t-j} \right\rbrace = 0.
 $$
-Next, using @eq-stationary-linear-acvf, we get
+
+There are two methods for calculating the ACVF.
+
+*Method 1*. @eq-stationary-linear-acvf, we get
 $$
-\gamma_X(h) = \sigma^2 \sum_{j=0}^\infty \phi^j \phi^{j+h} = \frac{\sigma^2\phi^h}{1-\phi^2}. ~\Box
+\gamma_X(h) = \sigma^2 \sum_{j=0}^\infty \phi^j \phi^{j+h} = \frac{\sigma^2\phi^h}{1-\phi^2}.
 $$
 
-We thus see that the ACF has an exponential decay.
+*Method 2*. Multiplying @eq-ar-ar1 by $X_{t-h}$, we get
+$$
+X_tX_{t-h} = \phi X_{t-1}X_{t-h} + W_tX_{t-h}
+$$
+and taking expectations gives
+$$
+\gamma_X(h) = \begin{cases}
+\phi \gamma_X(1) + \sigma^2 & \text{if}~h = 0 \\
+\phi\gamma_X(h-1) & \text{if}~h > 0.
+\end{cases}
+$$
+This yields the initial value $\gamma_X(0) = \sigma^2/(1-\phi^2)$, and a recurrence relation (i.e. difference equation) that we may use to solve for the subsequent values. $~\Box$
+
+In particular, we see that the ACF has an exponential decay.
 
 ### Forecasts {#sec-ar-ar1-forecasts}
 
@@ -400,34 +417,6 @@ Note that as the forecast horizon $h$ increases, the point forecast converges to
 In other words, the forecast distribution converges to the marginal distribution of $X_t$ (for any $t$), and we see that our observations become increasingly irrelevant as we forecast further out into the future.
 
 ### Sample trajectories
-
-```{r}
-#| echo: FALSE
-# set.seed(5)
-# n <- 80
-# h <- 20
-# ar1_data <-
-#     tibble(t = 1:n,
-#            wn = rnorm(n),
-#            X = arima.sim(model = list(ar = 0.4), n = n, innov = wn, n.start = 1, start.innov = 2),
-#            Y = arima.sim(model = list(ar = 0.9), n = n, innov = wn, n.start = 1, start.innov = 2),
-#            Z = arima.sim(model = list(ar = -0.9), n = n, innov = wn, n.start = 1, start.innov = 2)
-#     ) |>
-#     as_tsibble(index = t)
-# plt1 <- ar1_data |>
-#     model(X = ARIMA(X ~ pdq(1, 0, 0))) |>
-#     forecast(h = h) |>
-#     autoplot(ar1_data)
-# plt2 <- ar1_data |>
-#     model(Y = ARIMA(Y ~ pdq(1, 0, 0))) |>
-#     forecast(h = h) |>
-#     autoplot(ar1_data)
-# plt3 <- ar1_data |>
-#     model(Z = ARIMA(Z ~ pdq(1, 0, 0))) |>
-#     forecast(h = h) |>
-#     autoplot(ar1_data)
-# grid.arrange(plt1, plt2, plt3, nrow = 3)
-```
 
 In the plot below, we create sample trajectories from $\textnormal{AR}(1)$ models with $\phi$ set to be $0.3$, $0.9$ and $-0.9$ (from top to bottom).
 We also show the distributional forecasts up to the horizon $h=20$.
@@ -557,7 +546,7 @@ If we assume Gaussian white noise, this implies that the two time series models 
 
 :::
 
-## Solutions
+## Causal solutions
 
 We now generalize our findings about $\textnormal{AR}(1)$ models to general $\textnormal{AR}(p)$ models.
 Along the way, we will see that while the flavor of the results remains consistent, the technical difficulty of the tools we need increases sharply.
@@ -576,42 +565,60 @@ $$ {#eq-ar-arp-coefficients}
 
 [^4]: If we relax the condition to $\phi(z) \neq 0$ for all $|z| = 1$, unique stationary solutions still exist, but they may be noncausal. We do not discuss this case.
 
-Note that by expanding out the product on the left hand side of @eq-ar-arp-coefficients and comparing coefficients of each monomial term with the right hand side, we get an infinite sequence of equations, which allows us to solve for $\psi_0,\psi_1,\ldots$.
+Note that by expanding out the product on the left hand side of @eq-ar-arp-coefficients and comparing coefficients of each monomial term with the right hand side, we get an infinite sequence of equations, which allows us to solve for $\psi_0,\psi_1,\ldots$ (see Example 3.12 in @shumway2000time).
 
 *Proof.*
 The proof is slightly technical and boils down to investigating whether the autoregressive operator $\phi(B)$ has a well-defined inverse.
 First, note that $\phi(z)$ always has a formal power series inverse $\sum_{j=0}^\infty \psi_j z^j$ obtained by solving @eq-ar-arp-coefficients.
-To check its radius of convergence, write $\phi(z) = \prod_{k=1}^r (1 - z_k^{-1}z)^{m_k}$, where $z_1,z_2,\ldots,z_r$ are the unique roots of $\phi$, and $m_1, m_2,\ldots,m_r$ their multiplicities.
+To check its radius of convergence, write $\phi(z) = \prod_{k=1}^r (1 - z_k^{-1}z)^{m_k}$, where $z_1,z_2,\ldots,z_r$ are the unique roots of $\phi$, and $m_1, m_2,\ldots,m_r$ their multiplicities.[^5]
 For each $k$, our assumed condition implies that $|z_k| > 1$, which implies that the formal inverse for $1 - z_k^{-1}z$,
 $$
-\sum_{j=0}(z_k^{-1}z)^j,
+\sum_{j=0}^\infty (z_k^{-1}z)^j,
 $$
-converges absolutely and uniformly on the unit disc.
+converges absolutely and uniformly on the complex unit disc.
 Since $\sum_{j=0}^\infty \psi_j z^j$ is a product of these power series, it also converges absolutely and uniformly on the unit disc, and in particular, $\sum_{j=0}^\infty |\psi_j| < \infty$.
+In other words, @eq-ar-arp-solution is a well-defined [causal linear process](09-stationary.qmd#sec-stationary-linear).
 
-Next, notice that the backshift operator $B$ as norm 1, as an operator on the space of doubly infinite sequences $\ell^\infty(\Z)$ with the uniform norm.
+[^5]: We may always factorize $\phi$ this way, according to the [fundamental theorem of algebra](https://en.wikipedia.org/wiki/Fundamental_theorem_of_algebra).
+
+Next, notice that the backshift operator $B$ has norm 1, as an operator on the space of doubly infinite sequences $\ell^\infty(\Z)$ with the uniform norm.
 Substituting it in for the indeterminate $z$ in $\sum_{j=0}^\infty \psi_j z^j$ and considering operator norms, we get
 $$
 \left\| \sum_{j=0}^\infty \psi_j B^j \right\| \leq \sum_{j=0}^\infty |\psi_j| < \infty.
 $$
 $\sum_{j=0}^\infty \psi_j B^j$ is therefore a well-defined operator which is an inverse to the autoregressive operator.
-This allows us to apply it to both sides of @eq-ar-arp to get
+
+We use this fact to verify that the linear process defined by @eq-ar-arp-solution indeed solves the $\textnormal{AR}(p)$ equation @eq-ar-arp.
+We compute
 $$
 \begin{split}
-X_t - \mu & = \left(\sum_{j=0}^\infty \psi_j B^j\right) \phi(B)(X_t - \mu) \\
-& = \left(\sum_{j=0}^\infty \psi_j B^j\right)W_t \\
-& = \sum_{j=0}^\infty \psi_j W_{t-j}.
+\phi(B)(X_t - \mu) & = \phi(B) \sum_{j=0}^\infty \psi_j W_{t-j} \\
+& = \phi(B)\left(\sum_{j=0}^\infty \psi_j B^j\right) W_t \\
+& = W_t.
 \end{split}
 $$
-Uniqueness can be derived in a similar manner to Proposition 10.2. $\Box$
+Finally, uniqueness can be derived in a similar manner to Proposition 10.2. $\Box$
 
 For the rest of this chapter, we only consider causal autoregressive models.
 
+::: callout-note
+
+The most important part of this section is understanding how the $\psi_j$ coefficients can be calculated using @eq-ar-arp-coefficients.
+:::
+
 ## Moments
 
+### Computing mean, ACVF, ACF {#sec-ar-moments-computing}
+
 Using @eq-ar-arp-solution, we easily see that the mean is $\mu_X = \mu$.
-The ACVF and ACF can be computed using @eq-stationary-linear-acvf, but this does not reveal too much about their general pattern.
-Another approach is to multiply both sides of @eq-ar-arp by $X_{t-h}$ and compute expectations.
+
+As is the case with $\textnormal{AR}(1)$, there are two approaches to compute the ACVF and ACF values.
+
+**Approach 1.** 
+Apply @eq-stationary-linear-acvf to the linear process formulation @eq-ar-arp-solution.
+
+**Approach 2.** 
+Multiply both sides of @eq-ar-arp by $X_{t-h}$ and compute expectations.
 The first step gives the equation
 $$
 X_{t-h}X_t = \phi_1 X_{t-h}X_{t-1} + \phi_2 X_{t-h}X_{t-2} + \cdots + \phi_p X_{t-h}X_{t-p} + X_{t-h}W_t.
@@ -619,27 +626,560 @@ $$
 When $h \geq 1$, $X_{t-h}$ and $W_t$ are independent, which yields the equations
 $$
 \gamma_X(h) = \phi_1 \gamma_X(h-1) + \phi_2 \gamma_X(h-2) + \cdots \phi_p \gamma_X(h-p).
+$$ {#eq-ar-moments-acvf-recursive}
+Since this holds for any integer $h \geq 1$, it is a difference equation.
+
+As such, if we knew the first $p+1$ values, i.e. $\gamma_X(0), \gamma_X(1),\ldots,\gamma_X(p)$, we could iterate @eq-ar-moments-acvf-recursive to calculate the remaining values.
+To solve for these initial values, we notice that $\gamma_X$ is an even function, so we can rewrite @eq-ar-moments-acvf-recursive for $h=1,\ldots,p$ as
 $$
-Since this holds for any integer $h \geq 1$, we may rewrite it in operator form as
+\gamma_X(h) = \phi_1 \gamma_X(h-1) + \cdots \phi_h \gamma_X(0) + \phi_{h+1}\gamma_X(1) + \cdots \phi_p \gamma_X(p-h).
+$$ {#eq-ar-moments-acvf-recursive-2}
+Furthermore, when $h=0$, we get
 $$
-\phi(B)\gamma_X(t) = 0
+\gamma_X(0) = \phi_1 \gamma_X(1) + \phi_2\gamma_x(2) + \cdots + \phi_p \gamma_X(p) + \sigma^2.
+$$ {#eq-ar-moments-acvf-recursive-3}
+This gives a system of $p+1$ linear equations in $\gamma_X(0), \gamma_X(1),\ldots,\gamma_X(p)$ that we can solve using linear algebra.
+
+### Qualitative behavior of ACF
+
+An added benefit of the difference equation method is that it allows us to explore the possible qualitative behavior of the ACF.
+Note that we may rewrite @eq-ar-moments-acvf-recursive in operator form as
+$$
+\phi(B)\gamma_X(t) = 0,
 $$ {#eq-ar-moments-difference-eq}
-where we treat $\left(\gamma_X(t)\right)$ as an infinite sequence.
-@eq-ar-moments-difference-eq is known as a $p$-th order *difference equation*, and shares many similarities with [linear ODEs with constant coefficients](https://en.wikipedia.org/wiki/Linear_differential_equation#Homogeneous_equation_with_constant_coefficients).
-In particular, if $z_1,z_2,\ldots,z_r$ are the unique roots of $\phi$ and $m_1, m_2,\ldots,m_r$ their multiplicities, the general solution to @eq-ar-moments-difference-eq is
+where $\phi$ is the autoregressive polynomial of the AR model.
+@eq-ar-moments-difference-eq implies that $\phi$ is also the *characteristic polynomial* of the difference equation @eq-ar-moments-acvf-recursive.
+Completely analogous to what happens with [linear ODEs with constant coefficients](https://en.wikipedia.org/wiki/Linear_differential_equation#Homogeneous_equation_with_constant_coefficients), the roots of the characteristic polynomial determine the shape of the solution to @eq-ar-moments-difference-eq (i.e. the ACVF.)
+
+**Proposition 10.5**
+If $z_1,z_2,\ldots,z_r$ are the unique roots of $\phi$ and $m_1, m_2,\ldots,m_r$ their multiplicities, the general solution to @eq-ar-moments-difference-eq is
 $$
-\gamma_X(h) = z_1^{-h}P_1(h) + z_2^{-h}P_2(h) + \cdots + z_r^{-h}P_r(h),
+\gamma_X(t) = z_1^{-t}P_1(t) + z_2^{-t}P_2(t) + \cdots + z_r^{-t}P_r(t),
 $$
 where for each $k$, $P_k$ is a polynomial of degree $m_k-1$.
-This results in two types of qualitative behavior, depending on the roots.
 
-*Case 1*: If all roots are real, then $\gamma_X(h)$ decays to zero exponentially as $h \to \infty$.
+According to this proposition, the ACVF/ACF can have one of two types of qualitative behavior, depending on the roots.
 
-*Case 2*: If some roots are complex, then they occur in conjugate pairs, and $\gamma_X(h)$ will take the form of a sinusoidal curve with exponential damping.
+- *Case 1*: If all roots are real, then $\gamma_X(h)$ decays to zero exponentially as $h \to \infty$.
+
+- *Case 2*: If some roots are complex, then they occur in conjugate pairs, and $\gamma_X(h)$ will take the form of a sinusoidal curve with exponential damping.
+
+We illustrate both the proof of the proposition and this consequence in the special case of $\textnormal{AR}(2)$, and refer the reader to Chapter 3.2 in @shumway2000time for a discussion of the general case.
+
+*Proof.*
+Let $z_1$ and $z_2$ denote the roots of $\phi(z)$.
+We wish to show that all solutions $(y_t)$ to the difference equation:
+$$
+\phi(B)y_t = 0
+$$ {#eq-ar-ar2}
+are of the form
+$$
+y_t = c_1z_1^{-t} + c_2z_2^{-t}
+$$
+if $z_1$ and $z_2$ are distinct, and of the form
+$$
+y_t = (c_1 + c_2t)z_1^{-t}
+$$
+if $z_1 = z_2$.
+
+First, factor
+$$
+\phi(z) = (1- z_1^{-1}z)(1-z_2^{-1}z).
+$$ {#eq-ar-ar2-poly-factor}
+Using the same algebra, we can factor the autoregressive operator as:
+$$
+\phi(B) = (I-z_1^{-1}B)(I-z_2^{-1}B).
+$$
+
+Let us consider each of these factors individually.
+Notice that if a sequence $(y_t)$ is a solution to
+$$
+(I-z_1^{-1}B)y_t = 0,
+$$ {#eq-ar-ar2-factor}
+then it is of the form $y_t = c\cdot(z_1)^{-t}$.
+Indeed, @eq-ar-ar2-factor is the same recurrence relation that occurs in the calculation of the ACF for $\textnormal{AR}(1)$.
+In other words, both factors each have a one-dimensional subspace of solutions.
+Furthermore, if @eq-ar-ar2-factor holds, then $y_t$ is also a solution to @eq-ar-ar2:
+$$
+\begin{split}
+\phi(B)y_t & = (I-z_1^{-1}B)(I-z_2^{-1}B)y_t \\
+& = (I-z_2^{-1}B)(I-z_1^{-1}B)y_t \\
+& = 0.
+\end{split}
+$$
+
+Therefore, if $z_1 \neq z_2$, then $y_t = z_1^{-t}$ and $y_t = z_2^{-t}$ are two linearly independent solutions to @eq-ar-ar2.
+If $z_1 = z_2$, then one can check that $y_t = z_1^{-1}$ and $y_t = tz_1^{-t}$ are two linearly independent solutions to @eq-ar-ar2.
+
+Finally, to show that these are *all* of the solutions, we do some dimension counting.
+The solution space is called the [kernel](https://en.wikipedia.org/wiki/Kernel_(linear_algebra)) of $\phi(B)$.
+Using linear algebra, one can show that its dimension is at most the sum of those of the kernels of its factors $(I-z_1^{-1}B)$ and $(I-z_2^{-1}B)$, which are both equal to 1.
+In other words, the solution space has dimension at most 2, and since we already have two linearly independent solutions, they must form a basis of this space, i.e. all solutions can be written in terms of their linear combinations. $\Box$
+
+<!-- Now, since $\phi(B)$ is a linear operator, the space of solutions to the equation $\phi(B)y_t = 0$ is a vector subspace. -->
+
+Now, if the two roots are complex, then they have to be [complex conjugates](https://en.wikipedia.org/wiki/Complex_conjugate).
+To see this, notice that by expanding out @eq-ar-ar2-poly-factor, we get $\phi_2 = -(z_1z_2)^{-1}$ and $\phi_1 = z_1^{-1} + z_2^{-1}$.
+The fact that these are real imply the desired conclusion.
+As such, we may write the roots in polar form as $z_1 = re^{i\theta}$, $z_2 = re^{-i\theta}$ for some magnitude $r = |z_1| = |z_2|$ and angular argument $\theta$.
+Using a similar reasoning, the coefficient terms $c_1$ and $c_2$ also have to be complex conjugates.
+
+Denote $c_1 = ae^{ib}/2$.
+For any $h$, we can then write
+$$
+\begin{split}
+\gamma_X(h) & = c_1z_1^{-h} + \bar{c}_1\bar{z}_1^{-h} \\
+& = ar^{-h}\left(e^{-i(h\theta-b)} + e^{i(h\theta-b)} \right)/2 \\
+& = ar^{-h}\cos(h\theta - b)
+\end{split}
+$$
+where in the last equality, we used the identity $e^{i\alpha} + e^{-i\alpha} = 2\cos(\alpha)$ for any $\alpha$.
+
+::: callout-tip
+
+[Here](https://sites.math.washington.edu/~burke/crs/555/lectures/lde.pdf) [are](http://courses.csail.mit.edu/6.01/spring07/lectures/lecture5.pdf) [three](https://mpaldridge.github.io/math2750/S04-ldes.html) other resources on how to solve linear difference equations.
+Solving these is similar to [solving](https://eng.libretexts.org/Bookshelves/Electrical_Engineering/Signal_Processing_and_Modeling/Signals_and_Systems_(Baraniuk_et_al.)/03%3A_Time_Domain_Analysis_of_Continuous_Time_Systems/3.08%3A_Solving_Linear_Constant_Coefficient_Differential_Equations) constant coefficient linear differential equations.
+
+:::
+
+### Computing ACF in R
+
+Given an $\textnormal{AR}(p)$ model, rather than computing its ACF values by hand, as described in @sec-ar-moments-computing, we can compute them automatically using the `ARMAacf()` function from base R.
+We illustrate this by plotting the ACF for $\textnormal{AR}(2)$ models with the following coefficients:
+
+- $(X_t)$: $\phi_1 = 1.5$, $\phi_2 = -0.55$, giving two real roots
+- $(Y_t)$: $\phi_1 = 1.5$, $\phi_2 = -0.75$, giving two complex roots
+- $(Z_t)$: $\phi_1 = 1.5$, $\phi_2 = -0.5625$, giving a repeated real root
+
+```{r}
+#| echo: TRUE
+#| fig-cap: ACF plots for the AR(2) models X (top panel), Y (middle panel), Z (bottom panel), corresponding to AR polynomials with two real roots, two complex roots, and a repeated real root respectively.
+#| label: fig-ar-ar2-acf
+acf_dat <- tibble(
+    lag = 1:30, 
+    X_acf = ARMAacf(ar = c(1.5, -0.55), lag.max = 30)[-1],
+    Y_acf = ARMAacf(ar = c(1.5, -0.75), lag.max = 30)[-1],
+    Z_acf = ARMAacf(ar = c(1.5, -9/16), lag.max = 30)[-1]) 
+    
+plt1 <- acf_dat |> 
+    ggplot() + geom_linerange(aes(x = lag, ymax = X_acf, ymin = 0)) + 
+    xlab("") + ylab("acf (X)")
+plt2 <- acf_dat |> 
+    ggplot() + geom_linerange(aes(x = lag, ymax = Y_acf, ymin = 0)) + 
+    xlab("") + ylab("acf (Y)")
+plt3 <- acf_dat |> 
+    ggplot() + geom_linerange(aes(x = lag, ymax = Z_acf, ymin = 0)) + 
+    ylab("acf (Z)")
+
+grid.arrange(plt1, plt2, plt3, nrow = 3)
+```
 
 ## Forecasts
 
-## Partial autocorrelation function
+### Gaussian conditional distributions
+
+We first discuss some properties of multivariate normal distributions.
+
+**Proposition 10.6.** (Conditional distribution)
+Let $(X_1,X_2,\ldots,X_{n+1}) \sim N(\mu, \Sigma)$ be a multivariate Gaussian random vector, then given observations $X_1=x_1, X_2 = x_2,\ldots,X_{n} = x_{n}$, the conditional distribution of $X_{n+1}$ conditioned on these values is 
+$$
+N(\mu_{n+1} + \Sigma_{1:n,n+1}^T\Sigma_{1:n,1:n}^{-1}(x_{1:n} - \mu_{1:n}), \Sigma_{n+1,n+1}^{-1} - \Sigma_{1:n,n+1}^T\Sigma_{1:n,1:n}^{-1}\Sigma_{1:n,n+1}),
+$$
+where $\Sigma_{1:n,1:n}$ is the top left $n \times n$ submatrix of $\Sigma$, $\Sigma_{n+1,n+1}$ its bottom right entry, and $\Sigma_{1:n,n+1}$ its bottom row without the bottom right entry，i.e.
+$$
+\Sigma = \left[\begin{matrix}     \Sigma_{1:n,1:n} & \Sigma_{n+1,1:n}  \\  \Sigma_{n+1,1:n} & \Sigma_{n+1,n+1}
+\end{matrix}\right].
+$$
+
+*Proof.*
+This is a [well-known property](https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Conditional_distributions) of multivariate Gaussian distributions and can be proved by computing the conditional density using the [block matrix inverse formula](https://en.wikipedia.org/wiki/Block_matrix#Block_matrix_inversion).
+
+This formula is used often in many areas of statistics (and engineering).
+In the context of time series analysis, we typically assume stationarity, which means that the formula simplifies.
+
+**Corollary 10.7** (Conditional distribution under stationarity)
+Let $(X_1,X_2,\ldots)$ be a zero mean stationary Gaussian process, then given observations $X_1=x_1, X_2 = x_2,\ldots,X_{n} = x_{n}$, the conditional distribution of $X_{n+h}$ conditioned on these values is
+$$
+N(\gamma_{h:n+h-1}^T\Gamma_{n}^{-1}x_{n:1}, \gamma_X(0)^{-1} - \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}\gamma_{h:n+h-1}),
+$$ {#eq-ar-forecast-distribution}
+where
+$$
+\gamma_{a:b} \coloneqq \left(\gamma_X(a), \gamma_X(a+1),\ldots,\gamma_X(b)\right)
+$$ {#eq-ar-forecast-gamma}
+for any $a < b$,
+$$
+\Gamma_n \coloneqq (\gamma_X(i-j))_{i,j=1}^n,
+$$ {#eq-ar-forecast-Gamma}
+and $x_{n:1} = (x_n, x_{n-1},\ldots,x_1)$.
+
+Assuming Gaussian white noise, @eq-ar-forecast-distribution thus gives the distributional forecast and can be used to supply point forecasts
+$$
+\hat x_{n+h|n} = \gamma_{h:n+h}^T\Gamma_{n}^{-1}x_{1:n}
+$$ {#eq-ar-forecast-mean}
+as well as 95% prediction intervals $(\hat x_{n+h|n} - 1.96v_{n+h}^{1/2}, \hat x_{n+h|n} + 1.96v_{n+h}^{1/2})$ for $v_{n+h} = \gamma(0)_X^{-1} - \gamma_{1:n}^T\Gamma_{n}^{-1}\gamma_{1:n}$.
+
+### Best linear predictors
+
+The point forecast @eq-ar-forecast-mean is the mean of the conditional distribution and can be though of as a function of the random variables, i.e.
+$$
+r(x_{1:n}) \coloneqq \E\lbrace X_{n+h}|X_1 = x_1,\ldots,X_n = x_n\rbrace.
+$$
+Conditional means are [Bayes optimal predictors](https://stephens999.github.io/fiveMinuteStats/decision_theory_bayes_rule.html) with respect to squared loss, i.e. we have
+$$
+r = \textnormal{argmin}_{f \colon \R^n \to \R} \E\left\lbrace (f(X_{1:n}) - X_{n+h})^2\right\rbrace.
+$$
+This property is true for *any multivariate distribution*.
+What is special about Gaussian distributions is that the conditional mean function is *linear*, i.e $r(x_{1:n}) = \phi_{n+h|n}^Tx_{n:1}$, where
+$$
+\phi_{n+h|n} \coloneqq \Gamma_n^{-1}\gamma_{h:n+h-1}.
+$$ {#eq-ar-forecast-blp-formula}
+
+The notation $\phi_{n+h|n}$ is purposely suggestive and will be further explained shortly.
+For now, we observe that $r(X_1,X_2,\ldots,X_n)$ is also the *best linear predictor* (BLP) of $X_{n+h}$ given $X_1,X_2,\ldots,X_n$, i.e.
+$$
+\phi_{n+h|n} = \textnormal{argmin}_{\beta \in \R^n} \E\left\lbrace (\beta^TX_{n:1} - X_{n+h})^2\right\rbrace.
+$$ {#eq-ar-forecast-blp}
+
+**Proposition 10.8.** (BLP formula) 
+@eq-ar-forecast-blp-formula solves @eq-ar-forecast-blp even when we do not assume Gaussianity.
+
+*Proof.*
+To see this, we simply expand out the square on the right hand side of @eq-ar-forecast-blp and take a derivative with respect to $\beta$:
+$$
+\nabla_\beta \E\left\lbrace (\beta^TX_{n:1} - X_{n+h})^2\right\rbrace = 2\Gamma_n\beta - 2\gamma_{h:n+h-1}.~\Box
+$$
+
+In general, the BLP may be different from the conditional mean, and therefore less accurate.
+Nonetheless, they are easy to calculate because they depend only on the second-order moments of the stochastic process. They thus provide an extremely useful forecasting framework.
+As we will see, forecasting in ARIMA modeling is based on the BLP principle.
+
+### One-step-ahead forecasts
+
+Notice that the $\textnormal{AR}(p)$ formula @eq-ar-arp expresses $X_t$ as a linear function of $X_1,X_2,\ldots,X_{t-1}$ up to additive white noise whenever $t > p$.
+More precisely, if we denote
+$$
+\tilde\phi_{t|t-1} \coloneqq (\phi_1,\phi_2,\ldots,\phi_p, 0, \ldots)^T,
+$$
+then @eq-ar-arp can be written as
+$$
+X_t = \tilde\phi_{t|t-1}^TX_{t-1:1} + W_t .
+$$ {#eq-ar-forecast-arp-formula-alternate}
+As such, the following proposition should be unsurprising.
+
+**Proposition 10.9.** (BLP for AR(p))
+If $(X_1,X_2,\ldots)$ follow an $\textnormal{AR}(p)$ model and $t > p$, we have $\phi_{t|t-1} = \tilde\phi_{t|t-1}$.
+
+*Proof.*
+Multiply @eq-ar-forecast-arp-formula-alternate on the right by $(X_{t-1},X_{t-2},\ldots,X_1)$ and take expectations.
+We get
+$$
+\gamma_{1:t-1}^T = \tilde\phi_{t|t-1}^T\Gamma_{t-1}
+$$
+Now multiplying both sides on the right by $\Gamma_{t-1}^{-1}$ and take transposes.
+The resulting expression is equal to @eq-ar-forecast-blp-formula, when selecting $h=1, n=t-1$, which completes the proof. $\Box$
+
+As such, while the one-step-ahead BLP could a priori be a function of all past observations, in the case of an $\textnormal{AR}(p)$ model, it only relies on the most recent $p$ observations and can be written as the vector of model parameters (padded with zeros.)
+
+### Recursive forecasts
+
+We have already seen how to forecast $h$ steps ahead by directly minimizing the squared loss in @eq-ar-forecast-blp.
+This approach is sometimes called *direct multi-step forecasting*, to contrast it with another approach called *recurisve multi-step forecasting*.
+In recursive forecasting, we recursively forecast one step ahead at a time, using the previously forecasted values as inputs for each subsequent forecast.
+
+For instance, given observations $x_1,x_2,\ldots,x_n$ and $n \geq p$, we forecast
+$$
+\begin{split}
+\hat x_{n+1|n} & \coloneqq \phi^T(x_n, x_{n-1},\ldots,x_{n-p+1}), \\
+\hat x_{n+2|n} & \coloneqq \phi^T(\hat{x}_{n+1|n}, x_n, x_{n-1},\ldots,x_{n-p+2}), \\
+\hat x_{n+3|n} & \coloneqq \phi^T(\hat{x}_{n+2|n}, \hat{x}_{n+1|n}, x_n,\ldots,x_{n-p+3}),
+\end{split}
+$$ {#eq-ar-forecast-recursive}
+and so on.
+
+More generally, recursive forecasting turns a method for generating one-step-ahead forecasts into a method for generating forecasts for any time horizon.
+It is thus a particularly useful approach for time series models based on machine learning, with [comparisons](https://machinelearningmastery.com/multi-step-time-series-forecasting/) between recursive and direct approaches being a topic of discussion and research.
+For $\textnormal{AR}(p)$ models, however, both approaches provide the exact same forecasts.
+
+**Proposition 10.10.** For an $\textnormal{AR}(p)$ model, both recursive and direct multi-step forecasts are the same.
+
+*Proof.*
+In order to distinguish them from direct forecasts, we temporarily refer to the recursive forecasts defined in @eq-ar-moments-acvf-recursive using the notation $\tilde x_{n+h|n}$ for $h=1,2,\ldots$.
+
+The key observation is that random variables[^6] form an inner product space with covariance as the inner product.
+The BLP of $X_{n+h}$ given $X_1,X_2,\ldots,X_n$ can be interpreted as the orthogonal projection of $X_{n+h}$ onto the linear span of these random variables.
+Let us denote this projection operator as $Q_n$.
+We now induct on $h$, with the base case $h=0$ trivial.
+For the induction step, we compute:
+
+[^6]: More accurately, the space of zero mean random variables that have finite variance and that are measurable with respect to the sigma algebra generated by the time series.
+
+$$
+\begin{split}
+\hat X_{n+h+1|n} & \coloneqq Q_n[X_{n+h+1}] \\
+& = Q_n[\phi_1 X_{n+h} + \cdots + \phi_p X_{n+h-p+1} + W_{n+h+1}] \\
+& = \phi_1 Q_n[X_{n+h}] + \cdots \phi_p Q_n[X_{n+h-p+1}] \\
+& = \phi_1 \tilde X_{n+h|n} + \phi_p \tilde X_{n+h-p+1|n} \\
+& \eqqcolon \tilde X_{n+h+1|n}, 
+\end{split}
+$$
+where the second last equality follows from the induction hypothesis.
+
+Note that this is a statement of equality between two random variables.
+Conditioning on the values $X_1=x_1,X_2=x_2,\ldots,X_n=x_n$ turns the upper case $X$'s into lower cases $x$'s. $\Box$
+
+::: callout-note
+
+We have stated almost all results in this section under the assumption that $(X_t)$ has mean $\mu = 0$.
+More generally, when the model has nonzero mean, we first apply the results for the translation $Y_t \coloneqq X_t - \mu$, and then add $\mu$ to get the forecast for $X_t$.
+
+:::
 
 ## Estimation
 
+In order to apply $\textnormal{AR}(p)$ models to real data, we have to first estimate the $p+2$ model parameters: $\mu, \phi_1,\phi_2,\ldots,\phi_p,\sigma^2$.
+Estimating these parameters is also called fitting the model.
+
+We have seen that exponential smoothing models were fit by minimizing the sum of squared errors (see @eq-exponential-sse) for one-step-ahead forecasts, i.e. the model residuals.
+This is also a valid approach for estimating $\textnormal{AR}(p)$ models.
+In addition to this, we introduce two other methods which are commonplace in statistics: the method of maximum likelihood, and the method of least squares.
+
+### Method of moments
+
+The basic idea of the method of moments in parametric estimation is to compute the sample moments (expectation, variance, etc.) of the data and then to find the parameters of the model whose population moments match the sample moments.
+It is easy to implement this idea for $\textnormal{AR}(p)$ models.
+
+Recall that when we introduced @eq-ar-moments-acvf-recursive-2 and @eq-ar-moments-acvf-recursive-3, we used them to express the ACVF of an $\textnormal{AR}(p)$ model in terms of its model parameters.
+Conversely, they also express the model parameters in terms of the ACVF.
+They are called the *Yule-Walker* equations and we reproduce them here in a more convenient form:[^7]
+$$
+\phi = \Gamma_p^{-1}\gamma_{1:p}, \quad\quad \sigma^2 = \gamma(0) - \gamma_{1:p}^T\Gamma_p^{-1}\gamma_{1:p}.
+$$
+Note that $\gamma_{1:p}$ and $\Gamma_p$ are defined in @eq-ar-forecast-gamma and @eq-ar-forecast-Gamma respectively.
+
+[^7]: The second equation is derived by plugging in the first equation (in matrix form) into @eq-ar-moments-acvf-recursive-3.
+
+The *method of moment estimators* or *Yule-Walker estimators* for the parameters are defined via
+$$
+\hat \phi \coloneqq \hat\Gamma_p^{-1}\hat\gamma_{1:p}, \quad\quad \hat\sigma^2 \coloneqq \hat\gamma(0) - \hat\gamma_{1:p}^T\hat\Gamma_p^{-1}\hat\gamma_{1:p},
+$$
+where $\hat\gamma_{1:p}$ and $\hat\Gamma_p$ are defined in terms of the sample ACVF values.
+The mean $\mu$ is estimated using the sample mean $\bar x_{1:n}$.
+
+Note that the method of moments is well-defined even when we do not assume Gaussian white noise.
+Although we didn't give it a name at the time, this was also the method we introduced for estimating the model parameters for $\textnormal{AR}(1)$.
+
+::: callout-note
+We do not need to consider higher order moments because the $\textnormal{AR}(p)$ model is fully determined by its mean and ACVF.
+:::
+
+### Method of maximum likelihood
+
+The maximum likelihood estimator (MLE) is the parameter value that maximizes the likelihood function given the observed data.
+When using this method for stationary time series models, we usually assume Gaussian white noise, which means that the model ($\textnormal{AR}(1)$ or otherwise) is a Gaussian process.
+
+**Full MLE.**
+Using @eq-ar-arp and the causality assumption, we may write conditional densities as
+$$
+f_\beta(x_t|x_1,\ldots,x_{t-1}) = (2\pi\sigma^2)^{-1/2}\exp\left(-\frac{(x_t - \phi_{1:p}^T(x_{t-1:t-p} -\mu) - \mu)^2}{2\sigma^2}\right)
+$$
+whenever $t > p$.
+Here, we use $\beta = (\mu, \phi_{1:p},\sigma^2)$ to denote the entire vector model parameters.
+For $1 \leq t\leq p$, we have the more complicated expression
+$$
+f_\beta(x_t|x_1,\ldots,x_{t-1}) = (2\pi\nu_t^2)^{-1/2}\exp\left(-\frac{(x_t - \phi_{1:t-1}^T(x_{t-1:1} -\mu) - \mu)^2}{2\nu_t^2}\right),
+$$
+where $\nu_t^2 = \gamma(0) - \gamma_{1:t-1}^T\Gamma_{t-1}^{-1}\gamma_{1:t-1}$ (see Corollary 10.7) and the ACVF values $\gamma(k)$ are treated as functions in $\beta$ obtained via @eq-ar-moments-acvf-recursive-2 and @eq-ar-moments-acvf-recursive-3.
+
+Taking logarithms, we therefore get the following expression for the negative log likelihood:
+$$
+\begin{split}
+l(\beta) & = - \log f_\beta(x_1,x_2,\ldots,x_n) \\
+& = -\log \prod_{t=1}^n f_\beta(x_t|x_1,\ldots,x_{t-1}) \\
+& = \frac{n}{2}\log(2\pi\sigma^2) + \sum_{t=1}^p \log (\nu_t^2/\sigma^2) + \frac{S(\mu, \phi_{1:p})}{2\sigma^2}
+\end{split}
+$$ {#eq-ar-estimation-full-likelihood}
+where 
+$$
+\begin{split}
+S(\mu, \phi_{1:n}) & = \sum_{t=1}^p (x_t - \mu - \phi_{1:t-1}^T(x_{t-1:1} -\mu))^2\cdot\frac{\sigma^2}{\nu_t^2} \\
+& \quad\quad + \sum_{t=p+1}^n (x_t - \mu - \phi_{1:p}^T(x_{t-1:t-p} -\mu))^2.
+\end{split} 
+$$ {#eq-ar-estimation-unconditional-ss}
+
+Note that $\sigma^2/\nu_t^2$ is purely a function of $\phi_{1:p}$ and does not depend on $\sigma^2$.
+
+The MLE is defined as the minimizer of @eq-ar-estimation-full-likelihood.
+But because of the presence of $\nu_1,\nu_2,\ldots$, @eq-ar-estimation-full-likelihood is a complicated function of $\beta$, and can only be minimized numerically.
+
+**Conditional MLE.**
+The likelihood can be greatly simplified by conditioning on the first $p$ values: $X_1 = x_1, X_2 = x_2, \ldots,X_p = x_p$.
+The conditional negative log likelihood is then
+$$
+\begin{split}
+l_c(\beta) & \coloneqq - \log f_\beta(x_{p+1},x_{p+2},\ldots,x_n|x_1,x_2,\ldots,x_p) \\
+& = -\log \prod_{t=p+1}^n f_\beta(x_t|x_1,\ldots,x_{t-1}) \\
+& = \frac{n-p}{2}\log(2\pi\sigma^2) + \frac{S_c(\mu, \phi_{1:p})}{2\sigma^2}
+\end{split}
+$$ {#eq-ar-estimation-cond-likelihood}
+where
+$$
+\begin{split}
+S_c(\mu, \phi_{1:n}) & = \sum_{t=p+1}^n (x_t - \mu - \phi_{1:p}^T(x_{t-1:t-p} -\mu))^2.
+\end{split} 
+$$ {#eq-ar-estimation-conditional-ss}
+
+By differentiating @eq-ar-estimation-cond-likelihood with respect to $\sigma^2$, we see that the MLE for $\sigma^2$ is
+$$
+\hat\sigma^2 = \frac{S_c(\hat\mu,\hat\phi_{1:p})}{n-p},
+$$
+where $\hat\mu$ and $\hat\phi_{1:p}$ are the MLEs for $\mu$ and $\phi_{1:p}$ respectively.
+<!-- These can now be computed by differentiating @eq-ar-estimation-conditional-ss. -->
+
+Next, differentiating $S_c(\mu, \phi_{1:p})$ with respect to $\mu$ and $\phi$, we get
+$$
+\hat\phi = \tilde\Gamma_p^{-1}\tilde\gamma_{1:p}
+$$
+and
+$$
+\hat\mu = \frac{\bar x_{p+1:n} - \hat\phi_1 \bar x_{p:n-1} - \cdots - \hat\phi_p \bar x_{1:n-p}}{1 - \hat\phi_1 - \cdots - \hat\phi_p}.
+$$
+Here $\bar x_{a:b} = \frac{1}{b-a+1}\sum_{i=a}^b x_i$ for any $a < b$.
+Furthermore, the entries of $\tilde\Gamma_p$ and $\tilde\gamma_{1:p}$ are of the form
+<!-- $$
+\tilde\gamma(h) = \frac{1}{n - p}\sum_{t=h}^{n-h+p+1} (x_t - \bar x_{h:n-h+p-1})(x_t - \bar x_{h:n-h+p-1})
+$$ -->
+$$
+(\tilde\Gamma_p)_{ij} = \frac{1}{n-p}(x_{p-i+1:n-i} - \bar x_{p-i+1:n-i})^T(x_{p-j+1:n-j} - \bar x_{p-j+1:n-j}),
+$$
+$$
+\tilde\gamma(i) = \frac{1}{n-p}(x_{p-i+1:n-i} - \bar x_{p-i+1:n-i})^T(x_{p+1:n} - \bar x_{p+1:n}).
+$$
+
+### Least squares
+
+**Conditional least squares.**
+We have just seen that the MLE is the minimizer of $S_c(mu,\phi)$, defined in @eq-ar-estimation-conditional-ss.
+This objective function is called the *conditional sum of squares* and comprises the sum of the squared one-step-ahead errors.
+While the likelihood function may change under other choices of the white noise distribution, just like in linear regression, $S_c(mu,\phi)$ remains a reasonable objective function for fitting the model parameters.
+
+**Unconditional least squares.**
+Another objective function of interest is the *unconditional sum of squares* $S(\mu,\phi)$, defined in @eq-ar-estimation-unconditional-ss.
+This forms part of the full likelihood in @eq-ar-estimation-full-likelihood, but because the likelihood includes an additional logarithmic term depending on $\nu_t^2/\sigma^2$, the two objectives have different minimizers.
+
+### Asymptotics
+
+We have introduced four different estimators:
+
+- Method of moments
+- Full maximum likelihood
+- Conditional maximum likelihood / conditional sum of squares minmizer
+- Unconditional sum of squares minimizer
+
+Given these possibilities, it is natural to ask which estimator is the most *efficient*, i.e. which converges to the true parameters at the fastest rate.
+It turns out that for $\textnormal{AR}(p)$ models, all four are asymptotically equivalent and optimal.
+
+**Theorem 10.11.** (Large sample distribution of estimators)
+Suppose the white noise has finite 4th moments, i.e. $\E\lbrace W_t^2\rbrace < \infty$.
+Then for each of the four estimators listed above, $\hat\sigma^2$ is consistent and
+$$
+\sqrt n (\hat\phi_{1:p} - \phi_{1:p}) \to_d N(0,\sigma^2\Gamma_p^{-1}).
+$$
+
+*Proof.*
+It is not hard to see that the three estimators based on likelihood are equivalent, since the objective functions by which they are defined differ by an $O(1/n)$ additive factor as $n \to \infty$.
+We can also compare the method of moments estimator with the conditional max likelihood estimator using a similar reasoning:
+For instance, we see that the entries of $\hat Gamma_p$ and $\tilde\Gamma_p$ also differ by an $O(1/n)$ additive factor.
+Refer to Section B.3. in @shumway2000time for the remaining details of the proof.
+
+Note that the [Cramer-Rao lower bound](https://en.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound) implies that $\sigma^2\Gamma_p^{-1}$ is the optimal asymptotic covariance.
+
+Using Theorem 10.11, we are able to provide confidence intervals and perform hypothesis testing for model parameters.
+Of course, confidence intervals rely on assuming that all the modeling assumptions hold and that we know the correct order $p$ for the model.
+This is rarely the case for real data analysis.
+At the very least, one ought to be able to estimate the model order without knowing it before hand.
+This is called *model selection* and will be discussed in the next chapter.
+
+## Sample trajectories
+
+One can draw a sample trajectory from an autoregressive model (and more generally from an ARIMA model) using the function `arima.sim()` in base R. 
+Here, we show sample trajectories from the $\textnormal{AR}(2)$ models $(X_t)$, $(Y_t)$, and $(Z_t)$ whose ACF we computed in @fig-ar-ar2-acf.
+We also plot forecasts over 20 time steps.
+
+```{r}
+#| echo: TRUE
+#| fig-cap: Sample trajectories and forecasts for AR(2) models with phi_1 = 1.5 but different values of phi_2. These are (from top to bottom) -0.55, -0.75 and -0.5625. The noise variance is set to be 1.
+#| label: fig-ar-ar2-trajectories
+set.seed(5209)
+n <- 80
+h <- 20
+ar2_data <-
+    tibble(t = 1:n,
+           wn = rnorm(n),
+           X = arima.sim(model = list(ar = c(1.5, -0.55)), # <1>
+                         n = n, innov = wn),               # <1>
+           Y = arima.sim(model = list(ar = c(1.5, -0.75)), 
+                         n = n, innov = wn),
+           Z = arima.sim(model = list(ar = c(1.5, -0.5625)), 
+                         n = n, innov = wn)
+    ) |>
+    as_tsibble(index = t)
+plt1 <- ar2_data |>
+    model(X = ARIMA(X ~ pdq(2, 0, 0))) |>                   # <2>
+    forecast(h = h) |>
+    autoplot(ar2_data) + ylab("X")
+plt2 <- ar2_data |>
+    model(Y = ARIMA(Y ~ pdq(2, 0, 0))) |>
+    forecast(h = h) |>
+    autoplot(ar2_data) + ylab("Y")
+plt3 <- ar2_data |>
+    model(Z = ARIMA(Z ~ pdq(2, 0, 0))) |>
+    forecast(h = h) |>
+    autoplot(ar2_data) + ylab("Z")
+grid.arrange(plt1, plt2, plt3, nrow = 3)
+```
+
+1. `arima.sim()` creates a sample trajectory from an ARIMA model. We first specify the model parameters as a list with only one item, which we name `ar`, set the desired trajectory length to be $n = 80$, and request that it be generated using the white noise sequence `wn`. We use the same white noise sequence for all three models in order to have a better comparison among them.
+2. To forecast using the `fable` package, we first fit a model to the data using the `ARIMA()` function. Since we already know the model parameters, we don't have to do this, but we proceed in order to make use of the resulting mable interface.
+
+From the plots, we see that $(Y_t)$ has cycles whereas $(X_t)$ and $(Z_t)$ do not.
+This is unsurprising as the AR polynomial defining $(Y_t)$ has complex roots whereas those defining $(X_t)$ and $(Z_t)$ do not.
+
+When `arima.sim()` is called with a choice of parameters that do not produce a causal, stationary model, it throws an error.
+
+```{r}
+#| echo: TRUE
+#| error: TRUE
+#> This is not causal
+arima.sim(model = list(ar = 1.1), n = 50)
+```
+
+Nonetheless, we can try to compute this manually using the base R function `accumulate()`.
+Doing so gives the following plot.
+
+```{r}
+#| echo: TRUE
+#| fig-cap: Sample trajectory for an explosive AR(1) model.
+#| label: fig-ar-explosive
+set.seed(5209)
+n <- 50
+wn <- rnorm(n - 1)
+tibble(t = 1:n,
+       X = accumulate(wn, ~ 1.1 * .x + .y, .init = 0)
+    ) |>
+    as_tsibble(index = t) |>
+    autoplot(X)
+```
+
+We see that the time series diverges exponentially.
+Note that our method of sampling trajectories (also used by `arima.sim()`) implicitly assumes that the future white noise values are independent of the past values of the process.
+Hence, it generates the explosive solution for non-causal AR(1) model rather than the stationary one.
+
+## Nonlinear autoregressive models
+
+In this chapter, we have discussed $\textnormal{AR}(p)$ models at length.
+Although we sometimes call these autoregressive models, they are more accurately described as *linear* autoregressive models, because they stipulate that each value $X_t$ depends on the past values linearly.
+Just as in supervised learning, there can be nonlinear dependence between the values of a time series, which cannot be captured by a linear model.
+
+When encountering such patterns, it may be fruitful to apply autoregressive machine learning models, which are machine learning models that take lagged covariates as predictors.
+These are usually optimized by minimizing the sum of squared residuals.
+`fable` conveniently comes equipped with neural network autoregressive models (see [Chapter 12.4](https://otexts.com/fpp3/nnetar.html) in @hyndman2018forecasting), but [any regression model can be turned into an autoregressive model](https://business-science.github.io/modeltime/articles/recursive-forecasting.html).

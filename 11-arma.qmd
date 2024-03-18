@@ -1,1 +1,30 @@
 # ARMA Models
+
+## Moving average models
+
+## MA(1)
+
+### 
+
+###
+
+Invertibility
+Moments
+Forecasting
+Estimation
+
+## PACF
+
+- Comparison between AR and MA
+
+## ARMA
+
+## Forecasting
+
+- Infinite past
+- Truncated predictions
+
+## Estimation
+
+- Durbin-Levinson
+- 

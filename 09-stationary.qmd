@@ -168,7 +168,7 @@ Note that this process is not stationary unless $f_t$ is constant.
 - When $f_t = \beta_0 + \beta_1 t$, this time series model gives rise to the linear trend method.
 - We can also view $f_t$ as a function of other known, concurrent time series which are treated as deterministic, i.e. $f_t = f(Z_{1t},Z_{2t},\ldots,Z_{rt})$.
 
-### Linear process
+### Linear process {#sec-stationary-linear}
 
 A *linear process* is defined as a convolution between a white noise process and a sequence of coefficients.
 Specifically, it is given by
@@ -295,7 +295,7 @@ The Box-Jenkins method is certainly not the only approach to time series modelin
 Nonetheless, it is quite influential and remains very useful.
 It underpins our interest in modeling stationary time series.
 
-Typically, the model fit in Step 2 is an AutoRegressive Moving Average (ARMA) model, which we will learn about in @sec-arma.
+Typically, the model fit in Step 2 is an AutoRegressive Moving Average (ARMA) model, which we will learn about in @sec-ar.
 We next discuss Step 1 and Step 4 in more detail in the next two sections.
 
 

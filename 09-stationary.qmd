@@ -379,7 +379,7 @@ Alternatively, if we let $F$ denote the quantile function of $\chi^2_h$, we obta
 Define the Ljung-Box test statistic:
 $$
 Q_{LB} \coloneqq n(n+2)\sum_{j=1}^h \frac{\hat\rho_X(j)^2}{n-j}
-$$
+$$ {#eq-stationary-ljungbox}
 Asymptotically, we also have $Q_{LB} \to_d \chi^2_{h}$ under the null hypothesis, and one can use $Q_{LB}$ in exactly the same would you would use $Q_{BP}$.
 On the other hand, it has been found that the distribution of $Q_{LB}$ is closer to $\chi^2_{h}$ than that of $Q_{BP}$ in finite samples.
 Hence, the Ljung-Box test is usually preferred to the Box-Pierce test.

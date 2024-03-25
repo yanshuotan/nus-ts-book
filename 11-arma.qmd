@@ -1,30 +1,660 @@
 # ARMA Models
 
-## Moving average models
+```{r}
+#| message: FALSE
+#| warning: FALSE
+#| echo: FALSE
+source("_code/set_up.R")
+```
 
-## MA(1)
+## Introducing MA(q) models
 
-### 
+### Definitions
 
-###
+A *moving average* model of order $q$, abbreviated $\textnormal{MA}(q)$, is a stationary stochastic process $(X_t)$ defined via
+$$
+X_t = \mu + W_t + \theta_1 W_{t-1} + \theta_2 W_{t-2} + \cdots + \theta_q W_{t-q},
+$$ {#eq-arma-maq}
+where $(W_t) \sim WN(0,\sigma^2)$, and $\theta_1,\theta_2,\ldots,\theta_q$ are constant coefficients.
 
-Invertibility
-Moments
-Forecasting
-Estimation
+The sequence $(X_t)$ can be thought of as a moving average of the current and $q$ most recent white noise values, hence the name.
+On the other hand, the weights $\theta_j$ can be negative, as opposed to what happens when we use moving averages to smooth a time series.
 
-## PACF
+$\textnormal{MA}(q)$ models possess a nice symmetry with $\textnormal{AR}(p)$ models.
+If we define the *moving average polynomial* to be
+$$
+\phi(z) = 1 + \theta_1 z + \theta_2 z^2 + \cdots + \theta_q z^q,
+$$
+then we may rewrite @eq-arma-maq in operator form as
+$$
+X_t - \mu = \theta(B)W_t,
+$$
+where $B$ is the backshift operator as before.
+We call $\theta(B)$ the moving average operator of the model.
 
-- Comparison between AR and MA
+### Motivation: Lagged effects
 
-## ARMA
+When modeling the influence of one time series on another, it is important to account for *lagged effects*.
+For instance, if a company runs a successful marketing campaign in March, it may experience higher sales numbers starting in April and persisting for the rest of the year.
+Similarly, the population size of a predator species depends on the population size of its prey in a lagged manner (see for instance the cross-correlation plot in @fig-summary-pelt-ccf.)
+
+One can interpret @eq-arma-maq as asserting a driving relationship with lagged effects between $(W_t)$ and an observed time series $(X_t)$.
+Of course, this assumes that the driver is white noise, which is not always reasonable.
+Nonetheless, $\textnormal{MA}(q)$ models may provide a building block for more complicated models, as we will soon see.
+
+### Similarities with AR(p) models
+
+It can be hard to distinguish between sample trajectories of $\textnormal{AR}(p)$ and $\textnormal{MA}(q)$ models using the naked eye.
+We plot here samples from the models
+$$
+X_t = W_t + 0.9W_{t-1}
+$$
+$$
+Y_t = 0.5Y_{t-1} + W_t,
+$$
+generated using the same white noise process.
+Note that the first model is an $\textnormal{MA}(1)$ model, while the second is an $\textnormal{AR}(1)$ model.
+Their parameters are selected so that they have similar ACVF values (see @sec-arma-ma-moments.)
+
+```{r}
+#| echo: TRUE
+#| fig-cap: Sample trajectories and forecasts for an MA(1) model with theta = 0.9 (top) and an AR(1) model with phi = 0.5 (bottom).
+#| label: fig-arma-arvsmaq
+set.seed(5209)
+plot_data <-
+    tibble(t = 1:80,
+           wn = rnorm(80),
+           X = arima.sim(model = list(ma = 0.9),
+                         n = 80, innov = wn),
+           Y = arima.sim(model = list(ar = 0.5), 
+                         n = 80, innov = wn)
+    ) |>
+    as_tsibble(index = t)
+plt1 <- plot_data |>
+    autoplot(X) + ylab("X") + xlab("")
+plt2 <- plot_data |>
+    autoplot(Y) + ylab("Y")
+grid.arrange(plt1, plt2, nrow = 2)
+```
+
+Second, if we allow for infinite order, then both classes of models are equivalent.
+We have already seen that causal $\textnormal{AR}(p)$ models are equivalent to $\textnormal{MA}(\infty)$ models.
+Likewise, under some conditions, we may show that an $\textnormal{MA}(q)$ model is also an $\textnormal{AR}(\infty)$ model.
+
+**Invertibility.**
+We say that a stochastic process $(X_t)$ is *invertible* if it satisfies the equation
+$$
+\sum_{j=0}^\infty \pi_j (X_{t-j} - \mu) = W_t
+$$ {#eq-arma-invertibility}
+where $\sum_{j=0}^\infty |\pi_j| < \infty$.
+
+**Proposition 11.1.**
+Let $(X_t)$ be an $\textnormal{MA}(q)$ model with MA polynomial $\theta(z)$.
+Suppose $\theta(z) \neq 0$ for all $|z| \leq 1$.
+Then $(X_t)$ is invertible, with coefficients satisfying
+$$
+\theta(z) \cdot \left( \sum_{j=0}^\infty \pi_j z^j\right) = 1.
+$$ {#eq-arma-invertibility-coefficients}
+
+The proof of this proposition is similar to that of [Theorem 10.4](10-ar.qmd#sec-ar-causal-solutions) and is left to the reader.
+The important point to note is that @eq-arma-invertibility-coefficients yields a recursive formula for $\pi_j$, $j=0,1,2,\ldots$.
+
+### Differences with AR(p) models
+
+In comparison with $\textnormal{AR}(p)$ models, we do not have to worry about whether @eq-arma-maq gives a well-defined model---the model is explicitly defined by the equation.
+On the other hand, forecasting and estimation become more difficult.
+Simply viewing an $\textnormal{MA}(q)$ model as an $\textnormal{AR}(\infty)$ model is not too helpful, because *the order of the AR model matters for forecasting and estimation*.
+
+- Forecasting：For $\textnormal{AR}(p)$, only the past $p$ observations are relevant.
+- Estimation: $\textnormal{AR}(p)$ requires estimating the $p$-dimensional matrix $\Gamma_p$.
+
+Neither of these are feasible when $p = \infty$ and we have to work with $\textnormal{MA}(q)$ directly.
+Here, we note that although @eq-arma-maq seems similar to a regression equation, we do not actually observe the white noise values $W_t, W_{t-1},\ldots$ when modeling real data and cannot use them for prediction or estimation.
+
+### Moments {#sec-arma-ma-moments}
+
+The mean of @eq-arma-maq is $\mu$.
+Meanwhile, the ACVF is given by @eq-stationary-linear-acvf:
+$$
+\gamma_X(h) = \begin{cases}
+\sigma^2\sum_{j=h}^q \theta_j\theta_{j-h} & 0 \leq h \leq q \\
+0 & h > q.
+\end{cases}
+$$
+
+Dividing by the formula for $\gamma_X(0)$ gives
+$$
+\rho_X(h) = \begin{cases}
+\frac{\sum_{j=h}^q \theta_j\theta_{j-h}}{\sum_{j=0}^q \theta_j^2} & 0 \leq h \leq q \\
+0 & h > q.
+\end{cases}
+$$
+
+In contrast with the gradual decay of ACF values for $\textnormal{AR}(p)$ models, we see that the ACF for $\textnormal{MA}(q)$ experience a sharp *cutoff* after $q$ lags.
+
+Given these moments, we can forecast using the best linear predictor formula @eq-ar-forecast-blp-formula.
+On the other hand, this formula requires estimating and inverting the $n$-dimensional matrix $\Gamma_n$, neither of which is desirable.
+We were able to get around this for $\textnormal{AR}(p)$, in which case the BLP formula conveniently simplifies to only depend on the $p$ most recent observations.
+Unfortunately, this is not the case for $\textnormal{MA}(q)$ models, as we will see in the next section.
+
+## Partial autocorrelation function
+
+In order to further discuss issues with forecasting, we introduce a counterpart to the ACF: The *partial* autocorrelation function, or PACF for short.
+It is based on *partial correlation*, which is a concept from regression analysis that is important in its own right.
+
+### Partial correlation
+
+<!-- **Partial correlation.** -->
+Let $\bZ = (Z_1,\ldots,Z_m)$ be a random vector, and let $X$ and $Y$ be two additional random variables.
+Let $\hat X$ and $\hat Y$ be the best linear predictors for $X$ and $Y$ respectively given $\bZ$.[^1]
+Then the *partial correlation* between $X$ and $Y$ given $\bZ$ is
+$$
+\rho_{Y,Z|\bX} \coloneqq \Corr\left\lbrace Y-\hat Y, Z - \hat Z\right\rbrace.
+$$
+
+[^1]: We have the formulas $\hat X = \Cov(X,\bZ)\Cov(\bZ)^{-1}\bZ$ and $\hat Y = \Cov(Y,\bZ)\Cov(\bZ)^{-1}\bZ$.
+
+In regression analysis, the residuals $X - \hat X$ and $Y - \hat Y$ represent the remaining variation in $X$ and $Y$ respectively after controlling for the effect of $\bZ$.
+Any correlation between these residuals is often more interesting than that between the original $X$ and $Y$.
+For instance, although a strong correlation between smoking and lung cancer has long been observed, prominent statisticians such as Ronald Fisher once tried to argue that there were other variables, such as genetic factors, that led to both a higher incidence of smoking and a higher incidence of lung cancer.[^2]
+His hypothesis could be refuted if we were able to show a positive partial correlation between smoking and lung cancer after controlling for these genetic factors.
+
+[^2]: Such a phenomenon is called confounding and $\bZ$ are called confounding variables.
+
+::: callout-caution
+
+Do not confuse partial correlation with *conditional correlation*, which measures the correlation between the residuals $X - \hat X$ and $Y - \hat Y$ where $\hat X$ and $\hat Y$ are now the conditional expectations of $X$ and $Y$ given $\bZ$ (rather than the BLP).
+Partial correlation and conditional correlation are equivalent when $\bZ$, $X$ and $Y$ are jointly multivariate Gaussian.
+
+:::
+
+Partial correlation has a nice [geometric interpretation](https://en.wikipedia.org/wiki/Partial_correlation#Geometrical).
+Here, we provide a few more.
+
+**Regression coefficient.**
+If we regress $Y$ jointly on $\bZ$ and $X$, then the regression coefficient of $X$ is
+$$
+\beta_X = \rho_{X,Y|\bZ}\cdot \frac{\Var\lbrace Y - \hat Y\rbrace}{\Var \lbrace X - \hat X\rbrace}.
+$$ {#eq-arma-partial-corr-reg}
+
+**Analysis of variance.**
+Let $\hat Y$ be the BLP of $Y$ using $\bZ$ and let $\tilde Y$ be the BLP of $Y$ using both $\bZ$ and $X$.
+Then
+$$
+\rho_{X,Y|\bZ}^2 = 1 - \frac{\Var\lbrace Y - \tilde Y\rbrace}{\Var\lbrace Y - \hat Y\rbrace}.
+$$ {#eq-arma-partial-corr-var}
+
+*Proof.*
+@eq-arma-partial-corr-reg can be proved by checking that $\hat Y + \beta_X(X - \hat X)$ is the BLP for $Y$ given $\bZ$ and $X$ using the zero gradient condition.
+@eq-arma-partial-corr-var is obtained by rearranging the definition of $\rho_{Y,Z\bX}$.
+
+Under both interpretations, we see that a nonzero partial correlation implies that knowing $X$ improves our prediction accuracy for $Y$ even if we already know $\bZ$.
+
+### Defining PACF
+
+<!-- **Partial autocorrelation.** -->
+The lag $h$ partial autocorrelation of a stationary process $(X_t)$ is defined as the partial correlation between any pair of values $h$ time points apart given the values of the time series.
+In other words, it is
+$$
+\alpha_X(h) \coloneqq \rho_{X_0,X_{h}|X_{1:h-1}}.
+$$
+
+$\alpha_X$ is called the partial autocorrelation function, or PACF for short.
+Note that it is not defined for $h = 0$ and that $\alpha_X(1) = \rho_X(1)$ (since nothing is conditioned upon at lag 1.)
+<!-- $$
+\alpha_X(h) \coloneqq \Corr\left\lbrace X_{t+h} - \tilde X_{t+h}, X_t - \hat X_t\right\rbrace,
+where $\tilde X_{t+h}$ and $\tilde X_t$ respectively denote the best linear predictions of $X_{t+h}$ and $X_t$ given $X_{t+1},\ldots,X_{t+h-1}$.
+$$ -->
+
+In this context, @eq-arma-partial-corr-reg and @eq-arma-partial-corr-var have the following consequences:
+
+**BLP coefficient.**
+$\alpha_X(h)$ is the $h$-th coordinate of $\phi_{h+1|h}$, the regression vector of $X_{h+1}$ on $X_1,X_2,\ldots,X_h$.
+
+**Residual variance.**
+Let $\nu_{h+1}$ denote the residual variance of the BLP, i.e. $\Var\lbrace X_{h+1} - \phi_{h+1|h}^T X_{h:1}\rbrace$.
+Then we have
+$$
+\nu_{h+1} = (1-\alpha_X(h)^2)\nu_{h}.
+$$
+
+### Calculating the PACF {#sec-arma-pacf-calculating}
+
+The fact that each PACF value is equivalent to a BLP coefficient allows us to calculate it by repeatedly solving BLP equations.
+This procedure is made efficient using the *Durbin-Levinson Algorithm*.
+Indeed, the algorithm recursively calculates the BLP coefficient vectors $\phi_{1|0}, \phi_{2|1}, \phi_{3|2},\ldots$ using the following proposition.
+
+**Proposition 11.2.**
+Denote $\phi_{t|t-1} = (\phi_{t1},\phi_{t2},\ldots,\phi_{tt})$.
+Then $\phi_{00} = 0$ and for $t = 1, 2, \ldots$, we have
+$$
+\phi_{tt} = \frac{\rho_X(t) - \sum_{k=1}^{t-1}\phi_{t-1,k}\rho_X(t-k)}{1 - \sum_{k=1}^{t-1}\phi_{t-1,k}\rho_X(k)}
+$$
+$$
+\phi_{tk} = \phi_{t-1,k} - \phi_{tt}\phi_{t-1,t-k}, \quad k = 1,2, \ldots, t-1.
+$$
+
+*Proof.*
+These equations can be proved using the block matrix inverse formula and the observation that
+$$
+\Gamma_t = \left[\begin{matrix}
+\Gamma_{t-1} & \gamma_{t-1:1} \\
+\gamma_{t-1:1}^T & \gamma_X(0)
+\end{matrix}\right]
+.
+$$
+
+### AR(p) and MA(q)
+
+The Durbin-Levinson Algorithm can be used to compute the PACF for both $\textnormal{AR}(p)$ and $\textnormal{MA}(q)$ models.
+Even without the algorithm though, we easily see that the PACF for an $\textnormal{AR}(p)$ model is zero for all $h > p$.[^3]
+
+[^3]: To see this, just recall that the BLP for such a model only has its first $p$ coefficients nonzero.
+
+On the other hand, for an $\textnormal{MA}(1)$ model, we get
+$$
+\alpha_X(h) = - \frac{(-\theta)^h(1-\theta^2)}{1-\theta^{2(h+1)}}.
+$$
+More generally, the PACF for an $\textnormal{MA}(q)$ undergoes exponential decay, but is nonzero for infinitely many values of $h$.
+This has disappointing consequences for forecasting $\textnormal{MA}(q)$ models:
+It tells us that if we would like to have a forecast that is as accurate as possible, then we will need to use all past observations of the time series that are available to us.
+
+::: callout-caution
+
+The intermediate coefficients $\phi_1,\phi_2,\ldots,\phi_{p-1}$ of an $\textnormal{AR}(p)$ model are not the PACF values for any lag $h$.
+This is because the regression of $X_n$ on $X_{n-1}, X_{n-1},\ldots,X_{n-k}$ for any $k < p$ is affected by [omitted variable bias](https://en.wikipedia.org/wiki/Omitted-variable_bias).
+
+:::
+
+The sharp cutoffs of the ACF for $\textnormal{MA}(q)$ models and of the PACF for $\textnormal{AR}(p)$ models means that we can use these plots to diagnose the type and order of a model.
+Here, we demonstrate this for
+$$
+\textnormal{AR}(2):\quad\quad (I - 0.9B)^2 X_t = W_t,
+$$
+$$
+\textnormal{MA}(2):\quad\quad Y_t = (I - 0.9B)^2W_t.
+$$
+
+::: panel-tabset
+
+# AR(2)
+
+```{r}
+#| echo: TRUE
+#| fig-cap: ACF (top) and PACF (bottom) plots for an AR(2) model.
+#| label: fig-arma-ar2-acfpacf
+set.seed(5209)
+n <- 200
+plot_data <-
+    tibble(t = 1:n,
+           X = arima.sim(model = list(ar = c(1.8, -0.81)), 
+                         n = n)
+    ) |>
+    as_tsibble(index = t)
+plt1 <- plot_data |> ACF(X) |>
+    autoplot()
+plt2 <- plot_data |> PACF(X) |>
+    autoplot()
+grid.arrange(plt1, plt2, nrow = 2)
+```
+
+# MA(2)
+
+```{r}
+#| echo: TRUE
+#| fig-cap: ACF (top) and PACF (bottom) plots for an MA(2) model.
+#| label: fig-arma-ma2-acfpacf
+set.seed(5209)
+n <- 200
+plot_data <-
+    tibble(t = 1:n,
+           Y = arima.sim(model = list(ma = c(-1.8, 0.81)),
+                         n = n)
+    ) |>
+    as_tsibble(index = t)
+plt1 <- plot_data |> ACF(Y) |>
+    autoplot()
+plt2 <- plot_data |> PACF(Y) |>
+    autoplot()
+grid.arrange(plt1, plt2, nrow = 2)
+```
+
+:::
+
+## Introducing ARMA(p,q) models
+
+### Definitions
+
+One may combine the definitions of $\textnormal{AR}(p)$ and $\textnormal{MA}(q)$ together to get an even more flexible class of models:
+
+An *autoregressive moving average* model of order $p$ and $q$, abbreviated $\textnormal{ARMA}(p,q)$, is a stationary stochastic process $(X_t)$ that solves the equation
+$$
+X_t = \alpha + \phi_1 X_{t-1} + \ldots + \phi_p X_{t-p} + W_t + \theta_1 W_{t-1} + \cdots + \theta_q W_{t-q},
+$$ {#eq-arma-arma-equation}
+where $(W_t) \sim WN(0,\sigma^2)$ and $\phi_1,\ldots,\phi_p,\theta_1,\ldots,\theta_q$ are constant coefficients.
+
+In analogy with $\textnormal{AR}(p)$ models, we can interpret @eq-arma-arma-equation as saying that $(X_t)$ is governed by an underlying dynamical system that is perturbed by noise, but in this case, the noise is described by an $\textnormal{MA}(q)$ process rather than being white noise.
+
+The autoregressive and moving average polynomials of the model are defined respectively as 
+$$
+\phi(z) = 1 - \phi_1 z - \phi_2 z^2 - \cdots - \phi_p z^p
+$$
+$$
+\theta(z) = 1 + \theta_1 z + \theta_2 z^2 + \cdots + \theta_q z^q,
+$$
+and we may write @eq-arma-arma-equation in operator form as
+$$
+\phi(B)(X_t - \mu) = \theta(B)W_t,
+$$ {#eq-arma-arma-equation-operator}
+where $\mu = \alpha/(1-\phi_1 - \cdots - \phi_p)$.
+
+### Parameter redundancy
+
+@eq-arma-arma-equation-operator demonstrates a potential issue with how $\textnormal{ARMA}(p,q)$ are specified:
+If a time series $(X_t)$ satisfies the equation, then it is also a solution to
+$$
+\eta(B)\phi(B) X_t = \eta(B)\theta(B)W_t
+$$
+for any polynomial $\eta$(z).
+As such, we assume when writing @eq-arma-arma-equation that the autoregressive and moving average polynomials are written in their simplest possible form, i.e. that they do not share any common roots.
+
+### Existence, causality and invertibility
+
+Just as with $\textnormal{AR}(p)$ models, the equation @eq-arma-arma-equation does not a priori define a model, and we need to show that solutions exist.
+Furthermore, we have seen that [causality](09-stationary.qmd#sec-stationary-linear) and [invertibility](11-arma.qmd#eq-arma-invertibility) are useful properties to assume for $\textnormal{AR}(p)$ and $\textnormal{MA}(q)$ models respectively.
+These definitions are also useful for $\textnormal{ARMA}(p,q)$ models.
+
+**Proposition 11.3.**
+Suppose $\phi(z) \neq 0$ for all $|z| \leq 1$, then @eq-arma-arma-equation admits a unique stationary solution.
+This solution is causal and has the form
+$$
+X_t = \mu + \sum_{j=0}^\infty \psi_j W_{t-j},
+$$
+where
+$$
+\phi(z)\cdot\left(\sum_{j=0}^\infty \psi_j z^j\right) = \theta(z).
+$$
+Suppose $\theta(z) \neq 0$ for all $|z| \leq 1$, then the solution is invertible and satisfies
+$$
+\sum_{j=0}^\infty \psi_j (X_{t-j} - \mu) = W_t,
+$$
+where
+$$
+\phi(z) = \theta(z) \left(\sum_{j=0}^\infty \pi_j z^j\right).
+$$
+
+*Proof*.
+The proof is similar to that of Theorem 10.4 and Proposition 11.1 and is henced omitted.
+
+This theorem tells us that an $\textnormal{ARMA}(p,q)$ can be written as either an $\textnormal{AR}(\infty)$ model or as an $\textnormal{MA}(\infty)$ model.
+Either representation, however, requires way too many parameters than necessary to specify the model.
+
+For the rest of this chapter, we assume that we work with causal and invertible $\textnormal{ARMA}(p,q)$ models.
+
+### Moments
+
+**ACF/ACVF.**
+We may follow the same two approaches described for $\textnormal{AR}(p)$ models.
+The first method is to compute the $\textnormal{MA}(\infty)$ represetation and make use of the formula @eq-stationary-linear-acvf.
+The second method is to solve a system of difference equations: 
+$$
+\gamma_X(h) = \sum_{j=1}^p \phi_j \gamma_X(h-j) = \begin{cases}
+0, & h \geq \max(p,q+1), \\
+\sigma^2\sum_{j=h}^q \theta_j\psi_{j-h}, & 0 \leq h < \max(p,q+1).
+\end{cases}
+$$
+
+**PACF.**
+We use the Durbin-Levinson algorithm as described in @sec-arma-pacf-calculating.
+
+$\textnormal{ARMA}(p,q)$ shares the respective complexities of both $\textnormal{AR}(\infty)$ and $\textnormal{MA}(\infty)$ models:
+Neither its ACF nor PACF displays cutoff phenomena.
 
 ## Forecasting
 
-- Infinite past
-- Truncated predictions
+As previously hinted at, forecasting with $\textnormal{ARMA}(p,q)$ models is more complicated than forecasting with pure $\textnormal{AR}(p)$ models.
+We discuss three forecasting strategies.
+Unlike our discussion in $\textnormal{AR}(p)$ models in which all methods were equivalent, each of these strategies yields slightly different forecasts.
+Note that the last strategy (truncated forecasts) is the one that is implemented in `fable` (see [Chapter 9.8](https://otexts.com/fpp3/arima-forecasting.html) of @hyndman2018forecasting.)
+For ease of notation, we assume that all models have mean zero.
 
-## Estimation
+### BLP with finite samples
 
-- Durbin-Levinson
-- 
+The BLP formula @eq-ar-forecast-blp-formula is well-defined for any stationary time series model, and thus also holds for $\textnormal{ARMA}(p,q)$.
+The regression coefficient vector for one-step-ahead forecasts can be solved for recursively using the Durbin-Levinson algorithm.
+Alternatively, the BLP can be computed using the *Innovations Algorithm*, developed and presented by @brockwell1991time, and also discussed in @shumway2000time (see Property 3.6.)
+This algorithm is outside of the scope of this book and we refer the interested reader to the provided references.
+
+### BLP with infinite past
+
+The BLP formula surprisingly simplifies if we assume that we observe all hypothetical past values of the time series, i.e. if we have access to not just $X_n,X_{n-1},\ldots,X_1$, but also $X_0,X_{-1},X_{-2},\ldots$.
+Although this does not yield a practically useable forecast formula, it is useful as a thought experiment and will motivate the third forecasting strategy described below.
+
+For any $h > 0$, denote the forecast for $X_{n+h}$ using this strategy as $\tilde X_{n+h}$, with the convention that $\tilde X_t = X_t$ for all $t \leq n$.
+Recall that the BLP map $Q \colon X_t \mapsto \tilde X_t$ is a projection onto the span of $X_n, X_{n-1},\ldots$ and that it is defined using the orthogonality conditions:
+$$
+\E\left\lbrace\left(X_{n+h} - \tilde X_{n+h}\right)X_t\right\rbrace = 0, \quad t = n, n-1,\ldots.
+$$ {#eq-arma-forecast-blp-infinite}
+We now show two equivalent formulas for $\tilde X_{n+h}$.
+
+**Formula 1.**
+We have
+$$
+\tilde X_{n+h} = - \sum_{j=1}^h \pi_j \tilde X_{n+h-j} - \sum_{j=h}^\infty \pi_j X_{n+h-j}.
+$$
+
+*Proof.*
+Just apply the projection $Q$ to the $\textnormal{AR}(\infty)$ representation of $(X_t)$, noting that it is a linear map and that $Q[X_t] = X_t$ for all $t \leq n$. $\Box$
+<!-- One can show by induction on $h$ that this solves @eq-arma-forecast-blp-infinite.
+For the base case, we have
+$$
+\E\left\lbrace(X_{n+1} - \sum_{j=1}^\infty \pi_j X_{n+1-j})X_t\right\rbrace = \E\left\lbrace W_{n+1}X_t\right\rbrace = 0.
+$$ -->
+
+Using this formula, one may recursively calculate $\tilde X_{n+h}$ for $h=1,2\ldots$ by iterating its $\textnormal{AR}(\infty)$ equation, just as in the $\textnormal{AR}(p)$ case, except that the formula now depends on infinitely many terms.
+
+**Formula 2.**
+Let $\tilde W_t \coloneqq Q[W_t]$ for all $t$.
+For $h > 0$, we have
+$$
+\tilde X_{n+h} = \sum_{j=1}^{p} \phi_j \tilde X_{n+h-j} + \sum_{k=1}^q \theta_k \tilde W_{n+h-k},
+$$ {#eq-arma-forecast-infinite-past}
+while
+$$
+\tilde W_{t} \coloneqq \begin{cases}
+0 & t > n \\
+W_t & t \leq n.
+\end{cases}
+$$
+
+*Proof.*
+Just apply $Q$ to the $\textnormal{ARMA}(p,q)$ equation. $\Box$
+
+Note that $W_t$ are the model residuals (one-step-ahead forecast errors).
+If we knew the values of the $q$ most recent residuals $W_n,W_{n-1},\ldots,W_{n-q+1}$, we may use @eq-arma-forecast-infinite-past to forecast recursively for any horizon $h$.
+
+### Truncated forecasts
+
+The idea of truncated forecasts is to start with the formula for the BLP with infinite past and condition on the values $X_0 = 0, X_{-1} = 0, X_{-2} = 0,\ldots$.
+In other words, the truncated forecast for $X_t$ given $X_1,X_2,\ldots,X_n$, denoted for now using $\check X_{t|n}$, is defined as
+$$
+\check X_{t|n} =  \E\lbrace \tilde X_t | X_j = 0 ~\text{for all}~j \leq 0 \rbrace.
+$$
+
+Just like for computing BLPs, conditioning on these values is also a linear map on the space of random variables, which we may denote using $P$.
+We thus denote $\check W_{t|n} \coloneqq P[\tilde W_t]$.
+
+**Proposition 11.4.**
+We have
+$$
+\check X_{t|n} = \begin{cases}
+\sum_{j=1}^{p} \phi_j \check X_{t-j|n} + \sum_{k=1}^q \theta_k \check W_{t-k|n} & t > n, \\
+X_t & 0 < t \leq n, \\
+0 & t \leq 0,
+\end{cases}
+$$ {#eq-arma-forecast-truncated}
+and
+$$
+\check W_{t|n} \coloneqq \begin{cases}
+0 & t > n \\
+\phi(B) \check X_{t|n} - \theta_1 \check W_{t-1|n} - \ldots \theta_q \check W_{t-q|n} & 0 < t \leq n \\
+0 & t \leq 0
+\end{cases}
+$$ {#eq-arma-forecast-truncated-residuals}
+
+*Proof.*
+@eq-arma-forecast-truncated follows from applying $P$ to @eq-arma-forecast-infinite-past.
+To obtain @eq-arma-forecast-truncated-residuals, first note that since $W_t = \sum_{j=0}^\infty \pi_j X_{t-j}$, we have $\check W_{t|n} = 0$ for $t \leq 0$. 
+Next, apply $P$ to the $\textnormal{ARMA}(p,q)$ equation to get the formula for $0 < t \leq n$.
+$\Box$
+
+Using @eq-arma-forecast-truncated and @eq-arma-forecast-truncated-residuals, we can recursively compute forecasts using the $\textnormal{ARMA}(p,q)$ formula.
+This strategy is thus much more computationally efficient and interpretable compared to regular BLP.
+
+::: callout-note
+
+While all three methods produce different forecasts, it is easy to see that the differences between them diminish quickly as $n \to \infty$.
+This allows us to be somewhat relaxed about which value is being used when we refer to *the* model's forecast.
+
+:::
+
+### Prediction intervals
+
+Using its $\textnormal{MA}(\infty)$ representation, we observe that
+$$
+X_{n+h} - \tilde X_{n+h} = \sum_{j=0}^{h-1} \psi_j W_{n+h-j}. 
+$$
+As such, the conditional distribution of $X_{n+h}$ given the infinite past $X_n, \ldots, X_0, X_{-1},\ldots$ has variance 
+$$
+\sigma^2\sum_{j=0}^{h-1} \psi_j^2.
+$$ {#eq-arma-forecast-variance}
+This allows us to produce prediction intervals for the BLP with infinite past forecast, and by the similarity of all methods as $n \to \infty$, this also yields prediction intervals using the truncated forecast.
+
+### Long-range forecasts
+
+As $n \to \infty$, we see that
+
+$$
+\sigma^2\sum_{j=0}^{h-1} \psi_j^2 \to \sigma^2\sum_{j=0}^\infty \psi_j^2 = \gamma_X(0).
+$$
+
+Furthermore, for $t > q$, we may write @eq-arma-forecast-truncated in matrix form as
+
+$$
+\left[\begin{matrix}
+\check X_{t|n} \\
+\check X_{t-1|n} \\
+\vdots \\
+\check X_{t-p+1|n}
+\end{matrix}\right] = 
+\left[\begin{matrix}
+\phi_1 & \phi_2 & \phi_3 & \cdots & \phi_p \\
+1 & 0 & 0 & \cdots & 0 \\
+0 & 1 & 0 & \cdots & 0 \\
+\vdots & \vdots & \ddots & \cdots & \vdots \\
+0 & 0 & 0 & \cdots & 1 \\
+\end{matrix}\right]
+\cdot
+\left[\begin{matrix}
+\check X_{t-1|n} \\
+\check X_{t-2|n} \\
+\vdots \\
+\check X_{t-p|n}
+\end{matrix}\right].
+$$
+
+Let $M$ denote the matrix in the above equation, and note that $\det(M) = \phi_p$, which is the reciprocal product of the roots of the AR polynomial $\phi(z)$, and so has absolute value strictly less than 1.
+This implies that
+$$
+\lim_{h \to \infty} \det(M^h) = \lim_{h \to \infty} \det(M)^h = 0,
+$$
+which implies that $M^h$ tends to the zero matrix.
+We therefore conclude that the forecasts tend towards zero.
+Note that if we had assumed a nonzero mean $\mu$, then we would have $\lim_{h\to \infty}\check X_{n+h|n} \to \mu$.
+
+In summary, the forecast distribution converges to the marginal distribution of $X_t$.
+
+## Estimation and model selection
+
+### Estimation
+
+For $\textnormal{AR}(p)$ models, we saw that various estimation strategies exist and they were all asymptotically equivalent.
+This is no longer the case for $\textnormal{ARMA}(p,q)$ models.
+While we still have method of moments, maximum likelihood, and least squares estimators, the method of moments estimator is potentially less efficient than the others (see Example 3.29 in @shumway2000time.)
+All estimators are also more difficult to compute and in particular do not have closed form solutions.
+
+To avoid being bogged down in technical details, we avoid further discussion on these strategies in this book, and simply note that we have the following theorem.
+
+**Proposition 11.5.**
+Under appropriate conditions, for causal and invertible $\textnormal{AR}(p)$ models, the maximum likelihood, unconditional least squares, and conditional least squares estimators all provide estimators $\hat\beta$ for the parameter vector $\beta \coloneqq (\phi_1,\ldots,\phi_p,\theta_1,\ldots,\theta_q)$ that is asymptotically normal, with optimal asymptotic covariance.[^4]
+
+[^4]: Optimality here means that the asymptotic covariance matrix is the information matrix of the model and therefore satisfies the Cramer-Rao lower bound.
+
+
+### Model selection
+
+When working with real data, one is never told what is the correct order for an $\textnormal{ARMA}(p,q)$ model.
+Instead, we have to estimate these hyperparameters from the data, and the process of doing so is called *model selection*.
+The remainder of this section discusses precisely how to do this.
+
+First, recall that we have already learnt how to rule out when a candidate model does not fit the data well.
+We do this by performing a residual analysis, and in particular, by running a Ljung-Box test.
+The test statistic is given by @eq-stationary-ljungbox and has the limiting distribution $\chi^2_{h-p-q}$.
+
+Rather than repeatedly performing residual analysis and gradually increasing the order of the model, it is tempting to start with large values of $p$ and $q$.
+After all, we only get more flexibility this way:
+Any $\textnormal{ARMA}(p,q)$ model is also an instance of an $\textnormal{ARMA}(p',q')$ model for any $p' \geq p, q' \geq q$.
+
+Doing this, however, is dangerous, as it could lead to worse estimation.
+To illustrate what could go wrong in the current context, consider the $\textnormal{AR}(1)$ model
+$$
+X_t = \phi X_{t-1} + W_t, \quad W_t \sim WN(0,1).
+$$
+Note that $\gamma_X(0) = \sigma^2/(1-\phi^2)$ and that
+$$
+\Gamma_2^{-1} = \left[\begin{matrix}
+\gamma_X(0) & \gamma_X(1) \\
+\gamma_X(1) & \gamma_X(0)
+\end{matrix}\right]^{-1} = \frac{1}{\gamma_X(0)^2 - \gamma_X(1)^2}\left[\begin{matrix}
+\gamma_X(0) & -\gamma_X(1) \\
+-\gamma_X(1) & \gamma_X(0)
+\end{matrix}\right].
+$$
+In particular, the top left entry of this matrix is equal to $1/\sigma^2$.
+
+As such, when estimating $\phi$ when viewing $(X_t)$ as an $\textnormal{AR}(1)$ model, the limiting variance is $1-\phi^2$, but when estimating $\phi$ when viewing $(X_t)$ as an $\textnormal{AR}(2)$ model, the limiting variance is 1.
+Allowing for unnecessary parameters has thus inflated the variance of our estimator.
+
+As in many other areas of statistics, model selection is fundamentally about optimizing the bias-variance tradeoff.
+We would like to pick a model that is flexible enough to have low or no bias, but at the same time, not too flexible as to incur unnecessarily high variance.
+
+### AIC and AICc
+
+While one optimizes the likelihood or least squares objective functions to estimate parameters, we cannot do the same to estimate hyperparameters.
+This is because more flexible models will always fit the data better and thereby achieve smaller objective function values.
+To avoid this problem, one could select the model order by using time series cross-validation.
+A more classical method is to add a penalty term to the negative log likelihood in order to penalize more complex models.
+
+There are two commonly used penalties.
+Here, $l(-;\bX_{1:n})$ refers to the log likelihood, and let $k=1$ if we fit a mean $\mu$ for the model, with $k=0$ otherwise.
+
+The **Akaike Information Criterion (AIC)** of a model is
+$$
+\text{AIC} = - 2 l(\hat\bbeta_{MLE},\hat\sigma^2_{MLE};\bX_{1:n}) + 2(p+q+k+1).
+$$
+
+The **biased corrected Akaike Information Criterion (AICc)** of a model is
+$$
+\text{AICc} = - 2 l(\hat\bbeta_{MLE},\hat\sigma^2_{MLE};\bX_{1:n}) + \frac{2(p+q+k+1)n}{n-p-q-k-2}.
+$$
+
+The AIC penalty adds twice the number of model parameters to the cost function, while the AICc penalty adjusts this by a quantity that decays as $O(1/n)$.
+Note that AICc is preferred because it has better finite sample properties.
+
+::: callout-note
+
+AIC and AICc actually apply more broadly to parametric estimation in statistics.
+We take twice the negative loglikelihood by convention, because in a Gaussian linear regression setting, this is equivalent to the sum of squared errors.
+
+:::
+

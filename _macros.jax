@@ -11,7 +11,8 @@ window.MathJax = {
       Corr: "{\\textnormal{Corr}}",
       bX: "{\\mathbf{X}}",
       bZ: "{\\mathbf{Z}}",
-      bphi: "{\\boldsymbol{\\phi}}"
+      bphi: "{\\boldsymbol{\\phi}}",
+      bbeta: "{\\boldsymbol{\\beta}}"
     }
   }
 };

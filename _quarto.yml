@@ -25,7 +25,6 @@ book:
       - 10-ar.qmd
       - 11-arma.qmd
       - 12-arima.qmd
-      - 12-model_selection.qmd
       - 13-state_space.qmd
     - part: "Advanced Topics"
     - references.qmd

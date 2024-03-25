@@ -229,7 +229,6 @@ $$
 X_t = \alpha + \phi_1 X_{t-1} + \phi_2 X_{t-2} + \cdots + \phi_p X_{t-p} + W_t,
 $$ {#eq-ar-arp}
 where $(W_t) \sim WN(0,\sigma^2)$, and $\phi_1, \phi_2,\ldots,\phi_p$ are constant coefficients.
-$p$ is called the *order* of the model.
 
 It is similar to a regression model, except that the regressors are copies of the same time series variable, albeit at earlier time points, hence the term *autoregressive*.
 
@@ -243,7 +242,7 @@ It also implies that centering an autoregressive model does not change its coeff
 
 The *autoregressive polynomial* of the model @eq-ar-arp is
 $$
-\phi(t) = 1 - \phi_1 t - \phi_2 t^2 - \cdots - \phi_p t^p.
+\phi(z) = 1 - \phi_1 z - \phi_2 z^2 - \cdots - \phi_p z^p.
 $$
 Using this notation, we can rewrite @eq-ar-arp as
 $$
@@ -327,18 +326,18 @@ We may then use @eq-ar-ar1 to write
 $$
 \begin{split}
 Y_t & = \phi Y_{t-1} + W_t \\
-& = \sum_{j=0}^l \phi^j W_{t-j} + \phi^l Y_{t-l},
+& = \sum_{j=0}^{l-1} \phi^j W_{t-j} + \phi^l Y_{t-l},
 \end{split}
 $$
 where the second equality holds for any integer $l > 0$.
 We thus see that for the same white noise sequence, we have
 $$
-Y_t - X_t = -\sum_{l+1}^\infty \phi^j W_{t-j} + \phi^l Y_{t-l}.
+Y_t - X_t = -\sum_{j=l}^\infty \phi^j W_{t-j} + \phi^l Y_{t-l}.
 $$
 We can obtain a variance bound on the right hand side that tends to 0 as $l \to \infty$:
 $$
 \begin{split}
-\Var\left\lbrace -\sum_{j=l+1}^\infty \phi^j W_{t-j} + \phi^l Y_{t-l} \right\rbrace & \leq 2\Var\left\lbrace \sum_{j=l+1}^\infty \phi^j W_{t-j}\right\rbrace + 2\Var\left\lbrace \phi^l Y_{t-l}\right\rbrace \\
+\Var\left\lbrace -\sum_{j=l}^\infty \phi^j W_{t-j} + \phi^l Y_{t-l} \right\rbrace & \leq 2\Var\left\lbrace \sum_{j=l}^\infty \phi^j W_{t-j}\right\rbrace + 2\Var\left\lbrace \phi^l Y_{t-l}\right\rbrace \\
 & = \frac{2\phi^{2l}\sigma^2}{1-\phi^2} + \phi^{2l}\gamma_Y(0).
 \end{split}
 $$
@@ -358,7 +357,7 @@ $$
 $$
 \rho_X(h) = \phi^h
 $$
-for all $h \in \mathbb{Z}$.
+for all positive integers $h$.
 
 *Proof.*
 Using @eq-ar-ar1-sol, we get
@@ -546,7 +545,7 @@ If we assume Gaussian white noise, this implies that the two time series models 
 
 :::
 
-## Causal solutions
+## Causal solutions {#sec-ar-causal-solutions}
 
 We now generalize our findings about $\textnormal{AR}(1)$ models to general $\textnormal{AR}(p)$ models.
 Along the way, we will see that while the flavor of the results remains consistent, the technical difficulty of the tools we need increases sharply.
@@ -636,7 +635,7 @@ $$
 $$ {#eq-ar-moments-acvf-recursive-2}
 Furthermore, when $h=0$, we get
 $$
-\gamma_X(0) = \phi_1 \gamma_X(1) + \phi_2\gamma_x(2) + \cdots + \phi_p \gamma_X(p) + \sigma^2.
+\gamma_X(0) = \phi_1 \gamma_X(1) + \phi_2\gamma_X(2) + \cdots + \phi_p \gamma_X(p) + \sigma^2.
 $$ {#eq-ar-moments-acvf-recursive-3}
 This gives a system of $p+1$ linear equations in $\gamma_X(0), \gamma_X(1),\ldots,\gamma_X(p)$ that we can solve using linear algebra.
 
@@ -783,11 +782,11 @@ We first discuss some properties of multivariate normal distributions.
 **Proposition 10.6.** (Conditional distribution)
 Let $(X_1,X_2,\ldots,X_{n+1}) \sim N(\mu, \Sigma)$ be a multivariate Gaussian random vector, then given observations $X_1=x_1, X_2 = x_2,\ldots,X_{n} = x_{n}$, the conditional distribution of $X_{n+1}$ conditioned on these values is 
 $$
-N(\mu_{n+1} + \Sigma_{1:n,n+1}^T\Sigma_{1:n,1:n}^{-1}(x_{1:n} - \mu_{1:n}), \Sigma_{n+1,n+1}^{-1} - \Sigma_{1:n,n+1}^T\Sigma_{1:n,1:n}^{-1}\Sigma_{1:n,n+1}),
+N(\mu_{n+1} + \Sigma_{1:n,n+1}^T\Sigma_{1:n,1:n}^{-1}(x_{1:n} - \mu_{1:n}), \Sigma_{n+1,n+1} - \Sigma_{1:n,n+1}^T\Sigma_{1:n,1:n}^{-1}\Sigma_{1:n,n+1}),
 $$
-where $\Sigma_{1:n,1:n}$ is the top left $n \times n$ submatrix of $\Sigma$, $\Sigma_{n+1,n+1}$ its bottom right entry, and $\Sigma_{1:n,n+1}$ its bottom row without the bottom right entry，i.e.
+where $\Sigma_{1:n,1:n}$ is the top left $n \times n$ submatrix of $\Sigma$, $\Sigma_{n+1,n+1}$ its bottom right entry, and $\Sigma_{n+1,1:n}$ its bottom row without the bottom right entry，i.e.
 $$
-\Sigma = \left[\begin{matrix}     \Sigma_{1:n,1:n} & \Sigma_{n+1,1:n}  \\  \Sigma_{n+1,1:n} & \Sigma_{n+1,n+1}
+\Sigma = \left[\begin{matrix}     \Sigma_{1:n,1:n} & \Sigma_{1:n,n+1}  \\  \Sigma_{n+1,1:n} & \Sigma_{n+1,n+1}
 \end{matrix}\right].
 $$
 
@@ -800,7 +799,7 @@ In the context of time series analysis, we typically assume stationarity, which 
 **Corollary 10.7** (Conditional distribution under stationarity)
 Let $(X_1,X_2,\ldots)$ be a zero mean stationary Gaussian process, then given observations $X_1=x_1, X_2 = x_2,\ldots,X_{n} = x_{n}$, the conditional distribution of $X_{n+h}$ conditioned on these values is
 $$
-N(\gamma_{h:n+h-1}^T\Gamma_{n}^{-1}x_{n:1}, \gamma_X(0)^{-1} - \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}\gamma_{h:n+h-1}),
+N(\gamma_{h:n+h-1}^T\Gamma_{n}^{-1}x_{n:1}, \gamma_X(0) - \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}\gamma_{h:n+h-1}),
 $$ {#eq-ar-forecast-distribution}
 where
 $$
@@ -814,13 +813,13 @@ and $x_{n:1} = (x_n, x_{n-1},\ldots,x_1)$.
 
 Assuming Gaussian white noise, @eq-ar-forecast-distribution thus gives the distributional forecast and can be used to supply point forecasts
 $$
-\hat x_{n+h|n} = \gamma_{h:n+h}^T\Gamma_{n}^{-1}x_{1:n}
+\hat x_{n+h|n} = \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}x_{n:1}
 $$ {#eq-ar-forecast-mean}
-as well as 95% prediction intervals $(\hat x_{n+h|n} - 1.96v_{n+h}^{1/2}, \hat x_{n+h|n} + 1.96v_{n+h}^{1/2})$ for $v_{n+h} = \gamma(0)_X^{-1} - \gamma_{1:n}^T\Gamma_{n}^{-1}\gamma_{1:n}$.
+as well as 95% prediction intervals $(\hat x_{n+h|n} - 1.96v_{n+h}^{1/2}, \hat x_{n+h|n} + 1.96v_{n+h}^{1/2})$ for $v_{n+h} = \gamma_X(0) - \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}\gamma_{h:n+h-1}$.
 
 ### Best linear predictors
 
-The point forecast @eq-ar-forecast-mean is the mean of the conditional distribution and can be though of as a function of the random variables, i.e.
+The point forecast @eq-ar-forecast-mean is the mean of the conditional distribution and can be thought of as a function of the random variables, i.e.
 $$
 r(x_{1:n}) \coloneqq \E\lbrace X_{n+h}|X_1 = x_1,\ldots,X_n = x_n\rbrace.
 $$
@@ -853,6 +852,12 @@ In general, the BLP may be different from the conditional mean, and therefore le
 Nonetheless, they are easy to calculate because they depend only on the second-order moments of the stochastic process. They thus provide an extremely useful forecasting framework.
 As we will see, forecasting in ARIMA modeling is based on the BLP principle.
 
+::: callout-note
+
+Generally, conditional means for multivariate Gaussians are equivalent to BLPs. This is the well-known connection between the Gaussian distribution and linear regression.
+
+:::
+
 ### One-step-ahead forecasts
 
 Notice that the $\textnormal{AR}(p)$ formula @eq-ar-arp expresses $X_t$ as a linear function of $X_1,X_2,\ldots,X_{t-1}$ up to additive white noise whenever $t > p$.
@@ -880,10 +885,10 @@ The resulting expression is equal to @eq-ar-forecast-blp-formula, when selecting
 
 As such, while the one-step-ahead BLP could a priori be a function of all past observations, in the case of an $\textnormal{AR}(p)$ model, it only relies on the most recent $p$ observations and can be written as the vector of model parameters (padded with zeros.)
 
-### Recursive forecasts
+### Recursive forecasts {#sec-ar-recursive}
 
 We have already seen how to forecast $h$ steps ahead by directly minimizing the squared loss in @eq-ar-forecast-blp.
-This approach is sometimes called *direct multi-step forecasting*, to contrast it with another approach called *recurisve multi-step forecasting*.
+This approach is sometimes called *direct multi-step forecasting*, to contrast it with another approach called *recursive multi-step forecasting*.
 In recursive forecasting, we recursively forecast one step ahead at a time, using the previously forecasted values as inputs for each subsequent forecast.
 
 For instance, given observations $x_1,x_2,\ldots,x_n$ and $n \geq p$, we forecast
@@ -941,7 +946,7 @@ Estimating these parameters is also called fitting the model.
 
 We have seen that exponential smoothing models were fit by minimizing the sum of squared errors (see @eq-exponential-sse) for one-step-ahead forecasts, i.e. the model residuals.
 This is also a valid approach for estimating $\textnormal{AR}(p)$ models.
-In addition to this, we introduce two other methods which are commonplace in statistics: the method of maximum likelihood, and the method of least squares.
+In addition to this, we introduce two other methods which are commonplace in statistics: the method of moments and the method of maximum likelihood.
 
 ### Method of moments
 
@@ -1060,7 +1065,7 @@ $$
 **Conditional least squares.**
 We have just seen that the MLE is the minimizer of $S_c(mu,\phi)$, defined in @eq-ar-estimation-conditional-ss.
 This objective function is called the *conditional sum of squares* and comprises the sum of the squared one-step-ahead errors.
-While the likelihood function may change under other choices of the white noise distribution, just like in linear regression, $S_c(mu,\phi)$ remains a reasonable objective function for fitting the model parameters.
+While the likelihood function may change under other choices of the white noise distribution, just like in linear regression, $S_c(\mu,\phi)$ remains a reasonable objective function for fitting the model parameters.
 
 **Unconditional least squares.**
 Another objective function of interest is the *unconditional sum of squares* $S(\mu,\phi)$, defined in @eq-ar-estimation-unconditional-ss.
@@ -1088,7 +1093,7 @@ $$
 *Proof.*
 It is not hard to see that the three estimators based on likelihood are equivalent, since the objective functions by which they are defined differ by an $O(1/n)$ additive factor as $n \to \infty$.
 We can also compare the method of moments estimator with the conditional max likelihood estimator using a similar reasoning:
-For instance, we see that the entries of $\hat Gamma_p$ and $\tilde\Gamma_p$ also differ by an $O(1/n)$ additive factor.
+For instance, we see that the entries of $\hat \Gamma_p$ and $\tilde\Gamma_p$ also differ by an $O(1/n)$ additive factor.
 Refer to Section B.3. in @shumway2000time for the remaining details of the proof.
 
 Note that the [Cramer-Rao lower bound](https://en.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound) implies that $\sigma^2\Gamma_p^{-1}$ is the optimal asymptotic covariance.

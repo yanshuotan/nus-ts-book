@@ -23,7 +23,7 @@ On the other hand, the weights $\theta_j$ can be negative, as opposed to what ha
 $\textnormal{MA}(q)$ models possess a nice symmetry with $\textnormal{AR}(p)$ models.
 If we define the *moving average polynomial* to be
 $$
-\phi(z) = 1 + \theta_1 z + \theta_2 z^2 + \cdots + \theta_q z^q,
+\theta(z) = 1 + \theta_1 z + \theta_2 z^2 + \cdots + \theta_q z^q,
 $$
 then we may rewrite @eq-arma-maq in operator form as
 $$
@@ -144,12 +144,11 @@ It is based on *partial correlation*, which is a concept from regression analysi
 
 ### Partial correlation
 
-<!-- **Partial correlation.** -->
 Let $\bZ = (Z_1,\ldots,Z_m)$ be a random vector, and let $X$ and $Y$ be two additional random variables.
 Let $\hat X$ and $\hat Y$ be the best linear predictors for $X$ and $Y$ respectively given $\bZ$.[^1]
 Then the *partial correlation* between $X$ and $Y$ given $\bZ$ is
 $$
-\rho_{Y,Z|\bX} \coloneqq \Corr\left\lbrace Y-\hat Y, Z - \hat Z\right\rbrace.
+\rho_{X,Y|\bZ} \coloneqq \Corr\left\lbrace X-\hat X, Y - \hat Y\right\rbrace.
 $$
 
 [^1]: We have the formulas $\hat X = \Cov(X,\bZ)\Cov(\bZ)^{-1}\bZ$ and $\hat Y = \Cov(Y,\bZ)\Cov(\bZ)^{-1}\bZ$.
@@ -174,7 +173,7 @@ Here, we provide a few more.
 **Regression coefficient.**
 If we regress $Y$ jointly on $\bZ$ and $X$, then the regression coefficient of $X$ is
 $$
-\beta_X = \rho_{X,Y|\bZ}\cdot \frac{\Var\lbrace Y - \hat Y\rbrace}{\Var \lbrace X - \hat X\rbrace}.
+\beta_X = \rho_{X,Y|\bZ}\cdot \sqrt{\frac{\Var\lbrace Y - \hat Y\rbrace}{\Var \lbrace X - \hat X\rbrace}}.
 $$ {#eq-arma-partial-corr-reg}
 
 **Analysis of variance.**
@@ -192,19 +191,16 @@ Under both interpretations, we see that a nonzero partial correlation implies th
 
 ### Defining PACF
 
-<!-- **Partial autocorrelation.** -->
-The lag $h$ partial autocorrelation of a stationary process $(X_t)$ is defined as the partial correlation between any pair of values $h$ time points apart given the values of the time series.
+The lag $h$ partial autocorrelation of a stationary process $(X_t)$ is defined as the partial correlation between $X_0$ and $X_h$ given $X_1,X_2,\ldots,X_{h-1}$.[^3]
 In other words, it is
 $$
 \alpha_X(h) \coloneqq \rho_{X_0,X_{h}|X_{1:h-1}}.
 $$
 
+[^3]: By stationarity, this value remains the same if we shift all time indices by the same amount.
+
 $\alpha_X$ is called the partial autocorrelation function, or PACF for short.
 Note that it is not defined for $h = 0$ and that $\alpha_X(1) = \rho_X(1)$ (since nothing is conditioned upon at lag 1.)
-<!-- $$
-\alpha_X(h) \coloneqq \Corr\left\lbrace X_{t+h} - \tilde X_{t+h}, X_t - \hat X_t\right\rbrace,
-where $\tilde X_{t+h}$ and $\tilde X_t$ respectively denote the best linear predictions of $X_{t+h}$ and $X_t$ given $X_{t+1},\ldots,X_{t+h-1}$.
-$$ -->
 
 In this context, @eq-arma-partial-corr-reg and @eq-arma-partial-corr-var have the following consequences:
 
@@ -247,9 +243,9 @@ $$
 ### AR(p) and MA(q)
 
 The Durbin-Levinson Algorithm can be used to compute the PACF for both $\textnormal{AR}(p)$ and $\textnormal{MA}(q)$ models.
-Even without the algorithm though, we easily see that the PACF for an $\textnormal{AR}(p)$ model is zero for all $h > p$.[^3]
+Even without the algorithm though, we easily see that the PACF for an $\textnormal{AR}(p)$ model is zero for all $h > p$.[^4]
 
-[^3]: To see this, just recall that the BLP for such a model only has its first $p$ coefficients nonzero.
+[^4]: To see this, just recall that the BLP for such a model only has its first $p$ coefficients nonzero.
 
 On the other hand, for an $\textnormal{MA}(1)$ model, we get
 $$
@@ -376,7 +372,7 @@ $$
 $$
 Suppose $\theta(z) \neq 0$ for all $|z| \leq 1$, then the solution is invertible and satisfies
 $$
-\sum_{j=0}^\infty \psi_j (X_{t-j} - \mu) = W_t,
+\sum_{j=0}^\infty \pi_j (X_{t-j} - \mu) = W_t,
 $$
 where
 $$
@@ -398,7 +394,7 @@ We may follow the same two approaches described for $\textnormal{AR}(p)$ models.
 The first method is to compute the $\textnormal{MA}(\infty)$ represetation and make use of the formula @eq-stationary-linear-acvf.
 The second method is to solve a system of difference equations: 
 $$
-\gamma_X(h) = \sum_{j=1}^p \phi_j \gamma_X(h-j) = \begin{cases}
+\gamma_X(h) - \sum_{j=1}^p \phi_j \gamma_X(h-j) = \begin{cases}
 0, & h \geq \max(p,q+1), \\
 \sigma^2\sum_{j=h}^q \theta_j\psi_{j-h}, & 0 \leq h < \max(p,q+1).
 \end{cases}
@@ -445,11 +441,6 @@ $$
 
 *Proof.*
 Just apply the projection $Q$ to the $\textnormal{AR}(\infty)$ representation of $(X_t)$, noting that it is a linear map and that $Q[X_t] = X_t$ for all $t \leq n$. $\Box$
-<!-- One can show by induction on $h$ that this solves @eq-arma-forecast-blp-infinite.
-For the base case, we have
-$$
-\E\left\lbrace(X_{n+1} - \sum_{j=1}^\infty \pi_j X_{n+1-j})X_t\right\rbrace = \E\left\lbrace W_{n+1}X_t\right\rbrace = 0.
-$$ -->
 
 Using this formula, one may recursively calculate $\tilde X_{n+h}$ for $h=1,2\ldots$ by iterating its $\textnormal{AR}(\infty)$ equation, just as in the $\textnormal{AR}(p)$ case, except that the formula now depends on infinitely many terms.
 
@@ -522,23 +513,35 @@ This allows us to be somewhat relaxed about which value is being used when we re
 
 Using its $\textnormal{MA}(\infty)$ representation, we observe that
 $$
-X_{n+h} - \tilde X_{n+h} = \sum_{j=0}^{h-1} \psi_j W_{n+h-j}. 
+X_{n+h} - \tilde X_{n+h} = \sum_{j=0}^{h-1} \psi_j W_{n+h-j}, 
 $$
+where $\tilde X_{n+h}$ is the BLP with infinite past.
 As such, the conditional distribution of $X_{n+h}$ given the infinite past $X_n, \ldots, X_0, X_{-1},\ldots$ has variance 
 $$
-\sigma^2\sum_{j=0}^{h-1} \psi_j^2.
+\tilde v_h = \sigma^2\sum_{j=0}^{h-1} \psi_j^2.
 $$ {#eq-arma-forecast-variance}
-This allows us to produce prediction intervals for the BLP with infinite past forecast, and by the similarity of all methods as $n \to \infty$, this also yields prediction intervals using the truncated forecast.
+
+Note that @eq-arma-forecast-variance is in terms of the $\psi_j$'s, which can be calculated via Proposition 11.3.
+As $n \to \infty$, this value converges to the variance for the conditional distribution given only a finite past.
+Hence, combining this with the truncated forecast, we get an asymptotically valid 95% level prediction interval:
+$$
+(\check x_{n+h|n} - 1.96\tilde v_h, \check x_{n+h|n} + 1.96\tilde v_h).
+$$
 
 ### Long-range forecasts
 
-As $n \to \infty$, we see that
+**Proposition 11.5.**
+As $n \to \infty$, the forecast distribution converges to the marginal distribution of $X_t$.
+
+*Proof.*
+For the limiting variance, we use @eq-arma-forecast-variance and see that
 
 $$
 \sigma^2\sum_{j=0}^{h-1} \psi_j^2 \to \sigma^2\sum_{j=0}^\infty \psi_j^2 = \gamma_X(0).
 $$
 
-Furthermore, for $t > q$, we may write @eq-arma-forecast-truncated in matrix form as
+To compute the limiting mean, we use a linear algebra trick.
+For $t > q$, we may write @eq-arma-forecast-truncated in matrix form as
 
 $$
 \left[\begin{matrix}
@@ -548,11 +551,11 @@ $$
 \check X_{t-p+1|n}
 \end{matrix}\right] = 
 \left[\begin{matrix}
-\phi_1 & \phi_2 & \phi_3 & \cdots & \phi_p \\
-1 & 0 & 0 & \cdots & 0 \\
-0 & 1 & 0 & \cdots & 0 \\
-\vdots & \vdots & \ddots & \cdots & \vdots \\
-0 & 0 & 0 & \cdots & 1 \\
+\phi_1 & \phi_2 & \phi_3 & \cdots & \phi_{p-1} & \phi_p \\
+1 & 0 & 0 & \cdots & 0 & 0 \\
+0 & 1 & 0 & \cdots & 0 & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
+0 & 0 & 0 & \cdots & 1 & 0 \\
 \end{matrix}\right]
 \cdot
 \left[\begin{matrix}
@@ -563,16 +566,19 @@ $$
 \end{matrix}\right].
 $$
 
-Let $M$ denote the matrix in the above equation, and note that $\det(M) = \phi_p$, which is the reciprocal product of the roots of the AR polynomial $\phi(z)$, and so has absolute value strictly less than 1.
+Let $M$ denote the matrix in the above equation.
+We may iterate the equation to get $\check X_{t:t-p+1|n} = M^{t-q}\check X_{q:q-p+1|n}$.
+
+Next, note that $|\det(M)| = |\phi_p|$.
+We have previously seen that $\phi_p = \prod_{j=1}^p z_j^{-1}$, where $z_1,z_2,\ldots,z_p$ are the roots of the AR polynomial $\phi(z)$.
+Using causality, we get $|\phi_p| < 1$.
 This implies that
 $$
 \lim_{h \to \infty} \det(M^h) = \lim_{h \to \infty} \det(M)^h = 0,
 $$
 which implies that $M^h$ tends to the zero matrix.
 We therefore conclude that the forecasts tend towards zero.
-Note that if we had assumed a nonzero mean $\mu$, then we would have $\lim_{h\to \infty}\check X_{n+h|n} \to \mu$.
-
-In summary, the forecast distribution converges to the marginal distribution of $X_t$.
+Note that if we had assumed a nonzero mean $\mu$, then we would have $\lim_{h\to \infty}\check X_{n+h|n} \to \mu$. $\Box$
 
 ## Estimation and model selection
 
@@ -585,11 +591,12 @@ All estimators are also more difficult to compute and in particular do not have 
 
 To avoid being bogged down in technical details, we avoid further discussion on these strategies in this book, and simply note that we have the following theorem.
 
-**Proposition 11.5.**
-Under appropriate conditions, for causal and invertible $\textnormal{AR}(p)$ models, the maximum likelihood, unconditional least squares, and conditional least squares estimators all provide estimators $\hat\beta$ for the parameter vector $\beta \coloneqq (\phi_1,\ldots,\phi_p,\theta_1,\ldots,\theta_q)$ that is asymptotically normal, with optimal asymptotic covariance.[^4]
+**Proposition 11.6.**
+Under appropriate conditions, for causal and invertible $\textnormal{ARMA}(p,q)$ models, the maximum likelihood, unconditional least squares, and conditional least squares estimators all provide estimators $\hat\beta$ for the parameter vector $\beta \coloneqq (\phi_1,\ldots,\phi_p,\theta_1,\ldots,\theta_q)$ that are asymptotically normal, with optimal asymptotic covariance.[^5]
 
-[^4]: Optimality here means that the asymptotic covariance matrix is the information matrix of the model and therefore satisfies the Cramer-Rao lower bound.
+[^5]: Optimality here means that the asymptotic covariance matrix is the information matrix of the model and therefore satisfies the Cramer-Rao lower bound.
 
+For the more technical statement of this proposition, see Property 3.10 in @shumway2000time.
 
 ### Model selection
 
@@ -599,7 +606,7 @@ The remainder of this section discusses precisely how to do this.
 
 First, recall that we have already learnt how to rule out when a candidate model does not fit the data well.
 We do this by performing a residual analysis, and in particular, by running a Ljung-Box test.
-The test statistic is given by @eq-stationary-ljungbox and has the limiting distribution $\chi^2_{h-p-q}$.
+The test statistic is given by @eq-stationary-ljungbox and has the limiting distribution $\chi^2_{h-p-q}$ under the null hypothesis that the time series is drawn from the model.
 
 Rather than repeatedly performing residual analysis and gradually increasing the order of the model, it is tempting to start with large values of $p$ and $q$.
 After all, we only get more flexibility this way:
@@ -622,7 +629,7 @@ $$
 $$
 In particular, the top left entry of this matrix is equal to $1/\sigma^2$.
 
-As such, when estimating $\phi$ when viewing $(X_t)$ as an $\textnormal{AR}(1)$ model, the limiting variance is $1-\phi^2$, but when estimating $\phi$ when viewing $(X_t)$ as an $\textnormal{AR}(2)$ model, the limiting variance is 1.
+As such, when estimating $\phi$ when viewing $(X_t)$ as an $\textnormal{AR}(1)$ model, the asymptotic variance is $1-\phi^2$, but when estimating $\phi$ when viewing $(X_t)$ as an $\textnormal{AR}(2)$ model, the asymptotic variance is 1.
 Allowing for unnecessary parameters has thus inflated the variance of our estimator.
 
 As in many other areas of statistics, model selection is fundamentally about optimizing the bias-variance tradeoff.
@@ -658,3 +665,9 @@ We take twice the negative loglikelihood by convention, because in a Gaussian li
 
 :::
 
+::: callout-caution
+
+AIC and AICc are not functions of parameters.
+They are functions only of $p$ and $q$ (and $k$), since they are defined by plugging in the MLE values if the model parameters into the negative log likelihood.
+
+:::

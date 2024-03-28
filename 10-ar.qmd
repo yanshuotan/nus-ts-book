@@ -1006,7 +1006,7 @@ $$ {#eq-ar-estimation-full-likelihood}
 where 
 $$
 \begin{split}
-S(\mu, \phi_{1:n}) & = \sum_{t=1}^p (x_t - \mu - \phi_{1:t-1}^T(x_{t-1:1} -\mu))^2\cdot\frac{\sigma^2}{\nu_t^2} \\
+S(\mu, \phi_{1:p}) & = \sum_{t=1}^p (x_t - \mu - \phi_{1:t-1}^T(x_{t-1:1} -\mu))^2\cdot\frac{\sigma^2}{\nu_t^2} \\
 & \quad\quad + \sum_{t=p+1}^n (x_t - \mu - \phi_{1:p}^T(x_{t-1:t-p} -\mu))^2.
 \end{split} 
 $$ {#eq-ar-estimation-unconditional-ss}
@@ -1029,7 +1029,7 @@ $$ {#eq-ar-estimation-cond-likelihood}
 where
 $$
 \begin{split}
-S_c(\mu, \phi_{1:n}) & = \sum_{t=p+1}^n (x_t - \mu - \phi_{1:p}^T(x_{t-1:t-p} -\mu))^2.
+S_c(\mu, \phi_{1:p}) & = \sum_{t=p+1}^n (x_t - \mu - \phi_{1:p}^T(x_{t-1:t-p} -\mu))^2.
 \end{split} 
 $$ {#eq-ar-estimation-conditional-ss}
 

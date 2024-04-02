@@ -221,7 +221,7 @@ This procedure is made efficient using the *Durbin-Levinson Algorithm*.
 Indeed, the algorithm recursively calculates the BLP coefficient vectors $\phi_{1|0}, \phi_{2|1}, \phi_{3|2},\ldots$ using the following proposition.
 
 **Proposition 11.2.**
-Denote $\phi_{t|t-1} = (\phi_{t1},\phi_{t2},\ldots,\phi_{tt})$.
+Denote $\phi_{t+1|t} = (\phi_{t1},\phi_{t2},\ldots,\phi_{tt})$.
 Then $\phi_{00} = 0$ and for $t = 1, 2, \ldots$, we have
 $$
 \phi_{tt} = \frac{\rho_X(t) - \sum_{k=1}^{t-1}\phi_{t-1,k}\rho_X(t-k)}{1 - \sum_{k=1}^{t-1}\phi_{t-1,k}\rho_X(k)}
@@ -365,7 +365,7 @@ Suppose $\phi(z) \neq 0$ for all $|z| \leq 1$, then @eq-arma-arma-equation admit
 This solution is causal and has the form
 $$
 X_t = \mu + \sum_{j=0}^\infty \psi_j W_{t-j},
-$$
+$$ {#eq-arma-mainfinity}
 where
 $$
 \phi(z)\cdot\left(\sum_{j=0}^\infty \psi_j z^j\right) = \theta(z).
@@ -373,16 +373,17 @@ $$
 Suppose $\theta(z) \neq 0$ for all $|z| \leq 1$, then the solution is invertible and satisfies
 $$
 \sum_{j=0}^\infty \pi_j (X_{t-j} - \mu) = W_t,
-$$
+$$ {#eq-arma-arinfinity}
 where
 $$
 \phi(z) = \theta(z) \left(\sum_{j=0}^\infty \pi_j z^j\right).
-$$
+$$ {#eq-arma-arinfinity-coefficients}
 
 *Proof*.
 The proof is similar to that of Theorem 10.4 and Proposition 11.1 and is henced omitted.
 
-This theorem tells us that an $\textnormal{ARMA}(p,q)$ can be written as either an $\textnormal{AR}(\infty)$ model or as an $\textnormal{MA}(\infty)$ model.
+Note that @eq-arma-arinfinity-coefficients easily yields $\pi_0 = 1$.
+This theorem tells us that an $\textnormal{ARMA}(p,q)$ can be written as either an $\textnormal{AR}(\infty)$ model (@eq-arma-arinfinity) or as an $\textnormal{MA}(\infty)$ model (@eq-arma-mainfinity).
 Either representation, however, requires way too many parameters than necessary to specify the model.
 
 For the rest of this chapter, we assume that we work with causal and invertible $\textnormal{ARMA}(p,q)$ models.
@@ -406,7 +407,7 @@ We use the Durbin-Levinson algorithm as described in @sec-arma-pacf-calculating.
 $\textnormal{ARMA}(p,q)$ shares the respective complexities of both $\textnormal{AR}(\infty)$ and $\textnormal{MA}(\infty)$ models:
 Neither its ACF nor PACF displays cutoff phenomena.
 
-## Forecasting
+## Forecasting {#sec-arma-forecasting}
 
 As previously hinted at, forecasting with $\textnormal{ARMA}(p,q)$ models is more complicated than forecasting with pure $\textnormal{AR}(p)$ models.
 We discuss three forecasting strategies.
@@ -436,11 +437,19 @@ We now show two equivalent formulas for $\tilde X_{n+h}$.
 **Formula 1.**
 We have
 $$
-\tilde X_{n+h} = - \sum_{j=1}^h \pi_j \tilde X_{n+h-j} - \sum_{j=h}^\infty \pi_j X_{n+h-j}.
+\tilde X_{n+h} = - \sum_{j=1}^{h-1} \pi_j \tilde X_{n+h-j} - \sum_{j=h}^\infty \pi_j X_{n+h-j}.
 $$
 
 *Proof.*
-Just apply the projection $Q$ to the $\textnormal{AR}(\infty)$ representation of $(X_t)$, noting that it is a linear map and that $Q[X_t] = X_t$ for all $t \leq n$. $\Box$
+Just apply the projection $Q$ to the $\textnormal{AR}(\infty)$ representation of $(X_t)$ (@eq-arma-arinfinity):
+$$
+\begin{split}
+Q\left[-\sum_{j=1}^\infty \pi_j X_{n+h-j} + W_{n+h} \right] & = -\sum_{j=1}^\infty \pi_j Q[X_{n+h-j}] + Q[W_{n+h}] \\
+& = -\sum_{j=1}^{h-1} \pi_j \tilde X_{n+h-j} - \sum_{j=h}^\infty \pi_j X_{n+h-j}.
+\end{split}
+$$
+In the first equality, we use the fact that $Q$ is a linear map.
+In the second equality, we observe that $Q[W_{n+h}] = 0$ since $W_{n+h}$ is independent of all values of $X_t$ for $t < n + h$, and also that $Q[X_t] = X_t$ for all $t \leq n$ since $X_t$ is then contained in the set of random variables being projected onto. $\Box$
 
 Using this formula, one may recursively calculate $\tilde X_{n+h}$ for $h=1,2\ldots$ by iterating its $\textnormal{AR}(\infty)$ equation, just as in the $\textnormal{AR}(p)$ case, except that the formula now depends on infinitely many terms.
 
@@ -459,14 +468,15 @@ W_t & t \leq n.
 $$
 
 *Proof.*
-Just apply $Q$ to the $\textnormal{ARMA}(p,q)$ equation. $\Box$
+Just apply $Q$ to the $\textnormal{ARMA}(p,q)$ equation instead of the $\textnormal{AR}(\infty)$ representation, following the same simplification logic as in Formula 1. $\Box$
 
 Note that $W_t$ are the model residuals (one-step-ahead forecast errors).
 If we knew the values of the $q$ most recent residuals $W_n,W_{n-1},\ldots,W_{n-q+1}$, we may use @eq-arma-forecast-infinite-past to forecast recursively for any horizon $h$.
+Unfortunately, these values are unknown if we don't know the infinite past.
 
 ### Truncated forecasts
 
-The idea of truncated forecasts is to start with the formula for the BLP with infinite past and condition on the values $X_0 = 0, X_{-1} = 0, X_{-2} = 0,\ldots$.
+The idea of truncated forecasts is to start with the formula for the BLP with infinite past and condition on the values $X_0 = 0, X_{-1} = 0, X_{-2} = 0,\ldots$, thereby removing all unobserved quantities.
 In other words, the truncated forecast for $X_t$ given $X_1,X_2,\ldots,X_n$, denoted for now using $\check X_{t|n}$, is defined as
 $$
 \check X_{t|n} =  \E\lbrace \tilde X_t | X_j = 0 ~\text{for all}~j \leq 0 \rbrace.
@@ -496,8 +506,11 @@ $$ {#eq-arma-forecast-truncated-residuals}
 *Proof.*
 @eq-arma-forecast-truncated follows from applying $P$ to @eq-arma-forecast-infinite-past.
 To obtain @eq-arma-forecast-truncated-residuals, first note that since $W_t = \sum_{j=0}^\infty \pi_j X_{t-j}$, we have $\check W_{t|n} = 0$ for $t \leq 0$. 
-Next, apply $P$ to the $\textnormal{ARMA}(p,q)$ equation to get the formula for $0 < t \leq n$.
-$\Box$
+Next, moving all terms in @eq-arma-arma-equation except $W_t$ to the left hand side, we have
+$$
+W_t = \phi(B)X_t - \theta_1 W_{t-1} - \cdots - \theta_q W_{t-q}.
+$$
+Apply $Q$ followed by $P$ to this $\textnormal{ARMA}(p,q)$ equation to get the formula for $0 < t \leq n$. $\Box$
 
 Using @eq-arma-forecast-truncated and @eq-arma-forecast-truncated-residuals, we can recursively compute forecasts using the $\textnormal{ARMA}(p,q)$ formula.
 This strategy is thus much more computationally efficient and interpretable compared to regular BLP.

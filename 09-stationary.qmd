@@ -241,7 +241,7 @@ $$
 \Var\lbrace\bar X_n\rbrace & = \Var\left\lbrace \frac{1}{n}\sum_{t=1}^n X_t\right\rbrace \\
 & = \frac{1}{n^2}\sum_{s,t=1}^n \Cov\lbrace X_s, X_t\rbrace \\
 & = \frac{1}{n^2}\sum_{s,t=1}^n \gamma_X(t-s) \\
-& = \frac{1}{n^2}\sum_{h=-n}^n \left(1 - \frac{|h|}{n} \right)\gamma_X(h).
+& = \frac{1}{n}\sum_{h=-n}^n \left(1 - \frac{|h|}{n} \right)\gamma_X(h).
 \end{split}
 $$
 
@@ -266,7 +266,7 @@ $$
 Note that the ACVF and the CCF both have similar limiting behavior. 
 See Theorem A.6 and Theorem A.8 in @shumway2000time for more details.
 
-## Applying models to data
+## Applying models to data {#sec-stationary-applying-models-to-data}
 
 Time series models are useful for several different time series tasks, such as forecasting, smoothing, regression, simulation, and anomaly detection.
 Here, we focus on their use in forecasting.

@@ -617,8 +617,8 @@ As is the case with $\textnormal{AR}(1)$, there are two approaches to compute th
 Apply @eq-stationary-linear-acvf to the linear process formulation @eq-ar-arp-solution.
 
 **Approach 2.** 
-Multiply both sides of @eq-ar-arp by $X_{t-h}$ and compute expectations.
-The first step gives the equation
+Multiply both sides of @eq-ar-arp by $X_{t-h} - \mu$ and compute expectations.
+Assuming zero mean for ease of notation, the first step gives the equation
 $$
 X_{t-h}X_t = \phi_1 X_{t-h}X_{t-1} + \phi_2 X_{t-h}X_{t-2} + \cdots + \phi_p X_{t-h}X_{t-p} + X_{t-h}W_t.
 $$
@@ -1000,7 +1000,7 @@ $$
 \begin{split}
 l(\beta) & = - \log f_\beta(x_1,x_2,\ldots,x_n) \\
 & = -\log \prod_{t=1}^n f_\beta(x_t|x_1,\ldots,x_{t-1}) \\
-& = \frac{n}{2}\log(2\pi\sigma^2) + \sum_{t=1}^p \log (\nu_t^2/\sigma^2) + \frac{S(\mu, \phi_{1:p})}{2\sigma^2}
+& = \frac{n}{2}\log(2\pi\sigma^2) + \frac{1}{2}\sum_{t=1}^p \log (\nu_t^2/\sigma^2) + \frac{S(\mu, \phi_{1:p})}{2\sigma^2}
 \end{split}
 $$ {#eq-ar-estimation-full-likelihood}
 where 

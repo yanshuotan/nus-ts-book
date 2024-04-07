@@ -144,10 +144,10 @@ Assuming we observe $X_1,\ldots,X_n$ and following the logic of @sec-arma-foreca
 $$
 \hat X_{n+1|n} = (1+\theta)\sum_{j=0}^{n - 1} (-\theta)^j X_{n+h-j},
 $$
-which is equivalent to @eq-exponential-ses-weights with the choice $l_0 = 0$ and $\theta = \alpha = 1$.
+which is equivalent to @eq-exponential-ses-weights with the choice $l_0 = 0$ and $\theta = \alpha - 1$.
 Furthermore, one can check via induction that $\hat X_{n+h|n} = \hat X_{n+1|n}$ for all values of $h > 0$.
 
-More generally, any fully additive exponential method is equivalent to an  $\textnormal{ARIMA}(p,d,q)$ model for some choice of $p$, $d$, and $q$ (see Chapter 9.10 in @hyndman2018forecasting).
+More generally, any fully additive exponential smoothing method is equivalent to an  $\textnormal{ARIMA}(p,d,q)$ model for some choice of $p$, $d$, and $q$ (see Chapter 9.10 in @hyndman2018forecasting).
 
 ::: callout-note
 
@@ -173,7 +173,7 @@ A more convenient way of forecasting is to simply extend Proposition 11.4 as fol
 The truncated forecasts for an $\textnormal{ARIMA}(p,d,q)$ model can be computed as 
 $$
 \check X_{t|n} = \begin{cases}
-\left(\phi(B)(I-B)^d - I\right)\check X_{t|n} + \sum_{k=1}^q \theta_k \check W_{t-k|n} & t > n, \\
+\left(I - \phi(B)(I-B)^d\right)\check X_{t|n} + \sum_{k=1}^q \theta_k \check W_{t-k|n} & t > n, \\
 X_t & 0 < t \leq n, \\
 0 & t \leq 0,
 \end{cases}
@@ -182,7 +182,7 @@ and
 $$
 \check W_{t|n} \coloneqq \begin{cases}
 0 & t > n \\
-\phi(B)(I-B)^d \check X_{t|n} - \theta_1 \check W_{t-1|n} - \ldots \theta_q \check W_{t-q|n} & 0 < t \leq n \\
+\phi(B)(I-B)^d \check X_{t|n} - \sum_{k=1}^q \theta_k \check W_{t-k|n} & 0 < t \leq n \\
 0 & t \leq 0.
 \end{cases}
 $$ {#eq-arima-forecast-truncated-wt}

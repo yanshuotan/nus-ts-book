@@ -29,7 +29,8 @@ book:
     - part: "Advanced Topics"
     - references.qmd
   appendices:
-    - rbackground.qmd
+    - a1-rbackground.qmd
+    - a2-aic.qmd
 
 bibliography: references.bib
 

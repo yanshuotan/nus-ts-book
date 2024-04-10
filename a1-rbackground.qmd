@@ -1,0 +1,416 @@
+# Background on R
+
+```{r setup}
+#| echo: false
+library(knitr)
+```
+
+
+## Basics
+
+### Download and install 
+
+R is an open-source software for statistical computing. In our course, we shall
+use it along with the IDE Rstudio. You can download the two applications from 
+here:
+
+* [Download R](https://cran.asia/)
+* [Download Rstudio](https://posit.co/download/rstudio-desktop/)
+
+::: {.callout-note}
+Even if you already have R and Rstudio installed, please check and update them
+so that you have at least R >= 4.2 and Rstudio >= 2023.xx
+:::
+
+Although it can be reconfigured, the Rstudio interface typically consists of 4
+sections:
+
+![Rstudio panels](_images/rstudio_gui.PNG){fig-alt="Rstudio panels" fig-align="center"}
+
+1. Panel 1 is the console, where you type R commands. The output from commands
+   also appears here.
+2. Panel 2 contains the **History** and **Environment** tabs. Use these items
+   to retrieve old commands and R objects created.
+3. Panel 3 contains **Files**, **Plots** and **Help** tabs.
+4. Panel 4 contains the source code editor. Edit R scripts and R markdown files 
+   here.
+
+### Vectors 
+
+R has no scalars. The basic building block for storing data in R is a vector. 
+Vectors can be of different classes - typical classes are character, numeric, 
+integer, logical and factor.
+
+The following line creates a vector in R and then prints it out.
+
+```{r}
+Z <- c(1, 2, 3)
+Z
+```
+
+Elements in a vector are accessed using integers within the `[ ]` parentheses. 
+Indices in R begin with 1 (not 0). Negative integers correspond to *dropping* 
+those elements (not indexing from the end). Here are some examples:
+
+```{r}
+#| output: false
+X <- -2:2
+Y <- 2^X
+
+Y[2]        # <1>
+Y[2:4]      # <2>
+Y[-c(3,5)]  # <3> 
+```
+1. Select 1st element from vector Y.
+2. Select elements at positions 2, 3 and 4 from vector Y.
+3. Drop elements at positions 3 and 5 from Y.
+
+::: {.callout-note}
+In R, all elements in a vector must be of the same class.
+:::
+
+### Lists and Dataframes
+
+Lists are collections of objects in R. The objects could be of different lengths
+and classes. To access elements within a list, use the `$`, `[[` and `[`
+operators.
+
+```{r}
+#| output: false
+ls1 <- list(A=seq(1, 5, by=2), B=seq(1, 5, length =4))
+
+ls1$A[2]                  # <1>
+ls1[["B"]][c(2,4)]        # <2>
+ls1[[2]][c(2,4)]          # <3>
+```
+
+1. Extract element 2 from A within the list.
+2. Extract elements 2 and 4 from B within the list.
+3. Extract elements 2 and 4 from B within the list, but using an integer 
+   within `[[`.
+   
+::: {.callout-warning}
+There are some subtle differences between `[` and `[[` but if you only use `[[`
+when selecting an element from a list, and `[` in all other cases, you should be 
+alright.
+:::
+
+In R, a data frame is a special kind of list. A data frame is a tabular object
+that is used to store data. The columns can be of different class. 
+
+```{r}
+exp_cat <- c("manpower", "asset", "other")   # <1>
+amount <- c(519.4 , 38, 141.4)               # <1>
+op_budget <- data.frame(amount, exp_cat)     # <2>
+```
+1. Create two vectors (one of class character and another numeric).
+2. Combine them into a data frame.
+
+The data frame is like a table:
+
+::: {style="width: 200px; margin: auto"}
+```{r}
+#| echo: false
+#| tbl-colwidths: [50,50]
+kable(op_budget, align="ll")
+```
+:::
+
+Just like a list, elements in a data frame can be accessed using `$` and 
+`[`. However, since the data frame is two-dimensional, we need two indices when
+we use `[`.
+
+```{r}
+#| output: false
+op_budget$amount              # <1>
+op_budget[, "exp_cat"]        # <2>
+op_budget[c(3,2), ]           # <3>
+```
+1. Retreive `amount` column.
+2. Retreive `exp_cat` column.
+3. Retrieve rows 3 and 2 (in that order) from the data frame.
+
+### Functions and Arguments
+
+We have already encountered a few functions in R: `list()`, `data.frame()` and
+`seq()`. Functions in R have arguments. To get help on any function, use this 
+command:
+
+```{r}
+#| eval: false
+?data.frame
+```
+
+This will pull up the help page for that particular function (no internet 
+needed). All arguments will be documented, along with working examples right 
+at the bottom.
+
+Here is a list of common R functions that will be handy to know:
+
+| Command            | Description                                          |
+|-------------------|-------------------------------------------------------|
+| `read.csv()`          | Used to read data from CSV files.                     |
+| `head()`              | Displays the first few rows of a data frame.          |
+| `tail()`              | Displays the last few rows of a data frame.           |
+| `summary()`           | Provides 5-number summary for a data frame.           |
+| `ls()`                | List the objects in the current R workspace.          |
+| `length()`            | Find the length of a vector.                          |
+| `seq()`               | Generate a regular sequence of numbers.               |
+| `mean()`,`median()`       | Compute the mean,median of a vector.                  |
+| `sd()`,`var()`            | Compute the sd,var of a vector.                       |
+| `+`, `-`, `*`, `/`, `^`     | Basic arithmetic binary operators.                    |
+| `==`, `!=`, `>`, `<`, `>=`, `<=` | Logical comparisons (return logical vector).       |
+
+
+### Installing Packages
+
+There are numerous packages that can be installed to extend the functionality of 
+R. 
+
+> A package is simply a collection of functions.
+
+Most R packages are hosted on CRAN. At my last check, there were 19880 packages. 
+There is also a sizeable number on bioconductor and on github.
+
+* [R packages on CRAN, listed by name](https://cran.r-project.org/web/packages/available_packages_by_name.html)
+* [R packages on Bioconductor](https://www.bioconductor.org/packages/release/BiocViews.html#___Software)
+
+Before using a package, we need to install it. This only needs to be done once.
+Here is the command to install a package named `stringr`:
+
+```{r}
+#| eval: false
+install.packages("stringr")
+```
+
+Every time we start an R session, we have to load the package(s) that we wish to 
+use before we can call functions from it.
+
+```{r}
+#| eval: false
+library(stringr)
+```
+
+## Tidyverse and Piping
+
+### Tidyverse
+
+The `tidyverse` refers to a set of R packages that implement routines that make 
+it easier to manipulate data. They are based on the concept of **tidy data**.
+
+:::: {layout="[ 40, 60 ]"}
+
+::: {#first-column}
+Tidy data requires that 
+
+1. Each variable forms a column.
+2. Each observation forms a row.
+3. Each type of observational unit forms a table.
+:::
+
+::: {#second-column}
+![Tidy data](_images/tidy-1.png)   
+:::
+
+::::
+
+The following command loads the tidyverse set of packages. You will observe 
+several warnings regarding conflicts, but it's ok to proceed in this case.
+
+```{r}
+#| warning: false
+#| message: false
+library(tidyverse)
+```
+
+The R packages that we are going to use for forecasting use the tidyverse
+extensively. Hence it is important for us to learn about the tidyverse. It does
+indeed take a little time to get used to, but once you are comfortable, it is
+quite intuitive to work with.
+
+### Tibbles
+
+A `tibble` is an object designed by the creators of the tidyverse. It is 
+different from data frames in a few ways. The most noticeable differences are:
+
+1. When printing, it does not print all rows and columns. This makes it better 
+   for inspecting a data frame.
+2. The variable types are shown, and numerical values are colour-coded and 
+   rounded for easier visual scanning.
+   
+This is the output when printing a tibble in R:
+
+```{r}
+cars_tbl <- as_tibble(cars)
+cars_tbl
+```
+
+The output from printing a raw data frame in R is much more verbose. In this case,
+printing `cars` would display all 50 rows.
+
+### Basic Data Manipulation Verbs
+
+There are many functions from the `dplyr` package within the `tidyverse` that make 
+data manipulation.. fun! Here are couple that we will be using quite often.
+
+The `filter()` function keeps only rows whose columns satisfy certain criteria.
+The criteria are specified as logical vectors after the dataframe.
+
+```{r}
+mtcars_tbl <- as_tibble(mtcars)
+filter(mtcars_tbl, cyl <= 4)           
+filter(mtcars_tbl, cyl <= 4, vs == 0)  
+```
+
+The `select()` function selects only the columns specified. The specification of
+columns is very flexible. See `?select` for more examples.
+
+```{r}
+#| output: false
+select(mtcars_tbl, mpg:hp)                        # <1>
+select(mtcars_tbl, !c(mpg:hp))                    # <2>
+select(mtcars_tbl, last_col(offset=1):last_col()) # <3>
+```
+1. Select all columns from `mpg` to `hp`.
+2. Select all columns except `mpg` to `hp`.
+3. Select the last two columns.
+
+::: {.callout-note}
+Observe that we do not need to quote the column names! We can just type 
+`mpg` in the expression instead of `"mpg"`. This saves typing in interactive 
+analysis.
+:::
+
+::: {.callout-note}
+Most `dplyr` verbs have a common syntax:
+```
+data_frame <- fn_name(data, verb-specific-1, verb-specific-2,...)
+```
+
+The verbs work with data frames too, but as we know, tibbles print nicer!
+:::
+
+### Piping 
+
+Another practice that the tidyverse popularised was the use of the pipe operator.
+
+![This is not a pipe](_images/not_a_pipe.jpeg)
+
+Manipulating data typically involves many steps, and using a pipe operator allows
+us to daisy chain operations while retaining readable code. In R, the pipe 
+operator `%>%` from the `magrittr` package unwraps:
+
+* `x %>% f(y)` into `f(x,y)`, and 
+* `x %>% f(y) %>% g(z) ` into `f(x,y) %>% g(z)`, which is just `g(f(x,y), z)`
+
+Suppose we wish to combine the `filter` and `select` operations from earlier. 
+Without the pipe operator, we would do one of the following:
+
+```{r}
+#| eval: false
+# Method 1
+select(filter(mtcars_tbl, cyl <= 4, vs == 0), mpg:hp)
+
+# Method 2
+tmp <- filter(mtcars_tbl, cyl <= 4, vs == 0)
+select(tmp, mpg:hp)
+```
+
+But with the piping approach, we just need:
+```{r}
+#| eval: false
+mtcars_tbl %>%  
+  filter(cyl <= 4) %>%  
+  select(mpg:hp)
+```
+
+## ggplot
+
+`ggplot2` implements the grammar of graphics, which is a method of building up 
+graphics from components. It uses an approach that centers around layers. 
+
+The following code will create a plot, placing `mpg` variable on the y-axis and 
+`disp` on the x-axis.
+```{r}
+#| fig-align: center
+ggplot(mtcars_tbl) +                      # <1>
+  geom_point(mapping=aes(x=disp, y=mpg))  # <2>
+```
+1. The first layer `ggplot( )` has to specify the dataset. The `+` operation
+   adds layers to the plot. Layers could be another set of points, a label for the
+   legend or a title, or a specification of symbol types.
+2. `geom_point` summons a scatterplot. Other geoms that might be useful are:
+    * `geom_bar` for bar charts
+    * `geom_histogram` for histograms
+    * `geom_boxplot` for boxplots
+
+Perhaps the most confusing aspect of `ggplot` is the "mapping". A graph is a
+visualisation of the variation of numbers in a dataset. When we construct a
+graph, we can view it as a process of choosing colours, positions, shapes,
+and/or lengths to vary according to the data. This mapping is what we explicitly
+provide to a `ggplot` call.
+
+In the above case, we mapped the `disp` variable to positions on the x-axis and 
+the `mpg` variable to positions on the y-axis.
+
+In our course, the packages we are going to rely on also use `ggplot2` to make 
+plots. Most of the time, we can simply call `autoplot()` on our time series 
+objects, but having a basic grasp of how `ggplot2` works will be useful.
+
+## R Markdown 
+
+### Background 
+
+R Markdown is a scripting language that allows you to combine code, its results
+and your text into one text document. That text document can then be “knitted”
+into a range of output formats, including html, pdf and Word.
+
+Because it is just a text document, R Markdown is very useful when you wish to
+create work/analysis that can be reproduced and extended by others. Also because
+it is essentially just a text document, it can be version-controlled easily.
+
+Note that there are many "flavours" of Markdown, including github, R, obsidian,
+etc.
+  
+### Basics
+
+The first section of an Rmd file is usually a YAML header, surrounded by ---s.
+YAML stands for Yet Another Markup Language. We will usually not have to write
+this ourselves. The Rstudio IDE takes care of this. It will look like this:
+
+````
+---
+title :  "Diamond sizes"
+date : 2023 -08 -25
+output : html_document
+---
+````
+
+The rest of the document consist of code chunks (R code) and formatted text. The 
+code chunks are defined with three tick-marks:
+```{r}
+#| echo: fenced
+# Write your R code here
+```
+
+The text that you write will be formatted with `#`, `*` and other Markdown operators. If 
+you are familiar with HTML, then Markdown will come easily, as it is in fact just 
+another markup language.
+
+
+## Additional References
+
+1.  Wickham, H., Çetinkaya-Rundel, M., & Grolemund, G. (2023). [R for data science](https://r4ds.hadley.nz/). " O'Reilly Media, Inc.".
+2.  Posit cheatsheets:
+    * [Transforming data with dplyr](https://rstudio.github.io/cheatsheets/html/data-transformation.html) 
+    * [ggplot](https://rstudio.github.io/cheatsheets/html/data-transformation.html)
+    * [R markdown](https://rstudio.github.io/cheatsheets/html/rmarkdown.html)
+3. [ggplot2 documentation page](https://ggplot2.tidyverse.org/): This page 
+   contains further links to useful articles, books and galleries.
+4. [Original specification of Markdown](https://daringfireball.net/projects/markdown/)
+5. [Project structure](https://djnavarro.net/slides-project-structure/#1): Some tips on
+   naming conventions and folder structure for effective workflows.
+6. Further resources on learning R:
+   * Use your [DataCamp account](https://app.datacamp.com/learn)to go through the 
+     courses you need.
+   * Use [chatGPT](https://openai.com/blog/chatgpt) to help you understand or debug code. 

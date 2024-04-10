@@ -1,0 +1,118 @@
+# AIC and Cross Entropy
+
+In @sec-arma-aic, we defined AIC and AICc as follows:
+
+$$
+\text{AIC} = - 2 l(\hat\bbeta_{MLE},\hat\sigma^2_{MLE};\bX_{1:n}) + 2(p+q+k+1).
+$$
+$$
+\text{AICc} = - 2 l(\hat\bbeta_{MLE},\hat\sigma^2_{MLE};\bX_{1:n}) + \frac{2(p+q+k+1)n}{n-p-q-k-2}.
+$$
+
+The AIC penalty adds twice the number of model parameters to the cost function, while the AICc penalty adjusts this by a quantity that decays as $O(1/n)$.
+
+In this section, we explain why these formulas make sense.
+We start by re-examining what maximum likelihood estimation is trying to do.
+
+**Cross entropy.**
+Let $f$ and $g$ be two densities with $f$ absolutely continuous with respect to $g$.
+The [cross entropy](https://en.wikipedia.org/wiki/Cross-entropy) between them is given by[^1]
+$$
+H(f, g) = -\int f(x) \log g(x) dx.
+$$
+For any fixed $f$, one can show that the function $g \mapsto H(f,g)$ is uniquely minimized by $f$.[^2]
+
+[^1]: Note that this is not symmetric in $f$ and $g$.
+
+[^2]: This is known as [Gibbs' inequality](https://en.wikipedia.org/wiki/Gibbs%27_inequality).
+
+**Cross entropy is expectation of NLL.**
+For any set of parameters $(\bbeta, \sigma^2)$, let $f_{\bbeta,\sigma^2}$ denote the density of $\bX_{1:n}$ given an ARMA model with those parameters.
+Let $(\bbeta_0, \sigma_0^2)$ denote the true parameters of our model.
+For any fixed parameters $(\bbeta, \sigma^2)$, the negative log likelihood (NLL) can be written as
+$$
+-l(\bbeta,\sigma^2;\bX_{1:n}) = -\log f_{\bbeta,\sigma^2}(\bX_{1:n}).
+$$
+Taking expectations, we see that the negative log likelihood is an unbiased estimate of the cross entropy:
+$$
+\begin{split}
+    \E\lbrace-l(\bbeta,\sigma^2;\bX_{1:n})\rbrace & = -\int f_{\bbeta_0,\sigma_0^2}(\bX_{1:n}) \log f_{\bbeta_0,\sigma_0^2}(\bX_{1:n}) d\bX_{1:n} \\
+    & = H(f_{\bbeta_0,\sigma_0^2},f_{\bbeta,\sigma^2}).
+\end{split}
+$$
+
+The MLE minimizes the NLL and thus is the plug-in estimate of the cross entropy minimizer.
+We have seen that this minimizer is precisely the vector of true model parameters.
+
+**Overfitting.**
+However, if $\hat{\bbeta}$ and $\hat\sigma^2$ are fit using the data $\bX_{1:n}$, then in general, $-l(\hat\bbeta,\hat\sigma^2;\bX_{1:n})$ is too optimistic an estimate for the cross entropy, as the same data is used to fit and evaluate the model.
+In other words,
+
+$$
+\begin{split}
+    & \E\lbrace-l(\hat\bbeta(\bX_{1:n}),\hat\sigma^2(\bX_{1:n});\bX_{1:n})\rbrace \\
+    = ~&  -\int f_{\bbeta_0,\sigma_0^2}(\bX_{1:n}) \log f_{\hat{\bbeta}(\bX_{1:n}),\hat\sigma^2(\bX_{1:n})}(\bX_{1:n}) d\bX_{1:n} \\
+    \neq~& H(f_{\bbeta_0,\sigma_0^2},f_{\hat{\bbeta}(\bX_{1:n}),\hat\sigma^2(\bX_{1:n})}).
+\end{split}
+$$
+
+The larger the number of parameters, the bigger this optimism gap, which leads to models with more parameters than necessary having a larger likelihood.
+The AIC and AICc penalties attempt to approximate this optimism bias.
+
+**Proposition.**
+Suppose the true model is contained within the model space, i.e. $\bX_{1:n}$ is generated from an ARMA($p_0$,$q_0$) model with $p_0 \leq p$ and $q_0 \leq q$.
+Then the AIC and AICc for a fitted ARMA($p$, $q$) model satisfies[^3]
+$$
+\E\lbrace AIC \rbrace = 2 \E\lbrace H(f_{\bbeta_0,\sigma_0^2},f_{\hat{\bbeta}_{MLE},\hat\sigma^2_{MLE}})\rbrace + o(1)
+$$ {#eq-aic-expectation}
+$$
+\E\lbrace AICc \rbrace = 2 \E\lbrace H(f_{\bbeta_0,\sigma_0^2},f_{\hat{\bbeta}_{MLE},\hat\sigma^2_{MLE}})\rbrace + o(1)
+$$
+
+[^3]: Although both AIC and AICc have this property, for time series data, AICc is preferred because it has better finite sample properties.
+
+We sketch a proof for @eq-aic-expectation.
+First, for notational simplicity, we absorb $\sigma^2$ into the $\bbeta$ parameter vector.
+The same proof holds for parametric estimation in general.
+
+Recall that the Fisher information matrix is defined as
+$$
+    I(\bbeta_0) = -\lim_{n\to \infty} \frac{1}{n}\E\lbrace\nabla^2_{\bbeta} l(\bbeta_0;\bX_{1:n})\rbrace.
+$$
+Under regularity conditions, as $n \to \infty$, we have
+$$
+\sqrt n \left(\hat\bbeta_{MLE} - \bbeta_0\right) \to_d \mathcal N(0, I(\bbeta_0)^{-1}).
+$$ {#eq-aic-mle-large-sample}
+
+Now, consider the functions $g(\bbeta) = \E\lbrace -2l(\bbeta;\bX_{1:n}) \rbrace$ and $h(\bbeta) = -2l(\bbeta;\bX_{1:n})$.
+The former is minimized by $\bbeta_0$ and the latter by $\hat\bbeta_{MLE}$.
+Taking the 2nd order Taylor expansions of both around their minima gives
+\begin{align} 
+    g(\hat\bbeta_{MLE}) & = g(\bbeta_0) + \left(\hat\bbeta_{MLE}-\bbeta_0\right)^T \E\lbrace \nabla^2_{\bbeta} l(\bbeta_0;\bX_{1:n})\rbrace\left(\hat\bbeta_{MLE}-\bbeta_0\right) + o(1) \nonumber\\
+    & = g(\bbeta_0) + \sqrt{n}\left(\hat\bbeta_{MLE}-\bbeta_0\right)^T I(\bbeta_0)\sqrt{n}\left(\hat\bbeta_{MLE}-\bbeta_0\right) + o(1),
+\end{align}
+\begin{align}
+    h(\bbeta_0) & = h(\hat\bbeta_{MLE}) + \left(\hat\bbeta_{MLE}-\bbeta_0\right)^T \nabla^2_{\bbeta} l(\hat\bbeta_{MLE};\bX_{1:n})\left(\hat\bbeta_{MLE}-\bbeta_0\right) + o(1) \nonumber\\
+    & = h(\hat\bbeta_{MLE}) + \sqrt{n}\left(\hat\bbeta_{MLE}-\bbeta_0\right)^T I(\bbeta_0)\sqrt{n}\left(\hat\bbeta_{MLE}-\bbeta_0\right) + o(1),
+\end{align}
+where the last equality holds because $\frac{1}{n}\nabla^2_{\bbeta} l(\hat\bbeta_{MLE};\bX_{1:n}) \to I(\bbeta_0)$ under regularity conditions.
+Rearranging and taking the difference between the two equations gives
+$$
+\begin{split}
+ & g(\hat\bbeta_{MLE}) - h(\hat\bbeta_{MLE}) \\
+=~& g(\bbeta_0) - h(\bbeta_0) + 2\sqrt{n}\left(\hat\bbeta_{MLE}-\bbeta_0\right)^T I(\bbeta_0)\sqrt{n}\left(\hat\bbeta_{MLE}-\bbeta_0\right) + o(1).
+\end{split}
+$$ {#eq-aic-aic-expansion}
+Taking expectations with respect to $\bX_{1:n}$ and using @eq-aic-mle-large-sample shows that
+\begin{equation}
+    \E\lbrace \sqrt{n}\left(\hat\bbeta_{MLE}-\bbeta_0\right)^T I(\bbeta_0)\sqrt{n}\left(\hat\bbeta_{MLE}-\bbeta_0\right)\rbrace = \dim(\bbeta) = p+q+1 + o(1).
+\end{equation}
+Furthermore, $\E\left\lbrace h(\bbeta_0)\right\rbrace = g(\bbeta_0)$, so the first two terms on the right hand side of @eq-aic-aic-expansion cancel.
+Finally, we have
+\begin{equation}
+    \E\lbrace h(\hat\bbeta_{MLE})\rbrace = \E\lbrace -2l(\hat\bbeta_{MLE}^2(\bX_{1:n});\bX_{1:n}) \rbrace
+\end{equation}
+\begin{equation}
+    \E\lbrace g(\hat\bbeta_{MLE}) \rbrace = 2H(f_{\bbeta_0},f_{\hat\bbeta_{MLE}}).
+\end{equation}
+For more details, refer to @cavanaugh1997unifying.

@@ -1,4 +1,4 @@
-# ARMA Models
+# ARMA Models {#sec-arma}
 
 ```{r}
 #| message: FALSE
@@ -185,7 +185,7 @@ $$ {#eq-arma-partial-corr-var}
 
 *Proof.*
 @eq-arma-partial-corr-reg can be proved by checking that $\hat Y + \beta_X(X - \hat X)$ is the BLP for $Y$ given $\bZ$ and $X$ using the zero gradient condition.
-@eq-arma-partial-corr-var is obtained by rearranging the definition of $\rho_{Y,Z\bX}$.
+@eq-arma-partial-corr-var is obtained by rearranging the definition of $\rho_{X,Y| \bZ}$.
 
 Under both interpretations, we see that a nonzero partial correlation implies that knowing $X$ improves our prediction accuracy for $Y$ even if we already know $\bZ$.
 
@@ -648,7 +648,7 @@ Allowing for unnecessary parameters has thus inflated the variance of our estima
 As in many other areas of statistics, model selection is fundamentally about optimizing the bias-variance tradeoff.
 We would like to pick a model that is flexible enough to have low or no bias, but at the same time, not too flexible as to incur unnecessarily high variance.
 
-### AIC and AICc
+### AIC and AICc {#sec-arma-aic}
 
 While one optimizes the likelihood or least squares objective functions to estimate parameters, we cannot do the same to estimate hyperparameters.
 This is because more flexible models will always fit the data better and thereby achieve smaller objective function values.

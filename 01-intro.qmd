@@ -143,7 +143,7 @@ In @fig-intro-pm25, we plot PM2.5 concentration levels in Beijing, measured hour
 #| warning: FALSE
 #| fig-cap: Global mean land–ocean temperature from 1880 to 2015, measured as deviations from the 1951-1980 average.
 
-globtemp |> 
+gtemp_both |> 
   as_tsibble() |> 
   autoplot() +
   labs(x = "Year", y = "Global Temperature Deviation (in Celsius)") 

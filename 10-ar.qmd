@@ -775,7 +775,7 @@ grid.arrange(plt1, plt2, plt3, nrow = 3)
 
 ## Forecasts
 
-### Gaussian conditional distributions
+### Gaussian conditional distributions {#sec-ar-gaussian}
 
 We first discuss some properties of multivariate normal distributions.
 
@@ -1063,7 +1063,7 @@ $$
 ### Least squares
 
 **Conditional least squares.**
-We have just seen that the MLE is the minimizer of $S_c(mu,\phi)$, defined in @eq-ar-estimation-conditional-ss.
+We have just seen that the MLE is the minimizer of $S_c(\mu,\phi)$, defined in @eq-ar-estimation-conditional-ss.
 This objective function is called the *conditional sum of squares* and comprises the sum of the squared one-step-ahead errors.
 While the likelihood function may change under other choices of the white noise distribution, just like in linear regression, $S_c(\mu,\phi)$ remains a reasonable objective function for fitting the model parameters.
 

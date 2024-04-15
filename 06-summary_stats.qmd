@@ -70,7 +70,7 @@ For each $k$, $\hat \rho_x(k)$ is also known as the $k$-th auotocorrelation coef
 It is clear that the ACF takes values between $-1$ and $1$, with larger magnitudes corresponding to stronger relationships.
 
 To compute ACVF and ACF values, we may use the function `ACF()` from `feasts`.
-Let us apply this to the `globtemp` dataset measuring global temperature deviations (see also @fig-intro-globtemp.)
+Let us apply this to the `gtemp_both` dataset measuring global temperature deviations (see also @fig-intro-globtemp.)
 
 ::: panel-tabset
 
@@ -79,7 +79,7 @@ Let us apply this to the `globtemp` dataset measuring global temperature deviati
 #| echo: TRUE
 #| message: FALSE
 #| warning: FALSE
-globtemp |> 
+gtemp_both |> 
     as_tsibble() |>
     ACF()
 ```
@@ -90,7 +90,7 @@ globtemp |>
 #| echo: TRUE
 #| message: FALSE
 #| warning: FALSE
-globtemp |> 
+gtemp_both |> 
     as_tsibble() |>
     ACF(type = "covariance")
 ```
@@ -110,7 +110,7 @@ To generate this, we simply apply `autoplot()` to the return value of `ACF()`.
 #| warning: FALSE
 #| fig-cap: Autocorrelation plot for global temperature measurements from 1880 to 2015.
 #| label: fig-summary-globtemp-acf
-globtemp |> 
+gtemp_both |> 
     as_tsibble() |>
     ACF() |>
     autoplot()
@@ -124,7 +124,7 @@ globtemp |>
 #| warning: FALSE
 #| fig-cap: Global temperature measurements from 1880 to 2015 (deviations from 1950-1980 mean).
 #| label: fig-summary-globtemp
-globtemp |> 
+gtemp_both |> 
     as_tsibble() |>
     autoplot()
 ```
@@ -146,7 +146,7 @@ We now take a first difference and present an ACF plot again.
 #| warning: FALSE
 #| fig-cap: Autocorrelation plot for global temperature increases from 1880 to 2015.
 #| label: fig-summary-globtemp-diff-acf
-globtemp |> 
+gtemp_both |> 
     as_tsibble() |>
     mutate(TempIncr = difference(value)) |>
     ACF(TempIncr) |>
@@ -161,7 +161,7 @@ globtemp |>
 #| warning: FALSE
 #| fig-cap: Global temperature increases from 1880 to 2015.
 #| label: fig-summary-globtemp-diff
-globtemp |> 
+gtemp_both |> 
     as_tsibble() |>
     mutate(TempIncr = difference(value)) |>
     autoplot(TempIncr)

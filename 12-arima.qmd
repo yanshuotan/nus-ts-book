@@ -618,7 +618,7 @@ aus_livestock |>
 
 Note that `aus_livestock` is a quarterly time series dataset recording the number of each type of livestock animal in Australia, stratified by state.
 Here, we focus on the time series measuring the number of calves and have computed the KPSS test statistic and p-value.
-`unitroot_ndiffs` calculates the appropriate number of first differences based on this value, while `unitroot_nsdiffs` calculates the appropriate number of seasonal differences based on a seasonal version of the KPSS test.
+`unitroot_ndiffs` calculates the appropriate number of first differences based on this value, while `unitroot_nsdiffs` calculates the appropriate number of seasonal differences based on the "strength of seasonality" statistic.
 
 Let us do a time plot to get further intuition for these numbers.
 For ease of interpretation, we only plot values between January 2005 and January 2015 and for the log counts in 3 states: Queensland, Tasmania, and Victoria.
@@ -777,3 +777,8 @@ aus_arrivals |>
 ```
 
 Performing cross-validation, we see that the ARIMA model performs slightly better with a forecast horizon of $h = 5$.
+
+<!-- ## Missing data
+
+As we have previously seen, many real world time series contain missing entries.
+ARIMA modeling is able to deal with missing entries in an elegant manner---it simply computes the likelihood using the observed data and then imputes the missing entry as  -->

@@ -688,17 +688,17 @@ We plot the filtered results below.
 
 ```{r}
 #| warning: FALSE
-#| fig-cap: Kalman filtered values for log(white blood count). The observations are plotted as points and the filtered values are in blue. The blue region is a 95% confidence region.
+#| fig-cap: Kalman filtered values for log(white blood count). The observations are plotted as points and the filtered values are plotted in blue. The blue region is a 95% confidence region.
 #| label: fig-state-biomarker-wbc
 plt1_dat <-
   tibble(Day = 1:91,
-         obs = biomarker$WBC,
+         WBC = biomarker$WBC,
          filtered = biomarker_out$att[, 1],
          filtered_var = biomarker_out$Ptt[1, 1, ])
 
 plt1_dat |>
   ggplot(aes(x = Day)) +
-  geom_point(aes(y = obs), color = "black") +
+  geom_point(aes(y = WBC), color = "black") +
   geom_line(aes(y = filtered), color = "blue") +
   geom_ribbon(aes(ymin = filtered - 2 * sqrt(filtered_var),
                   ymax = filtered + 2 * sqrt(filtered_var)), 
@@ -709,17 +709,17 @@ plt1_dat |>
 
 ```{r}
 #| warning: FALSE
-#| fig-cap: Kalman filtered values for log(platelet count). The observations are plotted as points and the filtered values are in blue. The blue region is a 95% confidence region.
+#| fig-cap: Kalman filtered values for log(platelet count). The observations are plotted as points and the filtered values are plotted in blue. The blue region is a 95% confidence region.
 #| label: fig-state-biomarker-plt
 plt2_dat <-
   tibble(Day = 1:91,
-         obs = biomarker$PLT,
+         PLT = biomarker$PLT,
          filtered = biomarker_out$att[, 2],
          filtered_var = biomarker_out$Ptt[2, 2, ])
 
 plt2_dat |>
   ggplot(aes(x = Day)) +
-  geom_point(aes(y = obs), color = "black") +
+  geom_point(aes(y = PLT), color = "black") +
   geom_line(aes(y = filtered), color = "blue") +
   geom_ribbon(aes(ymin = filtered - 2 * sqrt(filtered_var),
                   ymax = filtered + 2 * sqrt(filtered_var)), 
@@ -730,17 +730,17 @@ plt2_dat |>
 
 ```{r}
 #| warning: FALSE
-#| fig-cap: Kalman filtered values for hematrocrit. The observations are plotted as points and the filtered values are in blue. The blue region is a 95% confidence region.
+#| fig-cap: Kalman filtered values for hematrocrit. The observations are plotted as points and the filtered values are plotted in blue. The blue region is a 95% confidence region.
 #| label: fig-state-biomarker-hct
 plt3_dat <-
   tibble(Day = 1:91,
-         obs = biomarker$HCT,
+         HCT = biomarker$HCT,
          filtered = biomarker_out$att[, 3],
          filtered_var = biomarker_out$Ptt[3, 3, ])
 
 plt3_dat |>
   ggplot(aes(x = Day)) +
-  geom_point(aes(y = obs), color = "black") +
+  geom_point(aes(y = HCT), color = "black") +
   geom_line(aes(y = filtered), color = "blue") +
   geom_ribbon(aes(ymin = filtered - 2 * sqrt(filtered_var),
                   ymax = filtered + 2 * sqrt(filtered_var)), 
@@ -860,7 +860,7 @@ ETS methods can also be represented as state space models.
 Their corresponding state space models are called *innovations state space models*, because the same white noise process determines the randomness in both the state and observation equations.
 
 We state here the models corresponding to simple exponential smooting and Holt linear's method.
-Refer to Table 8.7 in @hyndman2018forecasting for the state space models corresponding to other ETS methods.
+Refer to [Table 8.7](https://otexts.com/fpp3/ets.html) in @hyndman2018forecasting for the state space models corresponding to other ETS methods.
 
 **Simple exponential smoothing.**
 Consider the model

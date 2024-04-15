@@ -1,0 +1,48 @@
+# Uncertainty Quantification
+
+## Bootstrap
+
+We have already seen how to compute distributional forecasts for ARIMA:
+Under a Gaussian white noise assumption, the distributional forecasts are Gaussian, and the variances can be computed using known formulas.
+However, these formulas are complicated, and there are also other problems with using prediction intervals constructed this way.
+A more general solution is to use various versions of the bootstrap.
+
+Recall that the bootstrap was originally defined in the following way:
+We have a sample $X_1,\ldots,X_n$ drawn i.i.d. from a distribution $F$, using which we compute an estimate $\hat\theta_n$ for a parameter $\theta(F)$.
+To simulate the sampling distribution of $\hat\theta$, we use the distribution of
+$$
+\hat\theta(X_1^*,\ldots,X_n^*)
+$$
+where $X_1^*,\ldots,X_n^*$ are drawn i.i.d. with replacement from the original sample.
+We do not have a closed form expression for this distribution, so we approximate it using Monte Carlo (i.e. we use the recipe to create many draws of $\hat\theta(X_1^*,\ldots,X_n^*)$ and plot its empirical distribution).
+
+**Bootstrapping to simulate future values given a model:**
+In the time series setting, we do not have independence in the observations.
+Instead, for ARIMA models, we rely on an assumption that the innovations (one-step-ahead prediction errors) $U_1,\ldots,U_n$ are i.i.d.
+We will then use their empirical distribution as an approximation to that of the future prediction error, $U_{n+1}, U_{n+2},\ldots$.
+Hence, we can simulate future trajectories by recursively setting
+\begin{equation}
+    X_{n}^* = X_n
+\end{equation}
+\begin{equation}
+    X_{n+h}^* = X_{n+h-1}^* + U_{n+h}^*
+\end{equation}
+for $h = 1,2,\ldots$, where $U_{n+h}^*$ is drawn uniformly from $U_1,\ldots,U_n$.
+Suppose we wish to obtain prediction intervals up to some horizon $H$, then we could generate multiple trajectories according to this recipe, and then use the empirical quantiles for each step $1 \leq h \leq H$ to form a prediction interval.
+
+**Bootstrapping to simulate randomness in training data:**
+The previous method of bootstrapping still does not account for uncertainty in fitting the model (model parameters, order selection etc.).
+To do so, we need to refit the model on simulated redraws of the training data.
+Such simulations can be achieved using the previous method but applied to the training data instead of future values.
+We then fit a new model to each simulated dataset.
+The variation in the fitted parameters then gives an estimate of their sampling distribution for the original model.
+
+Another way to simulate randomness in the training data is to use a block bootstrap.
+Here, we assume that the training data is stationary but that the observations not necessarily independent.
+We then chop the the training data into blocks of size $b$, and construct a simulated redraw of the training data by drawing these pieces i.i.d. with replacement and concatenating them into a time series of the same length as the original data.
+$b$ is a tuning parameter that should be larger if there are stronger autocorrelations.
+@hyndman2018forecasting recommends a default choice of $b=8$.
+
+## Conformal inference
+
+See @altieri2020curating for an example of prediction intervals using conformal inference.

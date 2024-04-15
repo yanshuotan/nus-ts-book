@@ -27,6 +27,8 @@ book:
       - 12-arima.qmd
       - 13-state_space.qmd
     - part: "Advanced Topics"
+      chapters:
+      - 14-uncertainty.qmd
     - references.qmd
   appendices:
     - a1-rbackground.qmd

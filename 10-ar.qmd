@@ -506,11 +506,11 @@ If a choice of $|\phi| < 1$ results in a unique stationary solution, what happen
 **Explosive solution.**
 If we start with a *fixed* initial value $X_0 = c$, we can iterate @eq-ar-ar1 to get
 $$
-X_t = \sum_{j=1}^t \phi^j W_j + \sum_{j=1}^t \phi^j c.
+X_t = \sum_{j=0}^{t-1} \phi^j W_{t-j} + \phi^t c.
 $$
-The mean function is thus $\mu_X(t) = \sum_{j=1}^t \phi^j c$, while the marginal variance is given by
+The mean function is thus $\mu_X(t) = \phi^t c$, while the marginal variance is given by
 $$
-\mu_X(t, t) = \Var\left\lbrace \sum_{j=1}^t \phi^j W_j\right\rbrace = \frac{(\phi^{2t}-1)}{\phi^2 - 1}.
+\gamma_X(t, t) = \Var\left\lbrace \sum_{j=0}^{t=1} \phi^j W_{t-j}\right\rbrace = \frac{\sigma^2(\phi^{2t}-1)}{\phi^2 - 1}.
 $$
 Both values diverge to infinity exponentially as $t$ increases.
 The resulting time series model is sometimes called an explosive $\textnormal{AR}(1)$ process.

@@ -847,7 +847,7 @@ $$
 where $W_t \sim WN(0,\sigma^2)$.
 Then $(X_t)$ can be written as
 $$
-X_t = A X_t + W_t,
+X_t = A Z_t + W_t,
 $$
 where
 $$

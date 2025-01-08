@@ -58,7 +58,7 @@ $$ {#eq-summary-acvf}
 while for $k = -1,-2,\ldots,-n+1$, we define $\hat\gamma_x(k) := \hat\gamma_x(-k)$.
 Here, $\bar x := \frac{1}{n}\sum_{t=1}^n x_t$ is the sample mean of the time series.
 
-Note that even though there only $n-k$ terms in the sum in @eq-summary-acvf, we still divide the sum by $n$.
+Note that even though there are only $n-k$ terms in the sum in @eq-summary-acvf, we still divide the sum by $n$.
 This ensures that the function $\gamma_x(-)$ is positive semidefinite, which is a useful property for some downstream analysis.
 
 The (sample) *autocorrelation function* (ACF) is defined as

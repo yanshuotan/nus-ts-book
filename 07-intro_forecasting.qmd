@@ -247,10 +247,10 @@ diabetes |>
 
 1. We use the function `decomposition_model()` to specify that we would like to perform a decomposition and then fit individual models to separate components.
 2. The first argument to `decomposition_model()` is the method for the time series decomposition. Here, we have chosen to perform an STL decomposition.
-3. Here, we specify using the linear trend method to model the seasonally adjusted component, identified as `seasonal_adjust`. [^1]
+3. Here, we specify using the linear trend method to model the seasonally adjusted component, identified as `season_adjust`. [^1]
 4. Finally, we specify using the seasonal naive method to model the seasonal component identified as `season_year`. If this line is omitted from the snippet, `decomposition_model()` will automatically fit a seasonal naive method to this component. We include it here for completeness.
 
-[^1]: `seasonal_adjust` and `season_year` are the names of columns in the tsibble returned by applying the function `components()` to a time series decomposition model. Depending on the type of seasonality, the seasonal component returned by STL may have a different name, and there may even be multiple seasonal components.
+[^1]: `season_adjust` and `season_year` are the names of columns in the tsibble returned by applying the function `components()` to a time series decomposition model. Depending on the type of seasonality, the seasonal component returned by STL may have a different name, and there may even be multiple seasonal components.
 
 Compared to @fig-forecasting-snaive, we see that the forecasts from the decomposition forecasting model is less sensitive to the shape of the most recent repeating unit (because of the STL smoothing), and has an upward trend, both of which are arguably desirable properties in this scenario.
 
@@ -383,7 +383,7 @@ One should be very cautious about taking at face value any prediction interval o
 They thus do not account for the sampling uncertainty in the model parameters as well as the possibility that the model is misspecified, i.e. that it is a poor approximation of the real world mechanism for generating the time series.
 The latter occurs fairly often, especially for time series for complicated processes such as global temperature, or where feedback and unpredictable human intervention is present.
 
-How to quantify these other sources of uncertainty is an active research area (@yu2020veridical).
+How to quantify these other sources of uncertainty is an active research area. See @sec-uncertainty and also @yu2020veridical.
 In the meantime, it is better to view prediction intervals heuristically as as lower bounds for how uncertain we are about future values of the time series.
 
 ### Prediction intervals from bootstrapping
@@ -431,7 +431,7 @@ It is widely accepted that @eq-forecasting-loocv is a good approximation of the 
 $$
 \mathbb{E}_{x,y}\lbrace (\hat f(x) - y)^2 \rbrace.
 $$
-Here, $\hat f$ is the model trained on thh entire dataset, while the expectation is over a new example $(x,y)$ drawn from the distribution.
+Here, $\hat f$ is the model trained on the entire dataset, while the expectation is over a new example $(x,y)$ drawn from the distribution.
 This approximation relies on several assumptions, the most important of which is that
 $$
 \E_{x_i,y_i}\lbrace (\hat f_{-i}(x_i) - y_i)^2\rbrace \approx \E_{x,y}\lbrace(\hat f_{-i}(x) - y)^2\rbrace
@@ -527,7 +527,7 @@ Similarly, predicting future values at different time horizons can be different 
 A forecaster that excels at forecasting demand for durian tomorrow may not be good at predicting demand a month in the future.
 Mathematically, $\hat e_{n+h|n}$ and $\hat e_{n+h'|n}$ may and often do have different distributions for $h \neq h'$.
 
-We are often in forecasting a specific time horizon so that we can make decisions appropriately.
+We are often interested in forecasting a specific time horizon so that we can make decisions appropriately.
 For instance, a supermarket chain would probably be most interested in forecasting the demand for durian a week into the future so that they could manage their inventory today.
 On the other hand, performing a single train-test split aggregates the error $\hat e_{m+h|m}$ over all time horizons in the test set, and hence may not directly measure the accuracy for the specific forecasting task at hand.
 

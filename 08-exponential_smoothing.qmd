@@ -8,7 +8,7 @@ source("_code/set_up.R")
 ```
 
 Exponential smoothing is a family of forecasting methods that make use of (exponentially) weighted averages of past observations in their forecast equations.
-These are easy to fit and yet often very powerful, and are therefore used extensively in my applications.
+These are easy to fit and yet often very powerful, and are therefore used extensively in many applications.
 <!-- This chapter motivates and introduces some of these methods, presents some applications, and puts them in a broader context. -->
 
 ## Simple exponential smoothing

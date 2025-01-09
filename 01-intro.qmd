@@ -129,7 +129,7 @@ autoplot(melsyd_economy, Passengers) +
 Climate change means that understanding the environment has never been more important.
 In environmental sciences, time series data are crucial to monitoring and understanding changes in environmental conditions, assessing the impact of human activities, and making informed decisions about environmental management.
 Such data include climactic measurements (temperature, precipitation, etc.), air quality, water quality, and biodiversity monitoring.
-In @fig-intro-globtemp, we plot the global yearly mean land–ocean temperature from 1880 to 2015, measured as deviations, in degrees Celsius, from the 1951-1980 average. [^4]
+In @fig-intro-globtemp, we plot the global yearly mean land–ocean temperature from 1850 to 2023, measured as deviations, in degrees Celsius, from the 1991-2020 average. [^4]
 In @fig-intro-pm25, we plot PM2.5 concentration levels in Beijing, measured hourly, in December 2011. [^5]
 
 [^4]: Data was obtained from the `astsa` package associated with the textbook Shumway, Robert H., David S. Stoffer, and David S. Stoffer. Time series analysis and its applications. Vol. 3. New York: Springer, 2000.
@@ -141,7 +141,7 @@ In @fig-intro-pm25, we plot PM2.5 concentration levels in Beijing, measured hour
 #| echo: FALSE
 #| message: FALSE
 #| warning: FALSE
-#| fig-cap: Global mean land–ocean temperature from 1880 to 2015, measured as deviations from the 1951-1980 average.
+#| fig-cap: Global mean land–ocean temperature from 1850 to 2023, measured as deviations from the 1991-2020 average.
 
 gtemp_both |> 
   as_tsibble() |> 
@@ -251,8 +251,10 @@ Forecasting techniques range from simple methods like moving averages to more ad
 
 ### Smoothing and filtering
 
-Smoothing and filtering techniques are used to remove noise and extract underlying trends or patterns from time series data. These techniques help to reduce the impact of random fluctuations and highlight the long-term behavior of the data. 
-For instance, during the Apollo Project in the 1960s, measurements obtained from spacecraft sensors were often noisy and subject to various disturbances. To extract the true position information from the noisy measurements, filtering techniques were employed.
+Some time series can be viewed as noisy observations of an unobserved or latent quantity of interest (see @sec-state-space).
+Smoothing and filtering techniques are used to remove noise and estimate the underlying latent state.
+For instance, during the Apollo Project in the 1960s, measurements obtained from spacecraft sensors were often noisy and subject to various disturbances. 
+Researchers needed to filter these measurements to estimate the true position and velocity of the spacecraft.
 Methods used for smoothing and filtering have a large overlap with those used for forecasting.
 
 ### Time series regression and adjustment

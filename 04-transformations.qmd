@@ -213,7 +213,7 @@ The rolling window standard deviation measures how "jumpy" the time series is in
 The rolling window standard deviation is computed by changing the second argument in `slide_dbl()` from `mean` to `sd`.
 In general, one may apply any summary function (a function that takes a vector and returns a scalar).
 
-Linear functions already comprise a large class of useful functions that can be used in rolling window operations.
+Linear functions already comprise a large class of useful functions that can be used in rolling window transformations.
 These give the formula $y_t = \alpha^Tx_{t-k:t+l}$, where $x_{t-k:t+l} = (x_{t-k}, x_{t-k+1},\ldots,x_{t+l})$ and $\alpha = (\alpha_1,\alpha_2,\ldots,\alpha_{k+l+1})$.
 In this case, $\alpha$ is called a [*linear filter*](https://en.wikipedia.org/wiki/Linear_filter).
 The transformation it applies is also called a *convolution* (with the coefficient vector $\alpha$).

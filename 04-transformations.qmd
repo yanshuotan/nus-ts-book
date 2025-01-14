@@ -177,7 +177,7 @@ For more information, check out Chapter 3.3 in @hyndman2018forecasting.
 
 [^3]: This is analogous to bandwidth selection in kernel smoothing for [density estimation](https://en.wikipedia.org/wiki/Kernel_density_estimation) or regression.
 
-## Rolling window operations
+## Rolling window transformations
 
 We have seen the benefit of computing the mean over rolling windows of measurements.
 It is also sometimes useful to compute other summaries over rolling windows.
@@ -212,6 +212,12 @@ The rolling window standard deviation measures how "jumpy" the time series is in
 
 The rolling window standard deviation is computed by changing the second argument in `slide_dbl()` from `mean` to `sd`.
 In general, one may apply any summary function (a function that takes a vector and returns a scalar).
+
+Linear functions already comprise a large class of useful functions that can be used in rolling window operations.
+These give the formula $y_t = \alpha^Tx_{t-k:t+l}$, where $x_{t-k:t+l} = (x_{t-k}, x_{t-k+1},\ldots,x_{t+l})$ and $\alpha = (\alpha_1,\alpha_2,\ldots,\alpha_{k+l+1})$.
+In this case, $\alpha$ is called a [*linear filter*](https://en.wikipedia.org/wiki/Linear_filter).
+The transformation it applies is also called a *convolution* (with the coefficient vector $\alpha$).
+Convolutions can be generalized to higher dimensions andn are used in deep learning for processing both sequence data (such as time series) as well as image and video.
 
 ## Calendar adjustment
 

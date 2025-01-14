@@ -339,7 +339,7 @@ However, it is not recommended to use differencing on trend stationary time seri
 This is because taking differences leads to instability when inverting the differencing to forecast for the original time series (Step 5 of Box-Jenkins).
 Recall our interpretation of differencing as discrete differentiation, this phenomenon is analogous to how small changes in derivatives $g'$, $g''$, etc. can lead to large changes in the behavior of the original function $g$.
 
-There are various tests for stationarity and for the presence of unit roots, such as the Durbin-Watson test and the KPSS test.
+There are various tests for stationarity and for the presence of unit roots, such as the Dickey-Fuller test and the KPSS test.
 We will discuss them in further detail in @sec-arima.
 
 ::: {.callout-note}

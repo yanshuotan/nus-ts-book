@@ -1,0 +1,23 @@
+# Statistical Modeling of Time Series
+
+## Why statistical models?
+
+In the first part of this textbook, we have learnt how to work with and perform exploratory data analysis on time series data, as well as the basics of forecasting for time series.
+Thus far, we have tried to minimize any discussion of statistical models, so as to emphasize that, just as in supervised or unsupervised learning, statistical models are not necessary in order to extract meaningful and useful information from the data at hand.
+While statistical models are not necessary, they are still useful.
+They are hence the focus of our investigation in this second half of the book.
+Statistical models however, need to be used with care.
+Compared to a purely algorithmic methods, a fitted statistical model allows an analyst to draw more conclusions about the dataset.
+For instance, beyond point forecasts, they also describe the distribution of future observation.
+Beyond purely descriptive observations about the relationships between different time series, they allow us to make stronger hypotheses about how they are generated.
+Such ambition comes at a price -- we need to be more careful in checking whether our modeling assumptions hold.
+Otherwise, we can easily be fooled into believing and making decisions based on spurious conclusions from wrong models.
+
+## Part summary
+
+In this part of the textbook, we will first learn about the theory of stationary processes, which forms the foundation of statistical analysis of time series data.
+*Stationarity* means that each sliding window of the time series looks ''the same''. 
+Since we mostly only observe a single instance of the time series (instead of multiple independent copies as in other areas of statistics), this is a crucial property which allows us to nonetheless have enough data to estimate the parameters of the model.
+We will cover regression models for time series, the assumptions they entail, and their drawbacks.
+We will then learn about AR, MA, ARMA, and ARIMA models, which are the most commonly used statistical models for time series.
+We will then end by covering dynamic regression and state space models.

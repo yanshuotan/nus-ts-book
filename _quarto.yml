@@ -19,7 +19,7 @@ book:
       - 06-summary_stats.qmd
       - 07-intro_forecasting.qmd
       - 08-exponential_smoothing.qmd
-    - part: "Statistical Modeling of Time Series"
+    - part: part2-statistics.qmd
       chapters:
       - 09-stationary.qmd
       - 10-ar.qmd

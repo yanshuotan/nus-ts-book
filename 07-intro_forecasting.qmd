@@ -303,7 +303,7 @@ $$
 x_t = \theta x_{t-1} + \epsilon_t.
 $$
 
-## Dynamic regression
+## Regression
 
 So far, we have discussed how to forecast a time series using its historical values.
 It is often helpful to make use of other information we might have, such as covariates as well as other predictor time series.

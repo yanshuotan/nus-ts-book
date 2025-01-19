@@ -170,7 +170,7 @@ Note that this process is not stationary unless $f_t$ is constant.
 
 ### Linear process {#sec-stationary-linear}
 
-A *linear process* is defined as a convolution between a white noise process and a sequence of coefficients.
+A *linear process* is defined as a convolution between a white noise process and a sequence of coefficients, that is, it is obtained by applying a *linear filter* (see @sec-transformations).
 Specifically, it is given by
 $$
 X_t = \mu + \sum_{j=-\infty}^\infty \psi_j W_{t-j},
@@ -393,8 +393,10 @@ Here, the logic is that $h$ should be large enough so that it can include any tr
 Note also that if the time series to be tested, $(X_t)$, comprises the residuals of a fitted model with $r$ parameters, then $Q_{LB}$ and $Q_{BP}$ actually converge to $\chi^2_{h-r}$, which tends to have smaller values.
 Hence, we can obtain a more powerful test by comparing their values with the quantiles of this reference distribution.
 
+::: {.callout-note}
 There are also a number of other tests that can be used, such as the [Breusch-Godfrey test](https://en.wikipedia.org/wiki/Breusch%E2%80%93Godfrey_test) or the difference-sign test.
 We refer the interested reader to Chapter 1.6 of @brockwell1991time.
+:::
 
 [^7]: See https://robjhyndman.com/hyndsight/ljung-box-test/ for a more extended discussion.
 

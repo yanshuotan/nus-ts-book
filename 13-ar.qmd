@@ -299,6 +299,8 @@ The meaning will be clear from the context.
 Suppose $|\phi| < 1$, then there is a unique stationary solution to @eq-ar-ar1.
 This solution is a [causal linear process](09-stationary.qmd#sec-stationary-linear).
 
+::: callout-note
+
 *Proof.*
 We first show existence.
 Consider the random variable defined as
@@ -342,6 +344,8 @@ $$
 \end{split}
 $$
 Since the left hand side is independent of $l$, we get $Y_t =_d X_t$ as we wanted. $\Box$
+
+:::
 
 This theorem allows us to speak of *the* solution to @eq-ar-ar1, and we sometimes informally refer to the equation as the model.
 As such, we also refer to @eq-ar-ar1 for $|\phi| < 1$ as a causal $\textnormal{AR}(1)$ model.
@@ -499,7 +503,7 @@ $$
 $$
 Since the sample ACVF is consistent (Theorem A.6 in @shumway2000time), so is this estimator.
 
-### When $|\phi| > 1$
+### ** When $|\phi| > 1$
 
 If a choice of $|\phi| < 1$ results in a unique stationary solution, what happens when $|\phi| > 1$?
 

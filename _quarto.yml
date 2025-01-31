@@ -21,18 +21,15 @@ book:
       - 08-exponential_smoothing.qmd
     - part: part2-statistics.qmd
       chapters:
-      - 09-simple_models.qmd
-      - 10-stationary.qmd
-      - 11-gaussian_processes.qmd
-      - 12-regression.qmd
-      - 13-ar.qmd
-      - 14-arma.qmd
-      - 15-arima.qmd
-      - 16-dynamic_regression.qmd
-      - 17-state_space.qmd
+      - 09-fundamentals.qmd
+      - 10-ar.qmd
+      - 11-arma.qmd
+      - 12-arima.qmd
+      - 13-dynamic_regression.qmd
+      - 14-state_space.qmd
     - part: "Advanced Topics"
       chapters:
-      - 18-uncertainty.qmd
+      - 15-uncertainty.qmd
     - references.qmd
   appendices:
     - a1-rbackground.qmd

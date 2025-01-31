@@ -103,11 +103,13 @@ This is a good model for stock prices over the short term, but clearly not a goo
 
 For any forecast horizon $h$, we define the forecast to be equal to the most recent observation from the *same season*, i.e.
 $$
-\hat x_{n + h|n} := x_{n - p + (h~\text{mod}~p)},
+\hat x_{n + h|n} := x_{n - ((p-h)~\text{mod}~p)},
 $$
-where $h~\text{mod}~p$ refers to the integer remainder of $h$ after dividing by $p$.
+where $t~\text{mod}~p$ refers to the integer remainder of $t$ after dividing by $p$.[^1]
 The result for the antidiabetic drug sales dataset is shown below.
 Since the seasonality is yearly, the forecast for January 2010 is the value of the sales in January 2008.
+
+[^1]: For example, if $t = 10$ and $p=3$, $t~\text{mod}~p = 1$.
 
 ```{r}
 #| echo: FALSE
@@ -150,6 +152,31 @@ diabetes |>
 
 The linear trend method is useful when the time series is dominated by a trend that is linear.
 
+### Drift method
+
+Another method that performs well when there exists a linear trend is the drift method.
+Under this method, we again extrapolate using a line.
+But instead of choosing the "best fit line", we instead choose the line connecting the first and last observations.
+One can check that this gives the formula
+$$
+\hat x_{n+h|n} \coloneqq x_n + \frac{x_n - x_1}{n-1}h.
+$$
+The slope of this line can be interpreted as the average rate of change of the time series over its observed history.
+
+```{r}
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Forecasting sales numbers for antidiabetic drugs in Australia using the drift method.
+#| label: fig-forecasting-drift
+diabetes |> 
+    model(NAIVE(TotalC ~ drift())) |>
+    forecast() |>
+    autoplot(diabetes, level = NULL) + 
+    geom_segment(aes(x = yearmonth("1991 July"), y = diabetes$TotalC[[1]], xend = yearmonth("2008 June"), yend = diabetes$TotalC[[204]]), color = "blue", linetype=3)
+```
+
+
 ## Forecasting using `fable` {#sec-forecasting-fable}
 
 The `fable` package contains a wide array of modeling choices and a simple and organized interface for fitting models, making forecasts, and evaluating models.
@@ -166,7 +193,8 @@ arrivals_fit <- aus_arrivals |>
         Mean = MEAN(Arrivals),
         Naive = NAIVE(Arrivals),
         SeasonalNaive = SNAIVE(Arrivals),
-        LinearTrend = TSLM(Arrivals ~ trend())
+        LinearTrend = TSLM(Arrivals ~ trend()),
+        Drift = NAIVE(Arrivals ~ drift())
         )
 arrivals_fit
 ```
@@ -247,10 +275,10 @@ diabetes |>
 
 1. We use the function `decomposition_model()` to specify that we would like to perform a decomposition and then fit individual models to separate components.
 2. The first argument to `decomposition_model()` is the method for the time series decomposition. Here, we have chosen to perform an STL decomposition.
-3. Here, we specify using the linear trend method to model the seasonally adjusted component, identified as `season_adjust`. [^1]
+3. Here, we specify using the linear trend method to model the seasonally adjusted component, identified as `season_adjust`. [^2]
 4. Finally, we specify using the seasonal naive method to model the seasonal component identified as `season_year`. If this line is omitted from the snippet, `decomposition_model()` will automatically fit a seasonal naive method to this component. We include it here for completeness.
 
-[^1]: `season_adjust` and `season_year` are the names of columns in the tsibble returned by applying the function `components()` to a time series decomposition model. Depending on the type of seasonality, the seasonal component returned by STL may have a different name, and there may even be multiple seasonal components.
+[^2]: `season_adjust` and `season_year` are the names of columns in the tsibble returned by applying the function `components()` to a time series decomposition model. Depending on the type of seasonality, the seasonal component returned by STL may have a different name, and there may even be multiple seasonal components.
 
 Compared to @fig-forecasting-snaive, we see that the forecasts from the decomposition forecasting model is less sensitive to the shape of the most recent repeating unit (because of the STL smoothing), and has an upward trend, both of which are arguably desirable properties in this scenario.
 
@@ -307,12 +335,12 @@ $$
 
 So far, we have discussed how to forecast a time series using its historical values.
 It is often helpful to make use of other information we might have, such as covariates as well as other predictor time series.
-For instance, if we would like to forecast Covid hospitalization case numbers in New York state, then infection case numbers from the past week would be very predictive.[^2]
+For instance, if we would like to forecast Covid hospitalization case numbers in New York state, then infection case numbers from the past week would be very predictive.[^3]
 Other useful information include case numbers from other states in the US, social distancing measures, demographic information such as population density, political affiliation.
 Building a predictive model that includes such information is called *dynamic regression*.
 We will discuss it further in a later chapter.
 
-[^2]: See for instance @altieri2020curating.
+[^3]: See for instance @altieri2020curating.
 
 ## Machine learning models
 
@@ -325,9 +353,9 @@ It has been widely observed that these models enjoy superior performance on benc
 Indeed, most of the winning solutions for this competition (see @makridakis2022m5) made use of an implementation of gradient boosted trees called LightGBM (@ke_lightgbm_2017).
 
 Machine learning models enjoy better support in the `darts` python package than in the time series analysis packages in R.
-We will not have time to discuss them in this course and refer the interested reader to other online resources.[^4]
+We will not have time to discuss most machine learning methods in this course and refer the interested reader to other online resources.[^5]
 
-[^4]: A good resource is the website [Papers with Code](https://paperswithcode.com/task/time-series-forecasting), which shows several benchmark datasets as well as the performance of different forecasting methods on these datasets. Do note, however, that this is an incomplete list.
+[^5]: A good resource is the website [Papers with Code](https://paperswithcode.com/task/time-series-forecasting), which shows several benchmark datasets as well as the performance of different forecasting methods on these datasets. Do note, however, that this is an incomplete list.
 
 ## Prediction intervals {#sec-forecasting-distributional}
 
@@ -547,9 +575,9 @@ We now describe how to implement time series cross-validation using `tsibble`, a
 Suppose we are interested in 6 month ahead forecasts.
 First, we use `stretch_tsibble()` to create a tsibble containing all of the training sets.
 Here, `.init` indicates the minimum size of a training set, and `.step` refers to the difference in size of consecutive training sets. 
-In particular, `.init = 120, .step = 1` implies that we will have training sets of size $120, 121, 122, \ldots$.[^3]
+In particular, `.init = 120, .step = 1` implies that we will have training sets of size $120, 121, 122, \ldots$.[^4]
 
-[^3]: For statistical purposes, it is always better to calculate the error over more training sets. However, this can be very computationally expensive to run. If your computer takes a long time to execute time series cross-validation, try increasing `.step` to a larger value.
+[^4]: For statistical purposes, it is always better to calculate the error over more training sets. However, this can be very computationally expensive to run. If your computer takes a long time to execute time series cross-validation, try increasing `.step` to a larger value.
 
 ```{r}
 diabetes_cv <- diabetes |> stretch_tsibble(.init = 120, .step = 1)

@@ -779,7 +779,7 @@ grid.arrange(plt1, plt2, plt3, nrow = 3)
 
 ## Forecasts
 
-### Gaussian conditional distributions {#sec-ar-gaussian}
+<!-- ### Gaussian conditional distributions {#sec-ar-gaussian}
 
 We first discuss some properties of multivariate normal distributions.
 
@@ -819,7 +819,7 @@ Assuming Gaussian white noise, @eq-ar-forecast-distribution thus gives the distr
 $$
 \hat x_{n+h|n} = \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}x_{n:1}
 $$ {#eq-ar-forecast-mean}
-as well as 95% prediction intervals $(\hat x_{n+h|n} - 1.96v_{n+h}^{1/2}, \hat x_{n+h|n} + 1.96v_{n+h}^{1/2})$ for $v_{n+h} = \gamma_X(0) - \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}\gamma_{h:n+h-1}$.
+as well as 95% prediction intervals $(\hat x_{n+h|n} - 1.96v_{n+h}^{1/2}, \hat x_{n+h|n} + 1.96v_{n+h}^{1/2})$ for $v_{n+h} = \gamma_X(0) - \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}\gamma_{h:n+h-1}$. -->
 
 ### Best linear predictors
 

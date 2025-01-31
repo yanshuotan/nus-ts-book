@@ -1,1 +1,12 @@
 # Gaussian Processes
+
+We say that $(X_t)$ is a *Gaussian process* if all finite dimensional projections $(X_{t_1},X_{t_2},\ldots,X_{t_k})$ have a multivariate normal distribution.
+The distribution of a Gaussian process is fully determined by its mean and autocovariance functions.
+More precisely, the density for $(X_{t_1},X_{t_2},\ldots,X_{t_k})$ is given by
+$$
+p(x_1,x_2,\ldots,x_k) = (2\pi)^{-k/2} \det(\Gamma)^{-1/2}\exp\left(-\frac{1}{2}(x_{1:k} - \mu)^T\Gamma^{-1}(x_{1:k} - \mu)\right),
+$$
+where $x_{1:k} = (x_1,x_2,\ldots,x_k)$, $\mu = (\mu_X(t_1),\ldots,\mu_X(t_k))$, and $\Gamma_{ij} = \gamma_X(t_i, t_j)$.
+
+If $(X_t)$ is weakly stationary, then $\mu$ is a constant vector and the entries of $\Gamma$ depend only on the differences $|t_i - t_j|$.
+In particular it is strongly stationary.

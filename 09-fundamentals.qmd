@@ -1,4 +1,4 @@
-# Stationary Processes {#sec-stationary}
+# Statistical Models
 
 ```{r}
 #| message: FALSE
@@ -6,6 +6,32 @@
 #| echo: FALSE
 source("_code/set_up.R")
 ```
+
+## Statistical models for time series
+
+So far, we have worked with time series as a fixed sequence of numbers.
+A *time series model* treats the sequence of observations as a realization of a sequence random variables $X_1,X_2,\ldots,X_n$ and specifies their joint distribution.
+$$
+\P\lbrace X_1 \leq x_1, X_2 \leq x_2,\ldots,X_n \leq x_n\rbrace.
+$$
+Such a sequence of random variables is also called a *stochastic process*.[^1]
+We will typically use upper case $(X_t)$ to denote the stochastic process, and lower case $(x_t)$ to denote a single realization.
+Note that in general, $X_1,X_2,\ldots,X_n$ are not independent, nor do they even have the same marginal distribution.
+To simplify notation, we will use $x_{1:n}$ to denote $x_1,\ldots,x_n$ and $X_{1:n}$ to denote $X_1,\ldots,X_n$.
+
+**Mean and autocovariance functions:**
+We often study random variables via their moments (mean, variance, etc.).
+For stochastic processes, these now become functions.
+More precisely, the *mean function* of a stochastic process $(X_t)$ is defined via
+$$
+\mu_X(t) \coloneqq \E\lbrace X_t \rbrace.
+$$
+The *autocovariance function* (ACVF) is defined via
+$$
+\gamma_X(s, t) \coloneqq \Cov\lbrace X_s, X_t\rbrace.
+$$
+
+[^1]: In the setting of time series models, we will use the terms "stochastic process" and "time series" interchangeably.
 
 ## Stationary stochastic processes
 
@@ -80,12 +106,13 @@ By convention, these are all denoted using $WN(0,\sigma^2)$.
 
 We will soon see that many time series models are built out of transformations of a white noise process.
 Generally speaking, transformations of weak white noise give rise to weakly stationary processes, while transformations of strong white noise give rise to strongly stationary processes.
+Transformations of Gaussian white noise processes are *Gaussian processes*.
 Unless stated otherwise, however, we will assume in the rest of this book that we work with strong white noise.
 
 ### Random walk
 
 We say that $(X_t)$ is a *random walk with drift* if we have
-$$
+$$ 
 X_t = \delta + X_{t-1} + W_t,
 $$ {#eq-stationary-rw}
 where $(W_t) \sim WN(0,\sigma^2)$.
@@ -125,10 +152,6 @@ rw_ts |>
                  linetype = "dashed", color = "black") + 
     scale_color_discrete(labels = c("0", "0.2"), type = c("black", "blue"))
 ```
-
-
-Recall that the random walk model gives rise to the naive and drift forecasting methods (@sec-forecasting-simple).
-As such, the implicit assumption we make when using these methods is that the time series looks like one of these trajectories.
 
 ### Signal plus noise {#sec-stationary-examples-signal-plus-noise}
 
@@ -177,6 +200,195 @@ This is an appropriate assumption when modeling real world time series.[^3]
 
 [^3]: Indeed, linear processes have surprising generality.
 The [Wold decomposition theorem](https://en.wikipedia.org/wiki/Wold%27s_theorem) states that every covariance-stationary time series can be written as the sum of a linear process as well as a predictable sequence.
+
+## Forecasting with simple models
+
+We now describe how to use statistical models to do forecasting.
+Recall that a statistical model is a probability distribution $\P$ on sequences $x_1,x_2,\ldots$.
+For convenience, we will often write such a distribution as a density $p$.[^4]
+Given observed values for the first $n$ terms in the sequence, $x_1,x_2,\ldots,x_n$, the distributional forecast for $x_{n+h}$ is then the conditional distribution $p(x_{n+h}|x_{1:n})$, while the point forecast is defined as the mean of this distribution:
+$$
+\hat x_{n+h|n} \coloneqq \int x p(x|x_{1:n}) dx = \E\left\lbrace X_{n+h}|X_{1:n} = x_{1:n}\right\rbrace.
+$$
+Note that the conditional mean can be thought of as a function of the random variables, i.e.
+$$
+r(x_{1:n}) \coloneqq \E\lbrace X_{n+h}|X_1 = x_1,\ldots,X_n = x_n\rbrace.
+$$
+A key property is that the conditional mean is a [Bayes optimal predictors](https://stephens999.github.io/fiveMinuteStats/decision_theory_bayes_rule.html) with respect to squared loss, i.e. we have
+$$
+r = \textnormal{argmin}_{f \colon \R^n \to \R} \E\left\lbrace (f(X_{1:n}) - X_{n+h})^2\right\rbrace.
+$$
+
+[^4]: Time series models extend to non-continuous distributions that do not have densities. But we ignore this for now for notational convenience.
+
+Let us see how to use this recipe to derive the simple forecasting methods from @sec-forecasting from statistical models.
+
+### Mean method
+
+Suppose we have the model $X_t = \theta + W_t$ for an unknown $\theta$ and a Gaussian white noise $(W_t) \sim WN(0,\sigma^2)$.
+Since $W_{n+h}$ is independent of $W_{1:n}$ and has mean zero, the point forecast is
+$$
+\hat x_{n+h|n} = \theta + \E\left\lbrace W_{n+h}|X_{1:n} = x_{1:n}\right\rbrace = \theta.
+$$
+To calculate our estimate of $\theta$, we can write the likelihood as
+$$
+p_\theta(x_{1:n}) \propto \exp\left(- \frac{1}{2\sigma^2}\sum_{t=1}^n (x_t - \theta)^2 \right)
+$$
+Taking a logarithm gives
+$$
+\log p_\theta(x_{1:n}) = - \frac{1}{2\sigma^2}\sum_{t=1}^n (x_t - \theta)^2 + C.
+$$
+Hence, the MLE for $\theta$ is $\hat\theta = \frac{1}{n}\sum_{t=1}^n x_t$, and we forecast
+$$
+\hat x_{n+h|n} = \frac{1}{n}\sum_{t=1}^n x_t,
+$$
+which is the formula for the mean method.
+
+### Naive method
+
+Assume the random walk model @eq-stationary-rw with $\delta = 0$.
+We may recurse @eq-stationary-rw to get
+$$
+X_{n+h} = X_n + W_{n+1} + W_{n+2} + \cdots + W_{n+h}.
+$$
+This shows that
+
+$$
+p(x_{n+h}|X_{1:n}=x_{1:n}) \sim \mathcal{N}(x_n,h\sigma^2).
+$$
+
+The mean of this distribution is $x_n$.
+Note that this also gives the distributional forecast.
+
+### Seasonal naive method
+
+Assume $p$ independent random walk processes $(Y_t^{(1)}),(Y_t^{(1)}), (Y_t^{(p)})$, each with $\delta = 0$.
+We construct a time series model by setting $X_t = Y_{\lceil t / p \rceil}^{(t~\text{mod}~p)}$.
+
+<!-- [^5]: Here, $t~\text{mod}~p$ is the notation used in [modular arithmetic](https://en.wikipedia.org/wiki/Modular_arithmetic) to denote the remainder of $t$ when divided by $p$. For example, if $t = 10$ and $p=3$, $t~\text{mod}~p = 1$. -->
+
+To forecast the value of $x_{n+h}$, we therefore first identify the index of the random walk it comes from, followed by the most recent observation from that random walk.
+This turns out to be $n - ((p-h)~\text{mod}~p)$.
+
+As with the previous example, we may recurse @eq-stationary-rw to show that
+$$
+\hat x_{n+h|n} = x_{n - ((p-h)~\text{mod}~p)}.
+$$
+
+### Linear trend method
+
+Assume the signal in noise model
+$$
+X_t = \beta_0 + \beta_1t + W_t.
+$$
+The relevant formulas follow from linear regression theory.
+
+### Drift method
+
+Assume the random walk model @eq-stationary-rw.
+Recursing the equation, we get
+$$
+X_{n+h} = X_n + h\theta + \sum_{t=n+1}^{n+h} W_t
+$$
+
+so that the mean of the forecast distribution is
+
+$$
+\hat x_{n+h|n} = x_n + h\theta.
+$$
+
+Similar to the mean method, we just have to estimate $\theta$.
+
+We have
+
+$$
+p_\theta(x_t|x_{t-1}) \propto \exp\left(-\frac{1}{2\sigma^2}(x_t - \theta - x_{t-1})^2\right)
+$$
+
+Multiplying these together for $t=2,3,\ldots,n)$, we get
+
+$$
+p(x_2\ldots,x_n|x_1) \propto \exp\left(-\frac{1}{2\sigma^2}\sum_{t=2}^n (x_t - x_{t-1} - \theta)^2\right)
+$$
+
+The maximizer is hence $\hat\theta = \frac{1}{n-1}\sum_{t=2}^n (x_t - x_{t-1}) = \frac{x_n - x_1}{n-1}$.
+
+The forecast is thus
+
+$$
+\hat x_{n+h|n} = x_n + h \cdot \frac{x_n-x_1}{n-1}.
+$$
+
+## Gaussian processes
+
+### Definition
+
+The examples in the previous section notwithstanding, it is generally difficult to compute formulas for conditional distributions in order to derive forecasts.
+This is one motivation for working with Gaussian processes, which do not have this problem.
+
+We say that $(X_t)$ is a *Gaussian process* if all finite dimensional projections $(X_{t_1},X_{t_2},\ldots,X_{t_k})$ have a multivariate normal distribution.
+The distribution of a Gaussian process is fully determined by its mean and autocovariance functions.
+More precisely, the density for $(X_{t_1},X_{t_2},\ldots,X_{t_k})$ is given by
+$$
+p(x_1,x_2,\ldots,x_k) = (2\pi)^{-k/2} \det(\Gamma)^{-1/2}\exp\left(-\frac{1}{2}(x_{1:k} - \mu)^T\Gamma^{-1}(x_{1:k} - \mu)\right),
+$$
+where $x_{1:k} = (x_1,x_2,\ldots,x_k)$, $\mu = (\mu_X(t_1),\ldots,\mu_X(t_k))$, and $\Gamma_{ij} = \gamma_X(t_i, t_j)$.
+
+If $(X_t)$ is weakly stationary, then $\mu$ is a constant vector and the entries of $\Gamma$ depend only on the differences $|t_i - t_j|$.
+In particular it is strongly stationary.
+
+### Gaussian conditional distributions {#sec-ar-gaussian}
+
+We first discuss some properties of multivariate normal distributions.
+
+**Proposition 9.1.** (Conditional distribution)
+Let $(X_1,X_2,\ldots,X_{n+1}) \sim N(\mu, \Sigma)$ be a multivariate Gaussian random vector, then given observations $X_1=x_1, X_2 = x_2,\ldots,X_{n} = x_{n}$, the conditional distribution of $X_{n+1}$ conditioned on these values is 
+$$
+N(\mu_{n+1} + \Sigma_{1:n,n+1}^T\Sigma_{1:n,1:n}^{-1}(x_{1:n} - \mu_{1:n}), \Sigma_{n+1,n+1} - \Sigma_{1:n,n+1}^T\Sigma_{1:n,1:n}^{-1}\Sigma_{1:n,n+1}),
+$$ {#eq-fundamentals-gaussian-conditional}
+where $\Sigma_{1:n,1:n}$ is the top left $n \times n$ submatrix of $\Sigma$, $\Sigma_{n+1,n+1}$ its bottom right entry, and $\Sigma_{n+1,1:n}$ its bottom row without the bottom right entry，i.e.
+$$
+\Sigma = \left[\begin{matrix}     \Sigma_{1:n,1:n} & \Sigma_{1:n,n+1}  \\  \Sigma_{n+1,1:n} & \Sigma_{n+1,n+1}
+\end{matrix}\right].
+$$
+
+*Proof.*
+This is a [well-known property](https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Conditional_distributions) of multivariate Gaussian distributions and can be proved by computing the conditional density using the [block matrix inverse formula](https://en.wikipedia.org/wiki/Block_matrix#Block_matrix_inversion).
+
+This formula is used often in many areas of statistics (and engineering).
+In the context of time series analysis, we typically assume stationarity, which means that the formula simplifies.
+
+**Corollary 9.2.** (Conditional distribution under stationarity)
+Let $(X_1,X_2,\ldots)$ be a zero mean stationary Gaussian process, then given observations $X_1=x_1, X_2 = x_2,\ldots,X_{n} = x_{n}$, the conditional distribution of $X_{n+h}$ conditioned on these values is
+$$
+N(\gamma_{h:n+h-1}^T\Gamma_{n}^{-1}x_{n:1}, \gamma_X(0) - \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}\gamma_{h:n+h-1}),
+$$ {#eq-ar-forecast-distribution}
+where
+$$
+\gamma_{a:b} \coloneqq \left(\gamma_X(a), \gamma_X(a+1),\ldots,\gamma_X(b)\right)
+$$ {#eq-ar-forecast-gamma}
+for any $a < b$,
+$$
+\Gamma_n \coloneqq (\gamma_X(i-j))_{i,j=1}^n,
+$$ {#eq-ar-forecast-Gamma}
+and $x_{n:1} = (x_n, x_{n-1},\ldots,x_1)$.
+
+Assuming Gaussian white noise, @eq-ar-forecast-distribution thus gives the distributional forecast and can be used to supply point forecasts
+$$
+\hat x_{n+h|n} = \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}x_{n:1}
+$$ {#eq-ar-forecast-mean}
+as well as 95% prediction intervals $(\hat x_{n+h|n} - 1.96v_{n+h}^{1/2}, \hat x_{n+h|n} + 1.96v_{n+h}^{1/2})$ for $v_{n+h} = \gamma_X(0) - \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}\gamma_{h:n+h-1}$.
+
+### Takeaways {#sec-fundamentals-gaussian-takeaways}
+
+Note that the conditional variance formula in @eq-ar-forecast-distribution can be interpreted as the *Bayes optimal* expected prediction error when predicting $X_{n+h}$ given observations $X_{1:n} = x_{1:n}$.
+When the Gaussian process is not equivalent to white noise, the formula is strictly smaller than $\gamma_X(0)$ which is the marginal variance of $X_{n+h}$ and hence also the expected prediction error when using the mean method.
+In other words, when the time series is stationary but not white noise, its past values can be used to improve predictions of future values.
+
+In real data analysis, we are not told what the model is and have to estimate it from the data.
+The formulas in this section also show that for Gaussian processes, all we really need to know for forecasting are the mean and autocovariance functions (i.e. the first and second moments of the stochastic process).
+The key benefit of stationarity is that these moments can be estimated from just a single realization of the stochastic process, as we will show further in the next section.
+
 
 ## Moment estimation {#sec-stationary-moments}
 
@@ -237,7 +449,7 @@ Here, we focus on their use in forecasting.
 
 The simple forecasting methods as well as exponential smoothing methods allow us to exploit trend and seasonality patterns for forecasting.
 However, they are not able to make use of short-term cycles or, more generally, any patterns in the remainder component of a time series decomposition.
-On the other hand, unless the remainder component comprises white noise, time-based correlations exist, and these can be used to improve forecasts.
+On the other hand, unless the remainder component comprises white noise, time-based correlations exist, and these can be used to improve forecasts, as discussed in @sec-fundamentals-gaussian-takeaways.
 This is addressed by the *Box-Jenkins method*, which we now discuss.
 
 The [Box-Jenkins method](https://en.wikipedia.org/wiki/Box%E2%80%93Jenkins_method), named after George Box and Gwilym Jenkins, was formulated in their textbook @box2015time.[^5]

@@ -9,8 +9,10 @@ window.MathJax = {
       Var: "{\\textnormal{Var}}",
       Cov: "{\\textnormal{Cov}}",
       Corr: "{\\textnormal{Corr}}",
+      bI: "{\\mathbf{I}}",
       bX: "{\\mathbf{X}}",
       bZ: "{\\mathbf{Z}}",
+      by: "{\\mathbf{y}}",
       bphi: "{\\boldsymbol{\\phi}}",
       bbeta: "{\\boldsymbol{\\beta}}"
     }

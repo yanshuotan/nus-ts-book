@@ -1,0 +1,112 @@
+# Spectral Analysis
+
+## Introduction to Fourier analysis
+
+In the 19th century, mathematician and physicist Joseph Fourier discovered that all periodic functions can be written as a sum of sine and cosine waves of various frequencies.
+Analyzing functions in terms of its frequencies, now called *Fourier analysis*, provided an important tool for solving differential equations, which had numerous immediate applications for the study of physics and engineering.
+This idea also turns out to be very fruitful in time series analysis and is the starting point for the approach called *spectral analysis*.
+
+## Fourier coefficients
+
+Suppose we have a time series $(y_t)_{t=1}^n$, and assume for now that $n$ is even.
+For any $j=1,2,\ldots, n/2$, consider the sequences $(s_{jt})_{t=1}^n$ and $(c_{jt})_{t=1}^n$, where
+$$
+s_{jt} = \sin(2\pi t j/n), \quad\quad c_{jt} = \cos(2\pi t j/n).
+$$
+These can be taught of as periodic functions in the time index $t$, with $j/n$ measuring the frequency of the function.
+For $n=100$, the sequences $(s_{jt})$ for $j=1/100$ and $j= 7/100$ are plotted below.
+
+```{r}
+#| echo: FALSE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Sinusoidal functions of different frequencies.
+#| label: fig-spectral-sinusoidal
+
+n <- 100
+t_grid <- 1:n
+df <- data.frame(
+    t = rep(t_grid, 2),
+    y = c(sin(2 * pi * t_grid / n), sin(2 * pi * t_grid * 7 / n)),
+    Frequency = rep(c("1/100", "7/100"), each = n)
+)
+
+library(ggplot2)
+ggplot(df, aes(x = t, y = y, color = Frequency)) +
+    geom_line() +
+    labs(x = "t", y = "y") +
+    theme_minimal()
+```
+
+Removing $(s_{n/2, t})$, which is identically zero[^1], and adding the constant sequence,
+one can show that, after normalizing by $\sqrt{2/n}$, these sequences form an orthonormal basis for $\R^n$, called the Fourier basis.
+In other words, we have
+
+[^1]: We have $\sin(2\pi t * (n/2)/n) = \sin(\pi t) = 0$ for all integers $t$.
+
+**Proposition 9.1.** (Orthogonality relations)
+The sequences $(s_{jt})_{t=1}^n$ and $(c_{jt})_{t=1}^n$ for $j=1,2,\ldots, n/2$ satisfy
+$$
+\frac{2}{n}\sum_{t=1}^n s_{jt}s_{kt} = \begin{cases} 
+1 & \text{if}~j = k \\
+0 & \text{otherwise},
+\end{cases}
+$$
+$$
+\frac{2}{n}\sum_{t=1}^n c_{jt}c_{kt} = \begin{cases} 
+1 & \text{if}~j = k \\
+0 & \text{otherwise},
+\end{cases}
+$$
+$$
+\frac{2}{n}\sum_{t=1}^n s_{jt}c_{kt} = 0.
+$$
+
+The *Fourier coefficients* $a_j$ and $b_j$ are the regression coefficients when regressing the time series $(y_t)$ onto this basis.
+Because of the orthogonality relations, we have the convenient formulas:
+$$
+a_j = \frac{2}{n} \sum_{t=1}^n y_t c_{jt}, \quad\quad b_j = \frac{2}{n} \sum_{t=1}^n x_t s_{jt}.
+$$ {#eq-spectral-coefficients}
+
+::: callout-note
+
+To prove this, define the $n \times n$ matrix 
+$$
+\bZ =
+\begin{bmatrix}
+\frac{1}{\sqrt{2}} & \cos\left( 2\pi \frac{1}{n} \cdot 1 \right) & \sin\left( 2\pi \frac{1}{n} \cdot 1 \right) & \cos\left( 2\pi \frac{2}{n} \cdot 1 \right) & \dots & \cos\left( 2\pi \frac{n/2}{n} \cdot 1 \right) \\
+\frac{1}{\sqrt{2}} & \cos\left( 2\pi \frac{1}{n} \cdot 2 \right) & \sin\left( 2\pi \frac{1}{n} \cdot 2 \right) & \cos\left( 2\pi \frac{2}{n} \cdot 2 \right) & \dots & \cos\left( 2\pi \frac{n/2}{n} \cdot 2 \right) \\
+\vdots & \vdots & \vdots & \vdots & \ddots & \vdots \\
+\frac{1}{\sqrt{2}} & \cos\left( 2\pi \frac{1}{n} \cdot n \right) & \sin\left( 2\pi \frac{1}{n} \cdot n \right) & \cos\left( 2\pi \frac{2}{n} \cdot n \right) & \dots & \cos\left( 2\pi \frac{n/2}{n} \cdot n \right)
+\end{bmatrix}.
+$$
+The regression coefficients of $\by = (y_t)$ on the Fourier basis are given by the formula
+$$
+(\bZ^T\bZ)^{-1}\bZ^T\by.
+$$
+However, it is easy to check tht the orthogonality relations imply $\bZ^T\bZ = \frac{n}{2}\bI$, where $\bI$ is the identity matrix.
+This means that each entry of $(\bZ^T\bZ)^{-1}\bZ^T\by$ is of the form @eq-spectral-coefficients.
+
+:::
+
+When $n$ is odd, we simply enumerate over $j=1,2,\ldots,(n-1)/2$ (and add the constant sequence as before).
+
+The Fourier coefficients of $(y_t)$ tell us to what extent each frequency is represented in the time series.
+Hence, they can be interpreted as summary statistics for time series.
+Beyond that, because the Fourier basis is a basis, the mapping from $(y_t)$ to its Fourier coefficients (this map is called the *Fourier transform*) is invertible.
+Indeed, if we set $\hat\by \coloneqq (\bZ^T\bZ)^{-1}\bZ^T\by$, we have
+$$
+\bZ\hat\by = \bZ(\bZ^T\bZ)^{-1}\bZ^T\by = \by.
+$$
+Written in terms of $(s_{jt})$ and $(c_{jt})$, we have
+$$
+y_t = \bar{y} + \sum_{j=1}^{n/2} \left( a_j c_{jt} + b_j s_{jt}\right).
+$$
+
+## Periodogram
+
+In time series analysis, we often do not 
+
+## Computing in R
+
+## Wavelets

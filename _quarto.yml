@@ -16,20 +16,21 @@ book:
       - 03-visualization.qmd
       - 04-transformations.qmd
       - 05-decomposition.qmd
-      - 06-summary_stats.qmd
-      - 07-intro_forecasting.qmd
-      - 08-exponential_smoothing.qmd
+      - 06-intro_forecasting.qmd
+      - 07-exponential_smoothing.qmd
+      - 08-summary_stats.qmd
+      - 09-spectral_analysis.qmd
     - part: part2-statistics.qmd
       chapters:
-      - 09-fundamentals.qmd
-      - 10-ar.qmd
-      - 11-arma.qmd
-      - 12-arima.qmd
-      - 13-dynamic_regression.qmd
-      - 14-state_space.qmd
+      - 10-fundamentals.qmd
+      - 11-ar.qmd
+      - 12-arma.qmd
+      - 13-arima.qmd
+      - 14-dynamic_regression.qmd
+      - 15-state_space.qmd
     - part: "Advanced Topics"
       chapters:
-      - 15-uncertainty.qmd
+      - 16-uncertainty.qmd
     - references.qmd
   appendices:
     - a1-rbackground.qmd

@@ -1,5 +1,12 @@
 # Spectral Analysis
 
+```{r}
+#| message: FALSE
+#| warning: FALSE
+#| echo: FALSE
+source("_code/set_up.R")
+```
+
 ## Introduction to Fourier analysis
 
 In the 19th century, mathematician and physicist Joseph Fourier discovered that all periodic functions can be written as a sum of sine and cosine waves of various frequencies.
@@ -68,8 +75,6 @@ $$
 a_j = \frac{2}{n} \sum_{t=1}^n y_t c_{jt}, \quad\quad b_j = \frac{2}{n} \sum_{t=1}^n x_t s_{jt}.
 $$ {#eq-spectral-coefficients}
 
-::: callout-note
-
 To prove this, define the $n \times n$ matrix 
 $$
 \bZ =
@@ -84,19 +89,17 @@ The regression coefficients of $\by = (y_t)$ on the Fourier basis are given by t
 $$
 (\bZ^T\bZ)^{-1}\bZ^T\by.
 $$
-However, it is easy to check tht the orthogonality relations imply $\bZ^T\bZ = \frac{n}{2}\bI$, where $\bI$ is the identity matrix.
+However, it is easy to check that the orthogonality relations imply $\bZ^T\bZ = \frac{n}{2}\bI$, where $\bI$ is the identity matrix.
 This means that each entry of $(\bZ^T\bZ)^{-1}\bZ^T\by$ is of the form @eq-spectral-coefficients.
-
-:::
 
 When $n$ is odd, we simply enumerate over $j=1,2,\ldots,(n-1)/2$ (and add the constant sequence as before).
 
 The Fourier coefficients of $(y_t)$ tell us to what extent each frequency is represented in the time series.
 Hence, they can be interpreted as summary statistics for time series.
 Beyond that, because the Fourier basis is a basis, the mapping from $(y_t)$ to its Fourier coefficients (this map is called the *Fourier transform*) is invertible.
-Indeed, if we set $\hat\by \coloneqq (\bZ^T\bZ)^{-1}\bZ^T\by$, we have
+Indeed, if we set $\ba \coloneqq (\bZ^T\bZ)^{-1}\bZ^T\by$, we have
 $$
-\bZ\hat\by = \bZ(\bZ^T\bZ)^{-1}\bZ^T\by = \by.
+\bZ\hat\ba = \bZ(\bZ^T\bZ)^{-1}\bZ^T\by = \by.
 $$
 Written in terms of $(s_{jt})$ and $(c_{jt})$, we have
 $$
@@ -105,8 +108,248 @@ $$
 
 ## Periodogram
 
-In time series analysis, we often do not 
+Using the trigonometric identity
+$$
+\cos(u+v) = \cos(u)\cos(b) - \sin(u)\sin(v),
+$$
+we see that
+$$
+a_jc_{jt} + b_j s_{jt} = \sqrt{a_j^2 + b_j^2} \cos(2\pi t j/n + \phi),
+$$
+where $\phi = \arctan(-b_j/a_j)$.
+This is a single sine curve with amplitude $\sqrt{a_j^2 + b_j^2}$ and phase $\phi$.
 
-## Computing in R
+In time series analysis, we often are more interested in the amplitude of the frequency and are not particular interested in the phase.
+This leads to the definition of the *periodogram* $P$, which is defined as the function
+$$
+P(j/n) \coloneqq \frac{n^2}{4}\left(a_j^2 + b_j^2\right),
+$$
+for $j=1,2,\ldots,n/2$.
+Note that $j/n$ is equal to the frequency, its reciprocal $n/j$ is equal to its period (the length of the repeating unit), and $P(j/n)$ is the squared amplitude (also known as intensity) of that frequency.
+The factor of $n^2/4$ is unimportant since we are only interested in relative values.
+Its presence will be explained later.
 
-## Wavelets
+To illustrate the use of the periodogram, we will investigate two examples.
+
+### Star magnitude
+
+We make use of the `star` dataset provided by the `astsa` package (@shumway2000time).
+This dataset comprises observations of the mangitude of a star taken at midnight for 600 consecutive days.
+The time plot and the periodogram (truncated at 0.08 for better resolution) are shown below.
+
+::: panel-tabset
+
+## Time plot
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Time plot for star magnitudes
+#| label: fig-spectral-star-timeplot
+star |>
+    as_tsibble() |>
+    rename(Day = index, Value = value) |>
+    autoplot() + labs(y = "Star magnitude")
+```
+
+## Periodogram
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Periodogram for star magnitudes
+#| label: fig-spectral-star-periodogram
+star |>
+    periodogram(max_freq = 0.08)
+```
+
+:::
+
+To interpret the periodogram, we see that there are two peaks, occuring at frequencies roughly 0.04167 and 0.35.
+These corresponds to periods of roughly $24 \approx 1/0.04167$ days and $29 \approx 1/0.35$ days respectively.
+The strength of these peaks is suggestive of the star magnitude being mostly determined by stable astrophysical phenomena of a periodic nature.
+
+### Lynx population
+
+We plot the periodogram for the Hudson Bay Company trading records for lynx furs, contained in the `pelt` dataset.
+
+::: panel-tabset
+
+## Time plot
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Hudson Bay Company trading records for lynx furs.
+#| label: fig-spectral-lynx-timeplot
+pelt |>
+    autoplot(Lynx)
+```
+
+## Periodogram
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Periodogram for lynx furs.
+#| label: fig-spectral-lynx-periodogram
+pelt$Lynx |>
+    periodogram(max_freq = 0.5)
+```
+
+:::
+
+We see that there is a peak at frequency = 0.1, which corresponds to 
+In comparison to a period of $10 = 1/0.1$ years.
+This agrees with the ACF plot for the same time series (@fig-summary-lynx-acf).
+The more diffuse nature of this peak suggests that the periodic pattern is not as stable as in the previous example.
+
+### US retail employment
+
+For the last example, we will work US employment data contained in `us_employment`, focusing on employment numbers in the retail sector.
+
+```{r}
+us_retail_employment <- us_employment |>
+  filter(year(Month) >= 1990, Title == "Retail Trade") |>
+  select(-Series_ID, -Title) 
+```
+
+We perform an STL decomposition and then plot the periodogram of the detrended time series.
+
+::: panel-tabset
+
+## Time plot
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Hudson Bay Company trading records for lynx furs.
+#| label: fig-spectral-employment-timeplot
+
+us_retail_employment |>
+    model(STL(Employed)) |>
+    components() |>
+    autoplot()
+```
+
+## Periodogram
+
+```{r}
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-cap: Periodogram for lynx furs.
+#| label: fig-spectral-employment-periodogram
+us_retail_employment |>
+    model(STL(Employed)) |>
+    components() |> 
+    mutate(trend_adjust = Employed - trend) |> 
+    pluck("trend_adjust") |> 
+    periodogram()
+```
+
+:::
+
+There are peaks approximately at frequencies 0.08, 0.16, 0.25 and 0.33.
+Bearing in mind that this is a monthly time series, these corresponds to periods of 12 months, 6 months, 4 months, and 3 months respectively, which is suggestive of seasonal components with these periods.
+The relative height of the peaks suggests that the yearly seasonality is the strongest.
+
+Note that if we do not detrend the time series before generating the periodogram, we get a very different and more ambiguous result, since frequencies of all orders are required to generate the non-periodic trend component.
+
+## Applications of spectral analysis
+
+Spectral analysis is a rich area that has many uses cases.
+As seen from the above discussion, it allows us to identify cyclic patterns more reliably than with seasonal or ACF plots.
+Seasonal plots require estimation of the relevant seasonal period, which is then usually constrained to a few rigid choices (e.g. yearly, monthly, weekly, hourly).
+ACF plots usually mask all but the most dominant frequency.
+In comparison, the periodogram reveals a finer resolution of what frequencies are present and allows us to compare their relative strengths.
+
+When the periodogram is *sparse*, i.e. when only a few frequencies are significant, the nonzero Fourier coefficients provide useful features that can be used for time series classification or clustering.
+By selecting certain frequencies and zeroing out the others, we also obtain transformations that can isolate long-term trends or rapid fluctuations, thereby supplementing the tools we already have for time series decomposition.
+
+Spectral analysis is also useful for forecasting.
+One of the most broadly used model is DHR-ARIMA, which stands for *dynamic harmonic regression with ARIMA errors*.
+This combines ARIMA modeling (@sec-arima) with regression onto sinusoidal terms of certain frequencies.
+We will learn more about this in a later chapter.
+
+## *Computing periodograms in R using the FFT
+
+Computing Fourier coefficients via the formulas @eq-spectral-coefficients can be computationally expensive when the length of the time series $n$ is large.
+Indeed, the running time is $O(n^2)$.
+One of the biggest engineering breakthroughs in the 20th century was the discovery of an algorithm, called the [*Fast Fourier transform* (FFT)](https://en.wikipedia.org/wiki/Fast_Fourier_transform), that is able to compute the Fourier transform in $O(n\log n)$ time.
+
+The FFT is defined in terms of complex exponentials, making use of Euler's identity
+$$
+e^{i\theta} = \cos(\theta) + i\sin(\theta),
+$$
+where $i$ refers to imaginary unit (satisfying $i^2 = -1$).
+The (complex) Fourier coefficients of $(y_t)$ are defined as
+$$
+\hat y_j \coloneqq \sum_{t=1}^n y_t e^{-2\pi i tj/n}.
+$$ {#eq-spectral-complex-Fourier}
+Using Euler's identity, the coefficients $a_j$ and $b_j$ (defined in @eq-spectral-coefficients) can be computed as the real and imaginary parts of $\hat y_j$ (after normalization).
+In turn the periodogram can be computed as
+$$
+\begin{split}
+P(j/n) & = \frac{n^2}{4}\left(a_j^2 + b_j^2\right) \\
+& = \frac{n^2}{4}\left(\text{Re}(\frac{2}{n}\hat y_j)^2 + \text{Im}(\frac{2}{n}\hat y_j)^2\right) \\
+& = \text{Re}(\hat y_j)^2 + \text{Im}(\hat y_j)^2 \\
+& = \left|\hat y_j \right|^2.
+\end{split}
+$$
+
+We can express @eq-spectral-complex-Fourier concisely as
+$$
+\hat\by = \bF\by,
+$$ {#eq-spectral-fft} 
+where
+$$
+\bF = \begin{bmatrix}
+\omega_n^0 & \omega_n^0 & \omega_n^0 & \cdots & \omega_n^0 \\
+\omega_n^0 & \omega_n^1 & \omega_n^2 & \cdots & \omega_n^{(n-1)} \\
+\omega_n^0 & \omega_n^2 & \omega_n^4 & \cdots & \omega_n^{2(n-1)} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+\omega_n^0 & \omega_n^{(n-1)} & \omega_n^{2(n-1)} & \cdots & \omega_n^{(n-1)(n-1)}
+\end{bmatrix}
+$$
+and $\omega_n = e^{-i 2\pi / n}$.
+The idea of the FFT is that the special properties of the matrix $\bF$ allow for a divide-and-conquer approach to compute @eq-spectral-fft efficiently.
+
+The FFT is implemented as the `fft` function in base R.
+The `periodogram` function we used to plot periodograms was written in terms of `fft`.
+
+```{r}
+periodogram
+```
+
+## *Relationship to ACVF
+
+The periodogram is closely connected to the ACVF (@sec-summarystats).
+Indeed, we have:
+
+**Proposition 9.2.**
+The periodogram can be computed from the ACVF and vice versa using the formula
+$$
+P(j/n) = 2\sum_{h=0}^{n-1}\hat\gamma(h)\cos(2\pi h j/n).
+$$
+
+## *Wavelets and scalograms
+
+One of the issues with the Fourier transform and the periodogram is that they are time-agnostic.
+In other words, they quantify the average strength of a particular frequency throughout the entire time series, and do not (naturally) account for how the strength of the frequency might change over time.
+We have already seen how the seasonality pattern for some time series may change over time.
+This effect cannot be detected using a periodogram.
+
+Wavelets attempt to solve this problem by introducing basis functions that are based on waves that are localized in time.
+This gives a two-dimensional sequence of basis vectors, indexed by frequency and time, and the plot of coefficients arising in this way is called a *scalogram*.
+Since going into more depth require some amount of technical detail, we refer the interested reader to relevant resources, such as @torrence1998practical.
+
+## *Statistical models for spectral analysis
+
+For a stationary process (see @sec-fundamentals-stationary), the periodogram gives an estimate of the *spectral density* of the model.
+The spectral density provides another perspective for time series models (stochastic processes), but lies outside the scope of this book.
+We refer the interested reader to Chapters 4 and 7 in @shumway2000time.

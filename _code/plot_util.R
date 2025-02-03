@@ -24,3 +24,27 @@ sim_ar <- function(ar_model) {
                   sd = sqrt(sigma2)) + mu
   xt
 }
+
+periodogram <- function(x, max_freq = 0.5) {
+  #' Plot a Periodogram for a Time Series
+  #'
+  #' This function takes a vector representing a time series,
+  #' and plots the periodogram of the time series.
+  #'
+  #' @param x A numeric vector representing the time series.
+  #' @param max_freq The max frequency to be plotted
+  #'
+  #' @return A ggplot object representing the periodogram of the time series.
+  #'
+  
+  # old_warn <- options(warn = -1)  # Disable warnings
+  n <- length(x)
+  freq <- 0 : (n - 1) / n
+  per <- Mod(fft(x - mean(x))) ^ 2
+  tibble(freq = freq, per = per) |>
+    ggplot(aes(x = freq, y = per)) +
+    geom_segment(aes(xend = freq, yend = 0)) +
+    labs(x = "Frequency", y = "Periodogram") +
+    theme_minimal() + xlim(0, max_freq)
+  # on.exit(options(old_warn))      # Restore warning setting on exit
+}

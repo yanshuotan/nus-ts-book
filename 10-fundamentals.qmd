@@ -1,4 +1,4 @@
-# Statistical Models
+# Statistical Models {#sec-fundamentals}
 
 ```{r}
 #| message: FALSE
@@ -33,7 +33,7 @@ $$
 
 [^1]: In the setting of time series models, we will use the terms "stochastic process" and "time series" interchangeably.
 
-## Stationary stochastic processes
+## Stationary stochastic processes {#sec-fundamentals-stationary}
 
 In other areas of statistics, such as linear regression, one estimates the parameters of the distribution $p$ from *repeated independent measurements* and then uses it to make predictions for future observations.
 Unfortunately, in time series problems, we typically see only a *single realization* of the stochastic process.

@@ -613,8 +613,8 @@ Since we only want to evaluate the accuracy of the forecast at horizon $h = 6$, 
 #| warning: FALSE
 #| message: FALSE
 diabetes_fc |>
-    group_by(.id) |>                                            # <1>
-    mutate(h = ((row_number() - 1) %% 6) + 1) |>                # <1>
+    group_by(.id, .model) |>                                            # <1>
+    mutate(h = row_number()) |>                # <1>
     ungroup() |>                                                # <1>
     filter(h == 6) |>                                           # <2>
     as_fable(response = "TotalC", distribution = TotalC) |>     # <3>

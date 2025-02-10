@@ -110,7 +110,7 @@ $$
 
 Using the trigonometric identity
 $$
-\cos(u+v) = \cos(u)\cos(b) - \sin(u)\sin(v),
+\cos(u+v) = \cos(u)\cos(v) - \sin(u)\sin(v),
 $$
 we see that
 $$
@@ -171,7 +171,7 @@ To interpret the periodogram, we see that there are two peaks, occuring at frequ
 These corresponds to periods of roughly $24 \approx 1/0.04167$ days and $29 \approx 1/0.35$ days respectively.
 The strength of these peaks is suggestive of the star magnitude being mostly determined by stable astrophysical phenomena of a periodic nature.
 
-### Lynx population
+### Lynx furs
 
 We plot the periodogram for the Hudson Bay Company trading records for lynx furs, contained in the `pelt` dataset.
 
@@ -227,7 +227,7 @@ We perform an STL decomposition and then plot the periodogram of the detrended t
 #| echo: TRUE
 #| message: FALSE
 #| warning: FALSE
-#| fig-cap: Hudson Bay Company trading records for lynx furs.
+#| fig-cap: US retail employment.
 #| label: fig-spectral-employment-timeplot
 
 us_retail_employment |>
@@ -242,7 +242,7 @@ us_retail_employment |>
 #| echo: TRUE
 #| message: FALSE
 #| warning: FALSE
-#| fig-cap: Periodogram for lynx furs.
+#| fig-cap: Periodogram for US retail employment.
 #| label: fig-spectral-employment-periodogram
 us_retail_employment |>
     model(STL(Employed)) |>
@@ -255,7 +255,8 @@ us_retail_employment |>
 :::
 
 There are peaks approximately at frequencies 0.08, 0.16, 0.25 and 0.33.
-Bearing in mind that this is a monthly time series, these corresponds to periods of 12 months, 6 months, 4 months, and 3 months respectively, which is suggestive of seasonal components with these periods.
+Bearing in mind that this is a monthly time series, these correspond to periods of 12 months, 6 months, 4 months, and 3 months respectively.
+These are all divisors of 12, which means that the sinusoidal functions corresponding to these frequencies all contribute to building the yearly (12 month) seasonal unit.
 The relative height of the peaks suggests that the yearly seasonality is the strongest.
 
 Note that if we do not detrend the time series before generating the periodogram, we get a very different and more ambiguous result, since frequencies of all orders are required to generate the non-periodic trend component.

@@ -103,7 +103,7 @@ This is a good model for stock prices over the short term, but clearly not a goo
 
 For any forecast horizon $h$, we define the forecast to be equal to the most recent observation from the *same season*, i.e.
 $$
-\hat x_{n + h|n} := x_{n - ((p-h)~\text{mod}~p)},
+\hat x_{n + h|n} := x_{n - ((-h)~\text{mod}~p)},
 $$
 where $t~\text{mod}~p$ refers to the integer remainder of $t$ after dividing by $p$.[^1]
 The result for the antidiabetic drug sales dataset is shown below.

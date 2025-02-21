@@ -10,7 +10,7 @@ source("_code/set_up.R")
 ## Statistical models for time series
 
 So far, we have worked with time series as a fixed sequence of numbers.
-A *time series model* treats the sequence of observations as a realization of a sequence random variables $X_1,X_2,\ldots,X_n$ and specifies their joint distribution.
+A *time series model* treats the sequence of observations as a realization of a sequence of random variables $X_1,X_2,\ldots,X_n$ and specifies their joint distribution.
 $$
 \P\lbrace X_1 \leq x_1, X_2 \leq x_2,\ldots,X_n \leq x_n\rbrace.
 $$

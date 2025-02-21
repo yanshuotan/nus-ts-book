@@ -377,7 +377,7 @@ Finally, we update the seasonal component by using a weighted average of the sea
 Note that we now have $5 + p$ parameters to estimate: $\alpha, \beta^*, \gamma, l_0, b_0$, and $s_0,s_{-1},\ldots,s_{p-1}$.
 Finally, the forecast equation is:
 $$
-\hat x_{n+h|n} = l_n + h b_n + s_{n - p + (h ~\text{mod}~p)}.
+\hat x_{n+h|n} = l_n + h b_n + s_{n - (-h ~\text{mod}~p)}.
 $$ {#eq-exponential-damped-forecast}
 
 ### Multiplicative method
@@ -398,7 +398,7 @@ s_t = \gamma \frac{x_t}{l_{t-1} + b_{t-1}} + (1-\gamma) s_{t-p}.
 $$ 
 
 $$
-\hat x_{n+h|n} = (l_n + h b_n)s_{n - p + (h ~\text{mod}~p)}.
+\hat x_{n+h|n} = (l_n + h b_n)s_{n - (-h ~\text{mod}~p)}.
 $$ 
 
 Note that this is not equivalent to applying a log transform on $x_t$ followed by the additive method.
@@ -421,7 +421,7 @@ s_t = \gamma \frac{x_t}{l_{t-1} + \phi b_{t-1}} + (1-\gamma) s_{t-p}.
 $$ 
 
 $$
-\hat x_{n+h|n} = (l_n + (\phi + \phi^2 + \cdots + \phi^h) b_n)s_{n - p + (h ~\text{mod}~p)}.
+\hat x_{n+h|n} = (l_n + (\phi + \phi^2 + \cdots + \phi^h) b_n)s_{n - (-h ~\text{mod}~p)}.
 $$ 
 
 

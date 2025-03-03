@@ -47,7 +47,7 @@ $$
 $$
 for any dimension $k$, time indices $t_1,t_2,\ldots, t_k$, and shift $h$.
 
-This definition is often too strong and diffuclt to assess.
+This definition is often too strong and difficult to assess.
 Hence, it is common to impose a milder conditions based on the first two moments.
 
 **Weak stationarity:**
@@ -113,16 +113,16 @@ Unless stated otherwise, however, we will assume in the rest of this book that w
 
 We say that $(X_t)$ is a *random walk with drift* if we have
 $$ 
-X_t = \delta + X_{t-1} + W_t,
+X_t = \theta + X_{t-1} + W_t,
 $$ {#eq-stationary-rw}
 where $(W_t) \sim WN(0,\sigma^2)$.
-$\delta$ is called the drift of the walk, and if $\delta = 0$, $(X_t)$ is called a *simple random walk*.
+$\theta$ is called the drift of the walk, and if $\theta = 0$, $(X_t)$ is called a *simple random walk*.
 Note that a random walk is not stationary, even when there is no drift.
 Indeed, assuming the initial condition $X_0 = 0$ and rewriting @eq-stationary-rw as
 $$
-X_t = t\delta + \sum_{j=1}^t W_j,
+X_t = t\theta + \sum_{j=1}^t W_j,
 $$
-we easily compute $\mu_X(t) = \delta t$ and
+we easily compute $\mu_X(t) = \theta t$ and
 $$
 \gamma_X(s, t) = \sigma^2\min\lbrace s, t\rbrace.
 $$
@@ -214,7 +214,7 @@ Note that the conditional mean can be thought of as a function of the random var
 $$
 r(x_{1:n}) \coloneqq \E\lbrace X_{n+h}|X_1 = x_1,\ldots,X_n = x_n\rbrace.
 $$
-A key property is that the conditional mean is a [Bayes optimal predictors](https://stephens999.github.io/fiveMinuteStats/decision_theory_bayes_rule.html) with respect to squared loss, i.e. we have
+A key property is that the conditional mean is a [Bayes optimal predictor](https://stephens999.github.io/fiveMinuteStats/decision_theory_bayes_rule.html) with respect to squared loss, i.e. we have
 $$
 r = \textnormal{argmin}_{f \colon \R^n \to \R} \E\left\lbrace (f(X_{1:n}) - X_{n+h})^2\right\rbrace.
 $$
@@ -225,10 +225,14 @@ Let us see how to use this recipe to derive the simple forecasting methods from 
 
 ### Mean method
 
-Suppose we have the model $X_t = \theta + W_t$ for an unknown $\theta$ and a Gaussian white noise $(W_t) \sim WN(0,\sigma^2)$.
-Since $W_{n+h}$ is independent of $W_{1:n}$ and has mean zero, the point forecast is
+Suppose we have the model $X_t = \theta + W_t$ for an unknown parameter $\theta$ and a Gaussian white noise $(W_t) \sim WN(0,\sigma^2)$.
+Since $W_{n+h}$ is independent of $W_{1:n}$, the conditional distribution is equal to the marginal distribution:
 $$
-\hat x_{n+h|n} = \theta + \E\left\lbrace W_{n+h}|X_{1:n} = x_{1:n}\right\rbrace = \theta.
+p(x_{n+h}|x_{1:n}) = p(x_{n+h}) \sim N(\theta,\sigma^2).
+$$
+The point forecast is then 
+$$
+\hat x_{n+h|n} = \theta.
 $$
 To calculate our estimate of $\theta$, we can write the likelihood as
 $$
@@ -246,7 +250,7 @@ which is the formula for the mean method.
 
 ### Naive method
 
-Assume the random walk model @eq-stationary-rw with $\delta = 0$.
+Assume the random walk model @eq-stationary-rw with $\theta = 0$.
 We may recurse @eq-stationary-rw to get
 $$
 X_{n+h} = X_n + W_{n+1} + W_{n+2} + \cdots + W_{n+h}.
@@ -262,7 +266,7 @@ Note that this also gives the distributional forecast.
 
 ### Seasonal naive method
 
-Assume $p$ independent random walk processes $(Y_t^{(1)}),(Y_t^{(1)}), (Y_t^{(p)})$, each with $\delta = 0$.
+Assume $p$ independent random walk processes $(Y_t^{(1)}),(Y_t^{(2)}), \ldots, (Y_t^{(p)})$, each with $\theta = 0$.
 We construct a time series model by setting $X_t = Y_{\lceil t / p \rceil}^{(t~\text{mod}~p)}$.
 
 <!-- [^5]: Here, $t~\text{mod}~p$ is the notation used in [modular arithmetic](https://en.wikipedia.org/wiki/Modular_arithmetic) to denote the remainder of $t$ when divided by $p$. For example, if $t = 10$ and $p=3$, $t~\text{mod}~p = 1$. -->
@@ -305,7 +309,7 @@ $$
 p_\theta(x_t|x_{t-1}) \propto \exp\left(-\frac{1}{2\sigma^2}(x_t - \theta - x_{t-1})^2\right)
 $$
 
-Multiplying these together for $t=2,3,\ldots,n)$, we get
+Multiplying these together for $t=2,3,\ldots,n$, we get
 
 $$
 p(x_2\ldots,x_n|x_1) \propto \exp\left(-\frac{1}{2\sigma^2}\sum_{t=2}^n (x_t - x_{t-1} - \theta)^2\right)
@@ -494,12 +498,12 @@ If $f_t$ has a convenient functional form, or if it is a deterministic function 
 [Unit roots](https://en.wikipedia.org/wiki/Unit_root) require some technical jargon to define.
 We will defer this to @sec-arima.
 For now, we note that some time series cannot be made stationary via subtracting trend and seasonal components.
-For instance, the simple random walk falls into this category because it already has has mean and no seasonality.
+For instance, the simple random walk falls into this category because it already has no trend and no seasonality.
 On the other hand, it can be made stationary by taking a difference on @eq-stationary-rw:
 $$
 \begin{split}
 Y_t & \coloneqq X_t - X_{t-1} \\
-& = \delta + W_t.
+& = \theta + W_t.
 \end{split}
 $$
 Because taking a single first difference makes the the random walk stationary, we say that it has one unit root.

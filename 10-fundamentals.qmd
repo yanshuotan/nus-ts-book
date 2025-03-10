@@ -272,11 +272,11 @@ We construct a time series model by setting $X_t = Y_{\lceil t / p \rceil}^{(t~\
 <!-- [^5]: Here, $t~\text{mod}~p$ is the notation used in [modular arithmetic](https://en.wikipedia.org/wiki/Modular_arithmetic) to denote the remainder of $t$ when divided by $p$. For example, if $t = 10$ and $p=3$, $t~\text{mod}~p = 1$. -->
 
 To forecast the value of $x_{n+h}$, we therefore first identify the index of the random walk it comes from, followed by the most recent observation from that random walk.
-This turns out to be $n - ((p-h)~\text{mod}~p)$.
+This turns out to be $n - ((-h)~\text{mod}~p)$.
 
 As with the previous example, we may recurse @eq-stationary-rw to show that
 $$
-\hat x_{n+h|n} = x_{n - ((p-h)~\text{mod}~p)}.
+\hat x_{n+h|n} = x_{n - ((-h)~\text{mod}~p)}.
 $$
 
 ### Linear trend method

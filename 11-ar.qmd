@@ -299,8 +299,6 @@ The meaning will be clear from the context.
 Suppose $|\phi| < 1$, then there is a unique stationary solution to @eq-ar-ar1.
 This solution is a [causal linear process](09-stationary.qmd#sec-stationary-linear).
 
-::: callout-note
-
 *Proof.*
 We first show existence.
 Consider the random variable defined as
@@ -344,8 +342,6 @@ $$
 \end{split}
 $$
 Since the left hand side is independent of $l$, we get $Y_t =_d X_t$ as we wanted. $\Box$
-
-:::
 
 This theorem allows us to speak of *the* solution to @eq-ar-ar1, and we sometimes informally refer to the equation as the model.
 As such, we also refer to @eq-ar-ar1 for $|\phi| < 1$ as a causal $\textnormal{AR}(1)$ model.
@@ -570,7 +566,7 @@ $$ {#eq-ar-arp-coefficients}
 
 Note that by expanding out the product on the left hand side of @eq-ar-arp-coefficients and comparing coefficients of each monomial term with the right hand side, we get an infinite sequence of equations, which allows us to solve for $\psi_0,\psi_1,\ldots$ (see Example 3.12 in @shumway2000time).
 
-*Proof.*
+*Proof.* *(optional)
 The proof is slightly technical and boils down to investigating whether the autoregressive operator $\phi(B)$ has a well-defined inverse.
 First, note that $\phi(z)$ always has a formal power series inverse $\sum_{j=0}^\infty \psi_j z^j$ obtained by solving @eq-ar-arp-coefficients.
 To check its radius of convergence, write $\phi(z) = \prod_{k=1}^r (1 - z_k^{-1}z)^{m_k}$, where $z_1,z_2,\ldots,z_r$ are the unique roots of $\phi$, and $m_1, m_2,\ldots,m_r$ their multiplicities.[^5]
@@ -654,7 +650,7 @@ where $\phi$ is the autoregressive polynomial of the AR model.
 @eq-ar-moments-difference-eq implies that $\phi$ is also the *characteristic polynomial* of the difference equation @eq-ar-moments-acvf-recursive.
 Completely analogous to what happens with [linear ODEs with constant coefficients](https://en.wikipedia.org/wiki/Linear_differential_equation#Homogeneous_equation_with_constant_coefficients), the roots of the characteristic polynomial determine the shape of the solution to @eq-ar-moments-difference-eq (i.e. the ACVF.)
 
-**Proposition 10.5**
+**Proposition 10.5** *(optional)
 If $z_1,z_2,\ldots,z_r$ are the unique roots of $\phi$ and $m_1, m_2,\ldots,m_r$ their multiplicities, the general solution to @eq-ar-moments-difference-eq is
 $$
 \gamma_X(t) = z_1^{-t}P_1(t) + z_2^{-t}P_2(t) + \cdots + z_r^{-t}P_r(t),

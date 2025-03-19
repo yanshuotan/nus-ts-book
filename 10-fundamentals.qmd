@@ -660,7 +660,7 @@ Let us now check whether the remainder component of the decomposition are white 
 We first generate this time series as follows.
 
 ```{r}
-arrivals_ausjap_remainder <- aus_arrivals |>
+arrivals_remainder <- aus_arrivals |>
     filter(Origin == "UK") |>
     model(
         classical_decomposition(Arrivals, type = "multiplicative")
@@ -680,7 +680,7 @@ Next, we make time and ACF plots.
 #| message: FALSE
 #| fig-cap: Remainder component of a classical decomposition of tourist arrivals to Australia from the UK.
 #| label: fig-stationary-arrivals-time
-arrivals_ausjap_remainder |>
+arrivals_remainder |>
     autoplot(random)
 ```
 
@@ -691,7 +691,7 @@ arrivals_ausjap_remainder |>
 #| message: FALSE
 #| fig-cap: ACF of remainder component of a classical decomposition of tourist arrivals to Australia from the UK.
 #| label: fig-stationary-arrivals-acf
-arrivals_ausjap_remainder |>
+arrivals_remainder |>
     ACF(random) |>
     autoplot()
 ```
@@ -705,6 +705,6 @@ This is very small, confirming our suspicions that the remainder component is si
 ```{r}
 #| warning: FALSE
 #| message: FALSE
-arrivals_ausjap_remainder |>
+arrivals_remainder |>
     features(random, ljung_box, lag = 8)
 ```

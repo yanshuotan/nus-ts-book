@@ -220,7 +220,7 @@ The fact that each PACF value is equivalent to a BLP coefficient allows us to ca
 This procedure is made efficient using the *Durbin-Levinson Algorithm*.
 Indeed, the algorithm recursively calculates the BLP coefficient vectors $\phi_{1|0}, \phi_{2|1}, \phi_{3|2},\ldots$ using the following proposition.
 
-**Proposition 11.2.**
+**Proposition 11.2.** *(optional)*
 Denote $\phi_{t+1|t} = (\phi_{t1},\phi_{t2},\ldots,\phi_{tt})$.
 Then $\phi_{00} = 0$ and for $t = 1, 2, \ldots$, we have
 $$
@@ -546,7 +546,7 @@ $$
 **Proposition 11.5.**
 As $n \to \infty$, the forecast distribution converges to the marginal distribution of $X_t$.
 
-*Proof.*
+*Proof. (optional)*
 For the limiting variance, we use @eq-arma-forecast-variance and see that
 
 $$

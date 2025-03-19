@@ -30,7 +30,7 @@ $$
 is called the *$d$-th order difference* of the time series.
 
 Finally, instead of taking the difference between consecutive values of the time series, we can take differences of values that are some lag $m$ apart, i.e. $Y_t = X_t - X_{t-m}$.
-This is called the *seasonal difference*, as it is usually applied to seasonal data, with $m$ equal to the period of ths seasonality.
+This is called the *seasonal difference*, as it is usually applied to seasonal data, with $m$ equal to the period of the seasonality.
 It can be written in operator form as
 $$
 Y_t = (I - B^m)X_t.

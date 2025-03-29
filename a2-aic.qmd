@@ -36,7 +36,7 @@ $$
 Taking expectations, we see that the negative log likelihood is an unbiased estimate of the cross entropy:
 $$
 \begin{split}
-    \E\lbrace-l(\bbeta,\sigma^2;\bX_{1:n})\rbrace & = -\int f_{\bbeta_0,\sigma_0^2}(\bX_{1:n}) \log f_{\bbeta_0,\sigma_0^2}(\bX_{1:n}) d\bX_{1:n} \\
+    \E\lbrace-l(\bbeta,\sigma^2;\bX_{1:n})\rbrace & = -\int f_{\bbeta_0,\sigma_0^2}(\bX_{1:n}) \log f_{\bbeta,\sigma^2}(\bX_{1:n}) d\bX_{1:n} \\
     & = H(f_{\bbeta_0,\sigma_0^2},f_{\bbeta,\sigma^2}).
 \end{split}
 $$

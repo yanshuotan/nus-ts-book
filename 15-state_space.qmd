@@ -868,17 +868,6 @@ $$
 L_t = L_{t-1} + \alpha W_t,
 $$
 $$
-X_t = L_t + W_t.
-$$
-One can check that this gives the smoothing and forecast equations for the simple exponential smoothing model (see @eq-exponential-ses-smoothing and @eq-exponential-ses-forecast).
-The likelihood of this model is proportional to the sum of squares cost function used to optimize for the parameter $\alpha$ in SES.
-
-**Simple exponential smoothing.**
-Consider the model
-$$
-L_t = L_{t-1} + \alpha W_t,
-$$
-$$
 X_t = L_{t-1} + W_t.
 $$
 One can check that this gives the smoothing and forecast equations for the simple exponential smoothing model (see @eq-exponential-ses-smoothing and @eq-exponential-ses-forecast).

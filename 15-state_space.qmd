@@ -892,6 +892,6 @@ $$
 B_t = B_{t-1} + \beta W_t,
 $$
 $$
-X_{t-1} = L_{t-1} + B_{t-1} + W_t.
+X_{t} = L_{t-1} + B_{t-1} + W_t.
 $$
 This produces the smoothing and forecasting equations for Holt's linear method (see @eq-exponential-holt-level, @eq-exponential-holt-trend, and @eq-exponential-holt-forecast).

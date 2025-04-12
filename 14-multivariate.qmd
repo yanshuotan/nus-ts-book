@@ -1,0 +1,559 @@
+# Multivariate Models
+
+```{r}
+#| message: FALSE
+#| warning: FALSE
+#| echo: FALSE
+source("_code/set_up.R")
+```
+
+Thus far, we have discussed how to model an individual time series by itself.
+On the other hand, we usually observe several concurrent time series which could be related to each other.
+For example, economists interested in understanding the economy of a given country usually have access to multiple economic indicators, such as GDP per capita, unemployment rate, and household wealth (see for instance, the datasets `global_economy` and `hh_budget`).
+This means that other concurrent time series may be useful in helping to forecast a time series of interest.
+The precise causal relationship between different time-varying quantities may also be of interest.
+Companies are intereted in understanding how certain business decisions, such as changing advertisement spend or product pricing, may affect future revenue.
+Prediction and causal analysis have long been studied by applying linear regression to sample data from some population.
+In this chapter, we will learn how to extend linear regression to a time series context.
+
+## Linear regression
+
+### Linear regression recap
+
+We begin with a short overview of linear regression.
+These days, students are likely to first encounter linear regression as an *prediction model* applied to a given dataset.
+That is, given a response vector $\bY = (Y_1,Y_2,\ldots Y_n)^T$ and a covariate matrix $\bX \in \R^{n \times p}$, the linear regression model is of the form $\hat f(\bx) = \hat\bbeta^T\bx$, where 
+$$ 
+\hat\bbeta = \arg\min_{\bbeta}\left\|\bY - \bX\bbeta \right\|^2 = (\bX^T\bX)^{-1}\bX^T\bY.
+$$ {#eq-regression-coefs}
+
+This prediction algorithm can be derived from a statistical model, which yields additional insight on estimation and predictive uncertainties.
+There are two flavors, depending on whether we treat the covariates as fixed (called a fixed design), or themselves as random variables (called a random design).[^1]
+Assuming a fixed design for now, the response vector is generated according to the formula
+$$
+\by = \bX\bbeta^* + \beps,
+$$ {#eq-regression-model}
+where $\bbeta^*$ is the true regression vector and $\beps = (\varepsilon_1,\varepsilon_2,\ldots,\varepsilon_n)^T$ is drawn i.i.d. from $\mathcal{N}(0,\sigma^2)$ for some noise parameter $\sigma^2$.
+
+Note that the only randomness is in the response noise vector $\beps$.
+Under these assumptions, one can check that the estimator in @eq-regression-coefs, called the ordinary least squares (OLS) estimator, is equivalent to the maximum likelihood estimate.
+In addition, it is an unbiased estimate for $\bbeta$ and its deviation from the true regression vector satisfies
+$$
+\hat\bbeta - \bbeta^* \sim \mathcal{N}(0, \sigma^2(\bX^T\bX)^{-1}).
+$$
+Furthermore, by the [Gauss-Markov theorem](https://en.wikipedia.org/wiki/Gauss%E2%80%93Markov_theorem), the OLS estimator is *optimal*, in the sense that it has a the minimum variance among all linear unbiased estimators of $\bbeta^*$.
+
+In a random design, the rows of $\bX$ are assumed to be drawn i.i.d. from a fixed distribution on $\R^p$ with a covariance matrix $\bSigma$.
+Under this assumption, we have the further asymptotic behavior:
+$$
+\sqrt{n}(\hat\bbeta - \bbeta^*) \to_d \mathcal{N}(0, \sigma^2\bSigma^{-1}).
+$$
+
+### Interpretations of regression coefficients
+
+A linear model is highly interpretable as a *predictive (statistical) model*.
+For each $k=1,2,\ldots,p$, $\beta_k^*$ is the slope of the prediction surface in the $k$-th coordinate direction.
+In other words, it is *the amount by which our prediction increases if we increase the $k$-th covariate by 1 unit*.
+
+In addition, these coefficient values can sometimes have scientific (also called causal) interpretations.
+Indeed, one of the earliest uses of linear regression was in randomized experiments.
+Here, each row in the covariate matrix $\bX$ corresponds to a particular experimental setting.
+@eq-regression-model then becomes a *causal model*, with $\beta_k^*$ being *the effect on the response of increasing the $k$-th covariate by 1 unit*.
+
+Of course, randomized experiments are not always possible, especially in the social sciences.
+Economists and sociologists, for instance, usually have to work with non-experimental data coming from census or administative records.
+Even so, @eq-regression-model can sometimes be justified as a causal model using domain knowledge.
+<!-- , in which case, the regression coefficients can have similar interpretations. -->
+The distinction between predictive and causal models is subtle, and will be discussed again later in this chapter.
+
+### Simple linear regression for time series
+
+In the setting of multiple time series, we can treat the time series of interest as a response vector $\bY$, and the remaining time series as columns in a covariate matrix $\bX$.
+However, note that because their are measurements of the same time series at different time points, the rows of $\bX$ are rarely i.i.d..
+As such, a random design assumption is unrealistic and we have to use a fixed design interpretation.
+Focusing on just a single predictor for now, we model
+$$
+Y_t = \alpha + \beta X_t + W_t
+$$ {#eq-regression-ts-simple}
+for $t=1,2,\ldots,n$, where $(W_t)$ is a Gaussian white noise process, and $(X_t)$ is a fixed (non-random) time series.
+In the economics literature, $(X_t)$ is sometimes called an *exogenous* time series, because its dynamics are not modeled.
+
+Let us apply this model to the dataset `us_change`, which comprises percentage changes in quarterly personal consumption expenditure, personal disposable income, production, savings and the unemployment rate for the US from 1970 to 2016.
+
+::: panel-tabset
+
+## Time plot
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+#| fig-cap: Percentage changes in personal consumption expenditure and personal income for the US.
+#| label: fig-regression-us-change
+us_change |>
+  pivot_longer(c(Consumption, Income), names_to="Series") |>
+  autoplot(value) +
+  labs(y = "% change")
+```
+
+## Scatter plot
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+#| fig-cap: Scatterplot of quarterly changes in consumption expenditure versus quarterly changes in personal income and the fitted regression line.
+#| label: fig-regression-us-change-scatter
+us_change |>
+  ggplot(aes(x = Income, y = Consumption)) +
+  labs(y = "Consumption (quarterly % change)",
+       x = "Income (quarterly % change)") +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+:::
+
+From the time plot and scatter plot shown above, we see that change in income is predictive of change in consumption.
+This leads us to fit the model @eq-regression-ts-simple with these time series as $(X_t)$ and $(Y_t)$ respectively.
+We do so using the `TSLM()` function in the `fable` package.
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+#| label: fig-regression-simple-model
+lr_fit <- us_change |>
+  model(TSLM(Consumption ~ Income))
+lr_fit |> report()
+```
+
+
+From the print out, we gather that $\hat\beta \approx 0.27$ and $\hat\alpha \approx 0.54$.
+This can be interpreted as saying that a 1\% increase in income leads to a 0.27\% predicted increase in consumption, and that when income does not change, the predicted increase in consumption is 0.54\%.
+
+We now check the goodness of fit of the model via a residual analysis.
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+#| fig-cap: Residual analysis of the simple linear regression model of % change in personal consumption expenditure against % change in personal disposable income.
+#| label: fig-regression-simple-model-residuals
+lr_fit |> gg_tsresiduals()
+```
+
+These plots provide evidence that the residuals of the model are not white noise, which violates the modeling assumption in @eq-regression-ts-simple.
+This means that we should be suspicious of any conclusions obtained using this model, such as prediction intervals and coefficient interpretations.
+
+### Multiple linear regression for time series
+
+Given multiple time fixed time series $(X_{t1}),(X_{t2}),\ldots,(X_{tp})$, we can define the multiple linear regression model
+$$
+Y_t = \alpha + \beta_1 X_{t1} + \cdots \beta_p X_{tp} + W_t
+$$
+for $t = 1,2,\ldots,n$.
+
+Since `us_change` contains other time series, we can try regressing the change in consumption with multiple predictors.
+We first make a pairs plot (pairwise scatter plot) to inspect the degree of pairwise marginal correlations between change in consumption and the predictors.
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+#| fig-cap: Pairwise scatter plot between columns in us_change.
+#| label: fig-regression-us-change-pairs
+us_change |>
+  GGally::ggpairs(columns = 2:6)
+```
+
+It seems that change in consumption is positively correlated with change in income and change in production, and negatively correlated with change in savings and change in unemployment.
+Let us now fit the multiple linear regression model.
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+mlr_fit <- us_change |>
+  model(TSLM(Consumption ~ Income + Production + Savings + Unemployment))
+mlr_fit |> report()
+```
+
+The resulting model is
+$$
+\begin{split}
+\Delta\text{Consumption}_t & = 0.74\Delta\text{Income}_t + 0.05\Delta\text{Production}_t  - 0.05\Delta\text{Savings}_t \\
+& \quad - 0.17\Delta\text{Unemployment}_t + 0.25 + W_t.
+\end{split}
+$$ {#eq-regression-mlr}
+
+Notice that the regression coefficient of change of income in @eq-regression-mlr is different from that of the same predictor in the simple linear regression earlier.
+Mathematically, this can be explained as the effect of correlations between the predictors.
+If we believe that @eq-regression-mlr is the true statistical model, then the difference between the two coefficients is called [*omitted variable bias*](https://en.wikipedia.org/wiki/Omitted-variable_bias).
+That is, by omitting the other predictors previously, we have biased our estimate of the effect of change of income on change in consumption.
+
+As usual, we check the goodness of fit of this model via a residual analysis.
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+mlr_fit |> gg_tsresiduals()
+```
+
+Compared to the simple linear regression model, it seems that the multiple linear regression model in @eq-regression-mlr has a better fit, which, at face value, suggests that we can trust its conclusions more.
+Nonetheless, one should still be wary.
+First, there is a risk that our model has overfit to the observed data and may not remain a good fit at future time points.
+This can checked via some form of cross-validation.
+Second, even if the model does not overfit, the phenomenon being modeled may not be stationary, and there is no a priori guarantee that its future behavior will resemble the past.
+For instance, the relationships between the economic variables in `us_change` exist under the current economic framework of the country, and may change as a consequence as the economics, politics, and technology evolve.
+<!-- These relationships are more robust if we believe that @eq-regression-mlr is a *causal model*. -->
+
+A further issue is that using the regression model to forecast the target time series requires knowledge of the future values of the predictors, which are usually unavailable.
+If we attempt to use the fitted model in `mlr_fit` to forecast, R will throw an error warning us that the required predictor values cannot be found.
+
+```{r}
+#| error: TRUE
+mlr_fit |> forecast(h = 5)
+```
+
+To resolve this, these predictors can themselves be forecasted, or we may choose to use deterministic predictors instead.
+
+### Useful predictors
+
+We now discuss useful deterministic predictors that can be used in time series regression.
+These comprise simple functions in the time index $t$ that describe commonly seen structure in real-world time series.
+
+**Trend:**
+We have already described the linear trend model $Y_t = \beta_0 + \beta_1 t + W_t$.
+This is a regression model, where $t$ is used as the sole predictor.
+More generally, one can apply polynomial functions of $t$ to model potentially nonlinear trend.
+Indeed, we can fit the model $Y_t = \beta_0 + \beta_1 t + \beta_2 t^2 + W_t$ via the code snippet `TSLM(Y ~ trend() + trend() ** 2)`.
+
+**Seasonal dummy variables:**
+If the time series is seasonal with period $m$, we can model it as
+$$
+Y_t = \beta_0 + \beta_1 d_{1,t} + \beta_2 d_{2,t} + \cdots + \beta_{m-1}d_{m-1,t} + W_t,
+$$
+where $d_{k, t} =1$ if $(t - 1)~\text{mod}~m = k - 1$ (i.e. the season of $t$ is $k$).
+In this case, $\beta_0 + \beta_k$ is the mean value of $Y_t$ during the $k$-th season.
+$d_{1,t},\ldots,d_{m-1,t}$ are called seasonal dummies.
+Note that the last seasonal dummy is not necessary, because $d_{m,t} = 1 - \sum_{k=1}^{m-1}d_{k,t}$.
+We can fit this model via the code snippet `TSLM(Y ~ season())`.
+
+**Outlier dummy variables:**
+If certain observations are outliers, such as when there is a public holiday for a daily time series, they may affect the parameters of our fitted model in an undesirable way.
+To counteract this, we may use a dummy for that time point as a predictor.
+In `fable`, we can create a new column that is equal to 1 for that time point and equal to 0 otherwise, and add that as a predictor in `TSLM()`.
+
+## Dynamic regression
+
+### Definition
+
+There are two obvious problems with the time series regression model @eq-regression-mlr.
+First, it is not able to model lagged effects of the predictors on the response time series.
+We have already noted in @sec-arma that lagged effects is a common feature of time series analysis and is a motivation for the class of MA($q$) models.
+Second, it does not allow for the possibility that the regression residuals have nonzero autocorrelation.
+When there is indeed such autocorrelation, naively applying time series regression can lead to [issues](https://otexts.com/fpp3/estimation.html) such as inefficient estimation of the regression coefficients and 
+
+These problems are addressed by performing *dynamic regression*.
+Given a single predictor time series $(X_t)$, this corresponds to the model
+$$
+Y_t = \beta_0 + \beta_{1,0}X_t + \beta_{1,1}X_{t-1} + \cdots + \beta_{1,r}X_{t-r} + \eta_t,
+$$
+where $(\eta_t)$ is drawn from an ARIMA model.
+
+Such a model can be fit by specifying $(X_t)$ and its lags as additional predictor in the `ARIMA()` function in `fable`.
+While the desired lags to be used need to be explicitly specified, the precise ARIMA model to be used can be automatically estimated from data, as with vanilla ARIMA modeling.
+We demonstrate this by fitting two dynamic regression models using the `us_change` dataset.
+
+```{r}
+consumption_fit <- us_change |>
+  model(dr1 = ARIMA(Consumption ~ Income),
+        dr2 = ARIMA(Consumption ~ Income + lag(Income, 1)))
+consumption_fit |> select(dr1) |> report()
+```
+
+Above, we report the fitted parameters under the first model, `dr1`.
+We see that the fitted model can be written as
+$$
+\Delta\text{Consumption}_t = 0.59 + 0.20\Delta\text{Income}_t + \eta_t
+$$
+$$
+\eta_t = 0.71\eta_{t-1} + W_t -0.62W_{t-1} + 0.21 W_{t-2}
+$$
+$$
+W_t \sim N(0, 0.31).
+$$
+
+Compared to the simple linear regression model earlier, we see that we get a different set of estimates for both the intercept as well as the regression coefficient for $\Delta\text{Income}_t$.
+We now perform a residual analysis.
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+#| fig-cap: Residual analysis of the dynamic linear regression model of % change in personal consumption expenditure against % change in personal disposable income.
+#| label: fig-regression-dynamic-residuals
+consumption_fit |> select(dr1) |> gg_tsresiduals()
+```
+
+This seems to suggest a better fit.
+However, there are still some skewness in the residuals, as well as some outlier values, such as in 1980 Q1.
+
+As with vanilla linear regression, dynamic regression can be extended to involve multiple predictor time series.
+
+### Parameter estimation and model selection
+
+The parameters of a dynamic regression model can be estimated using maximum likelihood as before.
+However, one needs to be careful about potential multicollinearity affecting the stability of this estimation process.
+Specifically, if any of the predictor time series is non-stationary, it can potentially have high correlation with an ARIMA time series, which leads to inefficiency and even unidentifiability when estimating the parameters.
+As such, it is good practice to take enough differences to ensure that all predictors (and the response) are stationary, before applying dynamic regression.
+
+Likewise, model selection can be done by making use of AIC and AICc.
+Unlike with ARIMA models, however, the `fable` package does not automatically select from models with different choices of predictors, or the number of lags to include in the regression.
+One has to do this manually by simultaneously fitting multiple candidate models and comparing their reported AICc values.
+
+Let us illustrate this again with the `us_change` dataset.
+In the following, we fit a few models to predict change in consumption and compare their relative AICc values.
+Note that all time series in the dataset already appear to be stationary, so no further differencing is required.
+
+```{r}
+consumption_fit <- us_change |>
+  model(dr1 = ARIMA(Consumption ~ Income + lag(Income, 1)),
+        dr2 = ARIMA(Consumption ~ Income + lag(Income, 1) + Production + 
+                    lag(Production, 1)),
+        dr3 = ARIMA(Consumption ~ Income + lag(Income, 1) + Production + 
+                    lag(Production, 1) + Unemployment + lag(Unemployment, 1)),
+        dr4 = ARIMA(Consumption ~ Income + lag(Income, 1) + Production + 
+                    lag(Production, 1) + Unemployment + lag(Unemployment, 1) + 
+                    Savings + lag(Savings, 1)),
+        dr5 = ARIMA(Consumption ~ Income + lag(Income, 1) + Production + 
+                    lag(Production, 1) + Unemployment + lag(Unemployment, 1) + 
+                    Savings + lag(Savings, 1) + lag(Income, 2) + lag(Production, 2) + 
+                    lag(Unemployment, 2) + lag(Savings, 2)))
+consumption_fit |> glance()
+```
+
+The most complicated model, which includes the current value and the first two lags of all the possible predictor time series, has the smallest AICc value.
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+#| fig-cap: Residual analysis of the dynamic linear regression model.
+#| label: fig-regression-dynamic-residuals-model-selection
+consumption_fit |> select(dr5) |> gg_tsresiduals()
+```
+
+A residual analysis seems to suggest that the model is a good fit.
+
+## Vector autoregression (VAR) models
+
+Instead of following a two-stage process whereby we first forecast the predictor time series and then use their forecasted values to forecast the regression target, one may model all time series simultaneously via a vector autoregression (VAR) model.
+In this case, we concatenate all time series of interest into a vector $\bX_t = (X_{1t}, X_{2t},\ldots,X_{kt})$.
+A vector autoregression model of order $p$, denoted VAR($p$), has the form
+
+$$
+\bX_t = \balpha + \bPhi_1 \bX_{t-1} + \bPhi_2 \bX_{t-2} + \cdots + \bPhi_p\bX_{t-p} + \bW_t,
+$$
+where $\bPhi_1,\bPhi_2,\ldots,\bPhi_p$ are $k \times k$ coefficient matrices, and $\bW_t \sim N(0, \bSigma)$ for some covariance matrix $\bSigma$, with $\bW_s$ and $\bW_t$ independent whenever $s \neq t$.
+
+Modeling with VAR helps to streamline forecasting because one can simply perform recursive forecasting.
+VAR models are similar to AR($p$) models in other ways, with most concepts for AR($p$) models having natural analogues.
+For example, stationary of a VAR model has to do with the unit roots of the VAR polynomial.
+Furthermore, VAR models can be extended to vector ARMA models to gain even more flexibility.
+
+The downside of using a VAR model is that it often requires a large number of parameters.
+For example, if we had modeled each of the $k$ time series in $(\bX_t)$ individually as an AR($p$) model, we would need to estimate $kp$ parameters (not including the constant coefficient and noise variances).
+Modeling them using a VAR($p$) model requires $k^2p$ parameters instead.
+Having too many parameters makes estimation difficult as it inflates the sampling variance of any reasonable estimator and makes it more likely for any fitted model to be overfit.
+Therefore, a common practice is to set some (or even most) entries of the coefficient matrices to be zero.
+Deciding which entries are allowed to be nonzero is part of the problem of model selection for VAR($p$) models, and can be done by comparing AICc values as before.
+
+In the `fable` package, a VAR model can be fit using the `VAR()` function.
+We illustrate how to do this using `us_change` dataset as before.
+In the following code snippet, we model the two time series measuring change in consumption and change in income jointly.
+Note how they are concatenated symbolically using the `vars()` function.
+
+```{r}
+consumption_fit <- us_change |>
+  model(VAR(vars(Consumption, Income)))
+consumption_fit
+```
+
+Because we did not indicate what order $p$ to select, this was automatically determined using AICc, and selected to be $p=5$.
+Displaying the fitted coefficients below, note that all coefficients for the VAR($5$) model were estimated.
+It seems that the package does not have functionality to specify setting certain parameters to be equal to zero.
+
+```{r}
+consumption_fit |> 
+  tidy() |> select(-.model) |> print(n = 22)
+```
+
+To inspect the goodness of fit, we plot the ACF of the model residuals for both change in consumption and change in income.
+Since `gg_tsresiduals()` no longer works for a multivariate model, we use the following code snippet.
+It seems that the model is a relatively good fit, but one should also be sure to check the time plot and density plot for further verification.
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+#| fig-cap: Residual analysis for US consumption and income generated from a VAR(5) model.
+#| label: fig-regression-dynamic-residuals-VAR
+consumption_fit |> 
+  augment() |> 
+  ACF(.innov) |> 
+  autoplot()
+```
+
+Finally, we can use the fitted model to forecast.
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+#| fig-cap: Forecasts for US consumption and income generated from a VAR(5) model.
+#| label: fig-regression-dynamic-VAR-forecast
+consumption_fit |> 
+  forecast(h = 20) |> 
+  autoplot(us_change)
+```
+
+## Dynamic harmonic regression
+
+In this section, we explain how to combine ideas from regression and [spectral analysis](09-spectral_analysis.qmd) to address a critical limitation of seasonal ARIMA models.
+While seasonal ARIMA models have the ability to model seasonality, it experiences difficulty in working with long seasonal periods.
+This is because when the seasonal period is long, such as when there is yearly seasonality for an hourly time series, there may not be enough observations within they same seasonal period (i.e. 9am on April 10) to form reliable forecasts.
+Using either the Holt-Winters method or seasonal dummies in a time series regression also runs into similar issues:
+The number of coefficients to be estimated is at least the length of the seasonal period.
+
+To address this, we can include Fourier (i.e. sinusoidal) functions as predictors.
+Recall that these are sine and cosine functions in the time index $t$, of varying frequencies, and that they form a basis for $\R^n$.
+By only using the lower frequency terms, we can fit slow-varying seasonal structures with only a small number of parameters, thereby preserving model simplicity.
+Making use of these predictors and combining with ARIMA errors is called *dynamic harmonic regression*.
+
+::: {.callout-note}
+Some authors refer to what we just described above as dynamic harmonic regression with harmonic errors (DHR-ARIMA), and reserves the term “dynamic harmonic regression" to refer to regression against Fourier predictors with white noise errors.
+:::
+
+Another advantage of dynamic harmonic regression is that we can model non-integer seasonalities.
+
+To illustrate the use of this new tool, we apply it to the `diabetes` dataset, which we recall is a monthly time series with yearly seasonality.
+
+```{r}
+diabetes <- readRDS("_data/cleaned/diabetes.rds")
+diabetes_dhr_fit <- diabetes |> 
+  model(ARIMA(log(TotalC) ~ fourier(K = 6)))
+diabetes_dhr_fit
+```
+
+We specify using Fourier predictors via the syntax `fourier(K = 6)`, where `K` is used to specify using the frequencies $1/T, 2/T, \ldots, 6/T$, where $T$ is the seasonal period, which is equal to 12 in this example.
+Since we did not specify the order of the ARIMA model, it is automatically estimated from data.
+We view the values of the fitted coefficients below.
+
+```{r}
+diabetes_dhr_fit |> tidy() |> select(-.model)
+```
+
+Observe that 12 Fourier functions were used in the regression, comprising to sine and cosine functions with the frequencies described earlier, i.e. $\sin(2\pi t/ 12), \cos(2\pi t/12)...$.
+The most dominant frequency is $\omega = 1/12$, which agrees with what one would observe from a periodogram plot.
+We now visualize the forecasts as follows:
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+#| fig-cap: Forecasts for diabetes drug sales using DHR.
+#| label: fig-regression-DHR-forecast
+diabetes_dhr_fit |> 
+  forecast(h = 24) |> 
+  autoplot(diabetes)
+```
+
+
+Next, we consider the `vic_elec`, which records energy consumption in Victoria, Australia.
+Recall from @sec-decomposition that this is a half-hourly time series that displays multiple seasonality, with daily, weekly, and yearly periods.
+Such complex seasonality is especially hard to model using either ARIMA or ETS models.
+We can tailor our model to this complex seasonality via using three sets of Fourier terms, corresponding to the different seasonal periods.
+We also specify the number of Fourier terms to be used for each seasonal period.
+
+```{r}
+#| cache: TRUE
+#| eval: FALSE
+dhr_fit <- vic_elec |> 
+  model(dhr = ARIMA(Demand ~ fourier(period = "day", K = 10) + 
+                    fourier(period = "week", K = 5) +
+                    fourier(period = "year", K = 3)))
+```
+
+Although simple, dynamic harmonic regression is a powerful forecasting method that, with appropriate feature engineering, has been observed to outperform even state-of-the-art deep learning methods on many datasets.
+
+## Causality
+
+A major part of all domains of science is understanding causality.
+This includes *causal discovery*, which means the identification of potential factors causing a given natural phenomenon, such as lung cancer, tornado formation, or economic recession, as well as *causal estimation*, which means the estimation of the degree and manner in which each of these factors affects the quantitiy of interest.
+Causal estimation can sometimes be performed using randomized experiments, as discussed earlier in this chapter.
+On the other hand, randomized experiments are not always economically, ethically, or practically feasible.
+For instance, it is impossible to experiment on countries' economic policies in order to understand what might cause an economic recession, and researchers often have to make use of observational data.
+
+However, naively drawing causal conclusions from observational data can be extremely misleading, as even strong correlations that exist may be a result of various types of confounding, selection bias, or sheer randomness, rather than of a causal relationship.
+This is especially true for non-stationary time series data, given the limited number of possible patterns and the small sample size for many such datasets.
+Such relationships are called *spurious correlations*.
+[This website](https://www.tylervigen.com/spurious-correlations) curates a collection of often humorous spurious correlations.
+
+In order to draw reliable causal conclusions, researchers have sought to define causality quantitatively via various frameworks.
+One such framework is *Granger causality*, which makes use of time series data.
+The idea is as follows.
+Given two time series $(X_t)$ and $(Y_t)$, we say that $(X_t)$ Granger causes $(Y_t)$ if the dynamic regression model of $(Y_t)$ given $(X_t)$ is a better fit than the an AR model of $(X_t)$.
+The intuition is that if past values of $(X_t)$ are predictive of future values of $(Y_t)$, even after adjusting for previous values of $(Y_t)$, then there is some evidence that $(X_t)$ has a causal effect on $(Y_t)$.
+More precisely, we formulate the following pair of null and alternate hypotheses:
+$$
+H_0: \quad Y_t = \sum_{i=1}^p \phi_i Y_{t-i} + \phi_0 + W_t
+$$
+
+$$
+H_1: \quad Y_t = \sum_{i=1}^p \phi_i Y_{t-i} + \sum_{i=1}^p \beta_i X_{t-i} + \phi_0 +  W_t
+$$ {#eq-regression-granger}
+where $(W_t) \sim WN(0,\sigma^2)$, and $p$ is estimated via AICc.
+
+To check whether @eq-regression-granger is a better fit, one uses the F-test.
+The test statistic is
+$$
+F = \frac{(RSS_{0}- RSS_{1})/p}{RSS_1/(n-2p-1)},
+$$
+where $RSS_0$ and $RSS_1$ denote the sum of squared residuals under $H_0$ and $H_1$ respectively.
+Under $H_0$, $F$ has the $F$-distribution with $p$ and $n-2p-1$ degress of freedom.
+
+Let us try to see if change in income Granger causes change in consumption in the `us_change` dataset.
+To start, we first fit an AR model for the change in consumption time series.
+
+```{r}
+h0_fit <- us_change |> 
+  model(AR(Consumption))
+h0_fit
+```
+
+We see that a model of order $p=5$ was selected using AICc.
+We then fit a VAR model of order $p=5$ to both change in consumption and change in income, and extract the sum of squared residuals of both models.
+
+```{r}
+h1_fit <- us_change |> 
+  model(VAR(vars(Consumption, Income) ~ AR(5)))
+h0_resid <- h0_fit |>
+  augment() |>
+  pull(.innov)
+h1_resid <- h1_fit |>
+  augment() |>
+  filter(.response == "Consumption") |>
+  pull(.innov)
+h0_rss <- h0_resid ** 2 |>
+  mean(na.rm = TRUE)
+h1_rss <- h1_resid ** 2 |>
+  mean(na.rm = TRUE)
+```
+
+To compute the p-value, we use the CDF of the relevant F distribution.
+
+```{r}
+df1 <- 5
+df2 <- nrow(us_change) - 11
+F <- ((h0_rss - h1_rss) / df1) / (h1_rss / df2) 
+p_val <- 1 - pf(F, df1, df2)
+p_val
+```
+
+The p-value is relatively large, so we do not have enough evidence to conclude that change in income Granger causes change in consumption.
+
+Granger causality has been applied in economics as well as neuroscience.
+However, there is still controversy about whether Granger causality really implies causality in a mechanistic sense, since it is still based on some form of statistical correlation rather than experimental interventions. 
+
+[^1]: This terminology seems to have come from the literature on design of experiments.

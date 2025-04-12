@@ -11,12 +11,19 @@ window.MathJax = {
       Corr: "{\\textnormal{Corr}}",
       bF: "{\\mathbf{F}}",
       bI: "{\\mathbf{I}}",
+      bW: "{\\mathbf{W}}",
       bX: "{\\mathbf{X}}",
+      bY: "{\\mathbf{Y}}",
       bZ: "{\\mathbf{Z}}",
       ba: "{\\mathbf{a}}",
+      bx: "{\\mathbf{x}}",
       by: "{\\mathbf{y}}",
       bphi: "{\\boldsymbol{\\phi}}",
-      bbeta: "{\\boldsymbol{\\beta}}"
+      balpha: "{\\boldsymbol{\\alpha}}",
+      bbeta: "{\\boldsymbol{\\beta}}",
+      beps: "{\\boldsymbol{\\varepsilon}}",
+      bSigma: "{\\boldsymbol{\\Sigma}}",
+      bPhi: "{\\boldsymbol{\\Phi}}"
     }
   }
 };

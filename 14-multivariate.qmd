@@ -29,7 +29,7 @@ $$
 $$ {#eq-regression-coefs}
 
 This prediction algorithm can be derived from a statistical model, which yields additional insight on estimation and predictive uncertainties.
-There are types of models, depending on whether we treat the covariates as fixed (called a fixed design), or themselves as random variables (called a random design).[^1]
+There are two types of models, depending on whether we treat the covariates as fixed (called a fixed design), or themselves as random variables (called a random design).[^1]
 Assuming a fixed design for now, the response vector is generated according to the formula
 $$
 \by = \bX\bbeta^* + \beps,
@@ -224,8 +224,7 @@ These comprise simple functions in the time index $t$ that describe commonly see
 **Trend:**
 We have already described the linear trend model $Y_t = \beta_0 + \beta_1 t + W_t$.
 This is a regression model, where $t$ is used as the sole predictor.
-More generally, one can apply polynomial functions of $t$ to model potentially nonlinear trend.
-Indeed, we can fit the model $Y_t = \beta_0 + \beta_1 t + \beta_2 t^2 + W_t$ via the code snippet `TSLM(Y ~ trend() + trend() ** 2)`.
+We can extend this in two ways to model potentially nonlinear trend. (i) Apply polynomial functions of $t$, e.g. we can fit the model $Y_t = \beta_0 + \beta_1 t + \beta_2 t^2 + W_t$ via the code snippet `TSLM(Y ~ trend() + I(trend() ** 2))`. (ii) Apply piecewise linear functions of $t$. We can specify where to place the knots (i.e. points of nonlinearity) via `TSLM(Y ~ trend(knots = c(k1, k2, ...)))`, where `k1`, `k2`, and so on are datetime objects corresponding to the knot locations.
 
 **Seasonal dummy variables:**
 If the time series is seasonal with period $m$, we can model it as
@@ -491,7 +490,7 @@ Although simple, dynamic harmonic regression is a powerful forecasting method th
 ## Causality
 
 A major goal of any scientific discipline is understanding causality.
-This includes *causal discovery*, which means identifying potential factors causing a given natural phenomenon, such as lung cancer, tornado formation, or economic recession, as well as *causal estimation*, which means estimating the degree and manner in which each of these factors affects the quantitiy of interest.
+This includes *causal discovery*, which means identifying potential factors causing a given natural phenomenon, such as lung cancer, tornado formation, or economic recession, as well as *causal estimation*, which means estimating the degree and manner in which each of these factors affects the quantity of interest.
 Causal estimation can sometimes be performed using randomized experiments, as discussed earlier in this chapter.
 On the other hand, randomized experiments are not always economically, ethically, or practically feasible.
 For instance, it is impossible to experiment on countries' economic policies in order to understand what might cause an economic recession. 
@@ -505,7 +504,7 @@ Such relationships are called *spurious correlations*.
 In order to draw reliable causal conclusions, researchers have sought to define causality quantitatively via various frameworks.
 One such framework is *Granger causality*, which makes use of time series data.
 The idea is as follows.
-Given two time series $(X_t)$ and $(Y_t)$, we say that $(X_t)$ Granger causes $(Y_t)$ if the dynamic regression model of $(Y_t)$ given $(X_t)$ is a better fit than a univariate AR model of $(X_t)$.
+Given two time series $(X_t)$ and $(Y_t)$, we say that $(X_t)$ Granger causes $(Y_t)$ if the dynamic regression model of $(Y_t)$ given $(X_t)$ is a better fit than a univariate AR model of $(Y_t)$.
 The intuition is that if past values of $(X_t)$ are predictive of future values of $(Y_t)$, even after adjusting for previous values of $(Y_t)$, then there is some evidence that $(X_t)$ has a causal effect on $(Y_t)$.
 
 More precisely, we formulate the following pair of null and alternate hypotheses:

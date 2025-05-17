@@ -24,7 +24,7 @@ sunspots |> autoplot(Sunspots)
 
 ### A sinusoidal model
 
-In view of the data's periodic nature, it seems to make sense to fit a [signal plus noise model](09-stationary.qmd#sec-stationary-examples-signal-plus-noise) of the form
+In view of the data's periodic nature, it seems to make sense to fit a [signal plus noise model](10-stationary.qmd#sec-stationary-examples-signal-plus-noise) of the form
 $$
 X_t = \mu + \alpha_1 \cos(\omega t) + \alpha_2 \sin(\omega t) + W_t,
 $$ {#eq-ar-sunspot-sinusoid}

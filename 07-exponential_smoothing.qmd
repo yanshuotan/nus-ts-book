@@ -374,7 +374,7 @@ Here, we keep track of three components of $(x_t)$: The level $(l_t)$, the trend
 To update the level, we first extrapolate the level $l_{t-1}$ using the previous trend estimate $b_{t-1}$ and then form a weighted average between this value and that of the seasonally adjusted new observation $x_t - s_{t-p}$.
 The trend estimate is then updated in the same way as in Holt's linear trend method (@eq-exponential-holt-trend).
 Finally, we update the seasonal component by using a weighted average of the seasonal component one period ago and the detrended new observation $x_t - l_{t-1} - b_{t-1}$.
-Note that we now have $5 + p$ parameters to estimate: $\alpha, \beta^*, \gamma, l_0, b_0$, and $s_0,s_{-1},\ldots,s_{p-1}$.
+Note that we now have $5 + p$ parameters to estimate: $\alpha, \beta^*, \gamma, l_0, b_0$, and $s_0,s_{-1},\ldots,s_{1-p}$.
 Finally, the forecast equation is:
 $$
 \hat x_{n+h|n} = l_n + h b_n + s_{n - (-h ~\text{mod}~p)}.
@@ -394,7 +394,7 @@ b_t = \beta^*(l_t - l_{t-1}) + (1-\beta^*) b_{t-1},
 $$ 
 
 $$
-s_t = \gamma \frac{x_t}{l_{t-1} + b_{t-1}} + (1-\gamma) s_{t-p}.
+s_t = \gamma \frac{x_t}{l_{t-1} - b_{t-1}} + (1-\gamma) s_{t-p}.
 $$ 
 
 $$
@@ -417,7 +417,7 @@ b_t = \beta^*(l_t - l_{t-1}) + (1-\beta^*) \phi b_{t-1},
 $$ 
 
 $$
-s_t = \gamma \frac{x_t}{l_{t-1} + \phi b_{t-1}} + (1-\gamma) s_{t-p}.
+s_t = \gamma \frac{x_t}{l_{t-1} - \phi b_{t-1}} + (1-\gamma) s_{t-p}.
 $$ 
 
 $$

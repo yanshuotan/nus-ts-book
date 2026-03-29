@@ -17,7 +17,7 @@ This can be formalized using a concept called stationarity.
 **Strict stationarity:** 
 A *strictly (or strongly) stationary* stochastic process $(X_t)$ is one for which all finite-dimensional marginals of the joint distribution are shift invariant, i.e. that
 $$
-\P\lbrace X_{t_1} \leq x_1, X_{t_2} \leq x_2,\ldots,X_{t_k} \leq x_k \rbrace = \P\lbrace X_{t_1+ h} \leq x_1, X_{t_2 + h} \leq x_2,\ldots,X_{t_k + h} \leq x_n\rbrace
+\P\lbrace X_{t_1} \leq x_1, X_{t_2} \leq x_2,\ldots,X_{t_k} \leq x_k \rbrace = \P\lbrace X_{t_1+ h} \leq x_1, X_{t_2 + h} \leq x_2,\ldots,X_{t_k + h} \leq x_k\rbrace
 $$
 for any dimension $k$, time indices $t_1,t_2,\ldots, t_k$, and shift $h$.
 
@@ -184,7 +184,7 @@ In @sec-summarystats, we learnt about sample versions of the mean, autocovarianc
 It turns out that when the time series is drawn from a stationary linear process, all three are consistent and asymptotically normal estimators of their population counterparts, as the length $n$ of the time series converges to infinity.
 As we will soon see, this allows us to perform hypothesis testing in various scenarios.
 
-**Theorem 9.1** (Mean).
+**Theorem 10.1** (Mean).
 If $(X_t)$ is a stationary linear process, then
 $$
 \sqrt{n}\left(\bar X_n - \mu \right) \to_d N(0, V),

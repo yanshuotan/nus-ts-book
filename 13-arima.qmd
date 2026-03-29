@@ -169,7 +169,7 @@ $$ {#eq-arima-forecast-integrate}
 
 A more convenient way of forecasting is to simply extend Proposition 11.4 as follows:
 
-**Proposition 12.1.**
+**Proposition 13.1.**
 The truncated forecasts for an $\textnormal{ARIMA}(p,d,q)$ model can be computed as 
 $$
 \check X_{t|n} = \begin{cases}
@@ -199,7 +199,7 @@ We then apply @eq-arima-forecast-truncated recursively to compute $\check X_{n+1
 
 The conditional distribution for a future value $X_{n+h}$ under an $\textnormal{ARIMA}(p,d,q)$ model can be computed similarly to that for an $\textnormal{ARMA}(p,q)$ model.
 
-**Proposition 12.2.**
+**Proposition 13.2.**
 Let $\psi_0^*, \psi_1^*,\ldots$ be defined using the formal power series equation
 $$
 (1-z)^d\phi(z)\sum_{j=0}^\infty \psi_j^* z^j = \theta(z).
@@ -405,7 +405,7 @@ This is called the *Dickey-Fuller* test statistic.
 To obtain $p$-values from the test statistic, we need to know its (limiting) distribution under the null hypothesis.
 This is provided by the following proposition.
 
-**Proposition 12.3.** *(Limit of DF test statistic)*
+**Proposition 13.3.** *(Limit of DF test statistic)*
 Under $H_0$, we have
 $$
 n(\hat\phi - 1) \to_d \frac{\frac{1}{2}(W(1)^2 - 1)}{\int_0^1 W(t)^2dt},
@@ -539,7 +539,7 @@ $$
 where $\hat V$ is an estimate for $V = \Var\left\lbrace S_n/\sqrt n\right\rbrace$.
 
 
-**Proposition 12.4.**
+**Proposition 13.4.**
 Suppose $\hat V$ is a consistent estimator.
 Under $H_0$, we have
 $$

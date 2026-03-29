@@ -88,7 +88,7 @@ $$
 $$ {#eq-arma-invertibility}
 where $\sum_{j=0}^\infty |\pi_j| < \infty$.
 
-**Proposition 11.1.**
+**Proposition 12.1.**
 Let $(X_t)$ be an $\textnormal{MA}(q)$ model with MA polynomial $\theta(z)$.
 Suppose $\theta(z) \neq 0$ for all $|z| \leq 1$.
 Then $(X_t)$ is invertible, with coefficients satisfying
@@ -220,7 +220,7 @@ The fact that each PACF value is equivalent to a BLP coefficient allows us to ca
 This procedure is made efficient using the *Durbin-Levinson Algorithm*.
 Indeed, the algorithm recursively calculates the BLP coefficient vectors $\phi_{1|0}, \phi_{2|1}, \phi_{3|2},\ldots$ using the following proposition.
 
-**Proposition 11.2.** *(optional)*
+**Proposition 12.2.** *(optional)*
 Denote $\phi_{t+1|t} = (\phi_{t1},\phi_{t2},\ldots,\phi_{tt})$.
 Then $\phi_{00} = 0$ and for $t = 1, 2, \ldots$, we have
 $$
@@ -360,7 +360,7 @@ Just as with $\textnormal{AR}(p)$ models, the equation @eq-arma-arma-equation do
 Furthermore, we have seen that [causality](09-stationary.qmd#sec-stationary-linear) and [invertibility](11-arma.qmd#eq-arma-invertibility) are useful properties to assume for $\textnormal{AR}(p)$ and $\textnormal{MA}(q)$ models respectively.
 These definitions are also useful for $\textnormal{ARMA}(p,q)$ models.
 
-**Proposition 11.3.**
+**Proposition 12.3.**
 Suppose $\phi(z) \neq 0$ for all $|z| \leq 1$, then @eq-arma-arma-equation admits a unique stationary solution.
 This solution is causal and has the form
 $$
@@ -380,7 +380,7 @@ $$
 $$ {#eq-arma-arinfinity-coefficients}
 
 *Proof*.
-The proof is similar to that of Theorem 10.4 and Proposition 11.1 and is henced omitted.
+The proof is similar to that of Theorem 11.4 and Proposition 12.1 and is henced omitted.
 
 Note that @eq-arma-arinfinity-coefficients easily yields $\pi_0 = 1$.
 This theorem tells us that an $\textnormal{ARMA}(p,q)$ can be written as either an $\textnormal{AR}(\infty)$ model (@eq-arma-arinfinity) or as an $\textnormal{MA}(\infty)$ model (@eq-arma-mainfinity).
@@ -485,7 +485,7 @@ $$
 Just like for computing BLPs, conditioning on these values is also a linear map on the space of random variables, which we may denote using $P$.
 We thus denote $\check W_{t|n} \coloneqq P[\tilde W_t]$.
 
-**Proposition 11.4.**
+**Proposition 12.4.**
 We have
 $$
 \check X_{t|n} = \begin{cases}
@@ -534,7 +534,7 @@ $$
 \tilde v_h = \sigma^2\sum_{j=0}^{h-1} \psi_j^2.
 $$ {#eq-arma-forecast-variance}
 
-Note that @eq-arma-forecast-variance is in terms of the $\psi_j$'s, which can be calculated via Proposition 11.3.
+Note that @eq-arma-forecast-variance is in terms of the $\psi_j$'s, which can be calculated via Proposition 12.3.
 As $n \to \infty$, this value converges to the variance for the conditional distribution given only a finite past.
 Hence, combining this with the truncated forecast, we get an asymptotically valid 95% level prediction interval:
 $$
@@ -543,7 +543,7 @@ $$
 
 ### Long-range forecasts
 
-**Proposition 11.5.**
+**Proposition 12.5.**
 As $n \to \infty$, the forecast distribution converges to the marginal distribution of $X_t$.
 
 *Proof. (optional)*
@@ -604,7 +604,7 @@ All estimators are also more difficult to compute and in particular do not have 
 
 To avoid being bogged down in technical details, we avoid further discussion on these strategies in this book, and simply note that we have the following theorem.
 
-**Proposition 11.6.**
+**Proposition 12.6.**
 Under appropriate conditions, for causal and invertible $\textnormal{ARMA}(p,q)$ models, the maximum likelihood, unconditional least squares, and conditional least squares estimators all provide estimators $\hat\beta$ for the parameter vector $\beta \coloneqq (\phi_1,\ldots,\phi_p,\theta_1,\ldots,\theta_q)$ that are asymptotically normal, with optimal asymptotic covariance.[^5]
 
 [^5]: Optimality here means that the asymptotic covariance matrix is the information matrix of the model and therefore satisfies the Cramer-Rao lower bound.

@@ -414,7 +414,7 @@ $$
 \bar X_n \sim N\left(\mu, \frac{1}{n}\sum_{|h| < n} \left(1 - \frac{|h|}{n}\right)\gamma_X(h)\right).
 $$
 
-*Proof:* See Theorem A.5 of a proof of the first statement.
+*Proof:* See Theorem A.5 in @shumway2000time for a proof of the first statement.
 For the second, we just need to compute the variance of $\bar X$ as follows:
 $$
 \begin{split}

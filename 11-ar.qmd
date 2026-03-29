@@ -24,7 +24,7 @@ sunspots |> autoplot(Sunspots)
 
 ### A sinusoidal model
 
-In view of the data's periodic nature, it seems to make sense to fit a [signal plus noise model](10-stationary.qmd#sec-stationary-examples-signal-plus-noise) of the form
+In view of the data's periodic nature, it seems to make sense to fit a [signal plus noise model](10-fundamentals.qmd#sec-stationary-examples-signal-plus-noise) of the form
 $$
 X_t = \mu + \alpha_1 \cos(\omega t) + \alpha_2 \sin(\omega t) + W_t,
 $$ {#eq-ar-sunspot-sinusoid}
@@ -41,7 +41,7 @@ sigma <- sunspots_fit |>
 ```
 
 We next plot the fitted values for the model together with a draw of a sample trajectory generated from the model.
-We also make plots of its [residual diagnostics](09-stationary.qmd#sec-stationary-testing-white-noise).
+We also make plots of its [residual diagnostics](10-fundamentals.qmd#sec-stationary-testing-white-noise).
 
 ::: panel-tabset
 
@@ -119,7 +119,7 @@ They are beyond the scope of this textbook.
 
 The discrete time analogue of an ODE is a difference equation, which relates the value of a sequence at time $t$ to its values at previous time points.
 
-**Proposition 10.1.**
+**Proposition 11.1.**
 The time series @eq-ar-sunspots-mean is the unique general solution to the difference equation:
 $$
 (I-B)^2 x_t = 2(\cos \omega - 1)(x_{t-1} - \mu).
@@ -200,7 +200,7 @@ Furthermore, the fitted values are much closer to the observed time series, and 
 
 We have seen that Yule's model gives a much better fit to the data than the signal plus noise model.
 As a final comparison between the two models, observe that we can rewrite each model as a pair of equations.
-First, using Proposition 10.1, the signal plus noise model is equivalent to the following:
+First, using Proposition 11.1, the signal plus noise model is equivalent to the following:
 $$
 (I-B)^2 Y_t = 2(\cos \omega - 1)(Y_{t-1} - \mu)
 $$
@@ -295,9 +295,9 @@ The meaning will be clear from the context.
 
 ### Causal solutions {#sec-ar-ar1-solutions}
 
-**Proposition 10.2** (Existence and uniqueness of solutions). 
+**Proposition 11.2** (Existence and uniqueness of solutions). 
 Suppose $|\phi| < 1$, then there is a unique stationary solution to @eq-ar-ar1.
-This solution is a [causal linear process](09-stationary.qmd#sec-stationary-linear).
+This solution is a [causal linear process](10-fundamentals.qmd#sec-stationary-linear).
 
 *Proof.*
 We first show existence.
@@ -310,7 +310,7 @@ $$
 \sum_{j=0}^\infty |\phi^j| = \frac{1}{1-|\phi|} < \infty,
 $$ 
 the expression converges in a mean squared sense, so $X_t$ is well-defined.
-Indeed, $(X_t)$ defined in this manner is a [causal linear process](09-stationary.qmd#sec-stationary-linear) and is in particular stationary.
+Indeed, $(X_t)$ defined in this manner is a [causal linear process](10-fundamentals.qmd#sec-stationary-linear) and is in particular stationary.
 It is also easy to see that it satisfies @eq-ar-ar1:
 $$
 \begin{split}
@@ -348,7 +348,7 @@ As such, we also refer to @eq-ar-ar1 for $|\phi| < 1$ as a causal $\textnormal{A
 
 ### Moments {#sec-ar-ar1-moments}
 
-**Proposition 10.3** (Mean, ACVF, ACF).
+**Proposition 11.3** (Mean, ACVF, ACF).
 Let $(X_t)$ be the solution to @eq-ar-ar1.
 Then we have $\mu_X = 0$ and
 $$
@@ -487,8 +487,8 @@ ar1_data |>
 
 An $\textnormal{AR}(1)$ model only has two parameters: $\phi$ and $\sigma^2$.
 Given observed data $x_1,x_2,\ldots,x_n$, we may estimate these parameters as follows.
-First, Proposition 10.3 tells us that $\phi = \rho_X(1)$, so we may use the estimator $\hat\phi \coloneqq \hat\rho_X(1)$. 
-Substituting this into [Theorem 9.2](09-stationary.qmd#sec-stationary-moments) then gives
+First, Proposition 11.3 tells us that $\phi = \rho_X(1)$, so we may use the estimator $\hat\phi \coloneqq \hat\rho_X(1)$. 
+Substituting this into [Theorem 9.2](10-fundamentals.qmd#sec-stationary-moments) then gives
 $$
 \sqrt n (\hat\phi - \phi) \to_d N(0,1-\phi^2).
 $$
@@ -525,7 +525,7 @@ Define the expression
 $$
 X_t \coloneqq -\sum_{j=1}^\infty \phi^{-j}W_{t+j}.
 $$ {#eq-ar-ar1-noncausal}
-Using the same arguments as in the proof of [Proposition 10.2](10-ar.qmd#sec-ar-ar1-solutions), one can check that this converges absolutely, and that $(X_t)$ is stationary and satisfies @eq-ar-ar1.
+Using the same arguments as in the proof of [Proposition 11.2](10-ar.qmd#sec-ar-ar1-solutions), one can check that this converges absolutely, and that $(X_t)$ is stationary and satisfies @eq-ar-ar1.
 Indeed, it is the unique such solution.
 On the other hand, this solution doesn't make physical sense because $X_t$ depends on the *future* innovations $W_{t+1}, W_{t+2},\ldots$.[^3]
 Formally, we say that such a solution is non-causal, unlike @eq-ar-ar1-sol.
@@ -550,7 +550,7 @@ If we assume Gaussian white noise, this implies that the two time series models 
 We now generalize our findings about $\textnormal{AR}(1)$ models to general $\textnormal{AR}(p)$ models.
 Along the way, we will see that while the flavor of the results remains consistent, the technical difficulty of the tools we need increases sharply.
 
-**Theorem 10.4** (Existence and uniqueness of solutions)
+**Theorem 11.4** (Existence and uniqueness of solutions)
 Let $\phi(z)$ be the autoregressive polynomial of @eq-ar-arp.
 Suppose $\phi(z) \neq 0$ for all $|z| \leq 1$, then @eq-ar-arp admits a unique stationary solution.[^4]
 This solution is causal and has the form
@@ -576,7 +576,7 @@ $$
 $$
 converges absolutely and uniformly on the complex unit disc.
 Since $\sum_{j=0}^\infty \psi_j z^j$ is a product of these power series, it also converges absolutely and uniformly on the unit disc, and in particular, $\sum_{j=0}^\infty |\psi_j| < \infty$.
-In other words, @eq-ar-arp-solution is a well-defined [causal linear process](09-stationary.qmd#sec-stationary-linear).
+In other words, @eq-ar-arp-solution is a well-defined [causal linear process](10-fundamentals.qmd#sec-stationary-linear).
 
 [^5]: We may always factorize $\phi$ this way, according to the [fundamental theorem of algebra](https://en.wikipedia.org/wiki/Fundamental_theorem_of_algebra).
 
@@ -596,7 +596,7 @@ $$
 & = W_t.
 \end{split}
 $$
-Finally, uniqueness can be derived in a similar manner to Proposition 10.2. $\Box$
+Finally, uniqueness can be derived in a similar manner to Proposition 11.2. $\Box$
 
 For the rest of this chapter, we only consider causal autoregressive models.
 
@@ -650,7 +650,7 @@ where $\phi$ is the autoregressive polynomial of the AR model.
 @eq-ar-moments-difference-eq implies that $\phi$ is also the *characteristic polynomial* of the difference equation @eq-ar-moments-acvf-recursive.
 Completely analogous to what happens with [linear ODEs with constant coefficients](https://en.wikipedia.org/wiki/Linear_differential_equation#Homogeneous_equation_with_constant_coefficients), the roots of the characteristic polynomial determine the shape of the solution to @eq-ar-moments-difference-eq (i.e. the ACVF.)
 
-**Proposition 10.5** *(optional)
+**Proposition 11.5** *(optional)
 If $z_1,z_2,\ldots,z_r$ are the unique roots of $\phi$ and $m_1, m_2,\ldots,m_r$ their multiplicities, the general solution to @eq-ar-moments-difference-eq is
 $$
 \gamma_X(t) = z_1^{-t}P_1(t) + z_2^{-t}P_2(t) + \cdots + z_r^{-t}P_r(t),
@@ -781,7 +781,7 @@ grid.arrange(plt1, plt2, plt3, nrow = 3)
 
 We first discuss some properties of multivariate normal distributions.
 
-**Proposition 10.6.** (Conditional distribution)
+**Proposition 11.6.** (Conditional distribution)
 Let $(X_1,X_2,\ldots,X_{n+1}) \sim N(\mu, \Sigma)$ be a multivariate Gaussian random vector, then given observations $X_1=x_1, X_2 = x_2,\ldots,X_{n} = x_{n}$, the conditional distribution of $X_{n+1}$ conditioned on these values is 
 $$
 N(\mu_{n+1} + \Sigma_{1:n,n+1}^T\Sigma_{1:n,1:n}^{-1}(x_{1:n} - \mu_{1:n}), \Sigma_{n+1,n+1} - \Sigma_{1:n,n+1}^T\Sigma_{1:n,1:n}^{-1}\Sigma_{1:n,n+1}),
@@ -798,7 +798,7 @@ This is a [well-known property](https://en.wikipedia.org/wiki/Multivariate_norma
 This formula is used often in many areas of statistics (and engineering).
 In the context of time series analysis, we typically assume stationarity, which means that the formula simplifies.
 
-**Corollary 10.7** (Conditional distribution under stationarity)
+**Corollary 11.7** (Conditional distribution under stationarity)
 Let $(X_1,X_2,\ldots)$ be a zero mean stationary Gaussian process, then given observations $X_1=x_1, X_2 = x_2,\ldots,X_{n} = x_{n}$, the conditional distribution of $X_{n+h}$ conditioned on these values is
 $$
 N(\gamma_{h:n+h-1}^T\Gamma_{n}^{-1}x_{n:1}, \gamma_X(0) - \gamma_{h:n+h-1}^T\Gamma_{n}^{-1}\gamma_{h:n+h-1}),
@@ -841,7 +841,7 @@ $$
 \phi_{n+h|n} = \textnormal{argmin}_{\beta \in \R^n} \E\left\lbrace (\beta^TX_{n:1} - X_{n+h})^2\right\rbrace.
 $$ {#eq-ar-forecast-blp}
 
-**Proposition 10.8.** (BLP formula) 
+**Proposition 11.8.** (BLP formula) 
 @eq-ar-forecast-blp-formula solves @eq-ar-forecast-blp even when we do not assume Gaussianity.
 
 *Proof.*
@@ -873,7 +873,7 @@ X_t = \tilde\phi_{t|t-1}^TX_{t-1:1} + W_t .
 $$ {#eq-ar-forecast-arp-formula-alternate}
 As such, the following proposition should be unsurprising.
 
-**Proposition 10.9.** (BLP for AR(p))
+**Proposition 11.9.** (BLP for AR(p))
 If $(X_1,X_2,\ldots)$ follow an $\textnormal{AR}(p)$ model and $t > p$, we have $\phi_{t|t-1} = \tilde\phi_{t|t-1}$.
 
 *Proof.*
@@ -907,7 +907,7 @@ More generally, recursive forecasting turns a method for generating one-step-ahe
 It is thus a particularly useful approach for time series models based on machine learning, with [comparisons](https://machinelearningmastery.com/multi-step-time-series-forecasting/) between recursive and direct approaches being a topic of discussion and research.
 For $\textnormal{AR}(p)$ models, however, both approaches provide the exact same forecasts.
 
-**Proposition 10.10.** For an $\textnormal{AR}(p)$ model, both recursive and direct multi-step forecasts are the same.
+**Proposition 11.10.** For an $\textnormal{AR}(p)$ model, both recursive and direct multi-step forecasts are the same.
 
 *Proof. (optional)*
 In order to distinguish them from direct forecasts, we temporarily refer to the recursive forecasts defined in @eq-ar-moments-acvf-recursive using the notation $\tilde x_{n+h|n}$ for $h=1,2,\ldots$.
@@ -995,7 +995,7 @@ For $1 \leq t\leq p$, we have the more complicated expression
 $$
 f_\beta(x_t|x_1,\ldots,x_{t-1}) = (2\pi\nu_t^2)^{-1/2}\exp\left(-\frac{(x_t - \phi_{1:t-1}^T(x_{t-1:1} -\mu) - \mu)^2}{2\nu_t^2}\right),
 $$
-where $\nu_t^2 = \gamma(0) - \gamma_{1:t-1}^T\Gamma_{t-1}^{-1}\gamma_{1:t-1}$ (see Corollary 10.7) and the ACVF values $\gamma(k)$ are treated as functions in $\beta$ obtained via @eq-ar-moments-acvf-recursive-2 and @eq-ar-moments-acvf-recursive-3.
+where $\nu_t^2 = \gamma(0) - \gamma_{1:t-1}^T\Gamma_{t-1}^{-1}\gamma_{1:t-1}$ (see Corollary 11.7) and the ACVF values $\gamma(k)$ are treated as functions in $\beta$ obtained via @eq-ar-moments-acvf-recursive-2 and @eq-ar-moments-acvf-recursive-3.
 
 Taking logarithms, we therefore get the following expression for the negative log likelihood:
 $$
@@ -1085,7 +1085,7 @@ We have introduced four different estimators:
 Given these possibilities, it is natural to ask which estimator is the most *efficient*, i.e. which converges to the true parameters at the fastest rate.
 It turns out that for $\textnormal{AR}(p)$ models, all four are asymptotically equivalent and optimal.
 
-**Theorem 10.11.** (Large sample distribution of estimators)
+**Theorem 11.11.** (Large sample distribution of estimators)
 Suppose the white noise has finite 4th moments, i.e. $\E\lbrace W_t^2\rbrace < \infty$.
 Then for each of the four estimators listed above, $\hat\sigma^2$ is consistent and
 $$
@@ -1100,7 +1100,7 @@ Refer to Section B.3. in @shumway2000time for the remaining details of the proof
 
 Note that the [Cramer-Rao lower bound](https://en.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound) implies that $\sigma^2\Gamma_p^{-1}$ is the optimal asymptotic covariance.
 
-Using Theorem 10.11, we are able to provide confidence intervals and perform hypothesis testing for model parameters.
+Using Theorem 11.11, we are able to provide confidence intervals and perform hypothesis testing for model parameters.
 Of course, confidence intervals rely on assuming that all the modeling assumptions hold and that we know the correct order $p$ for the model.
 This is rarely the case for real data analysis.
 At the very least, one ought to be able to estimate the model order without knowing it before hand.
